@@ -17,8 +17,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 type PayerTransfererState = 'menu' | 'send' | 'split' | 'bills' | 'merchants';
 type MerchantSubService = 'pico' | 'picash' | 'bnpl';
 
+type PayerTransfererProps = {
+    onBack: () => void;
+}
 
-export default function PayerTransferer() {
+export default function PayerTransferer({ onBack }: PayerTransfererProps) {
     const [state, setState] = useState<PayerTransfererState>('menu');
     const [merchantService, setMerchantService] = useState<MerchantSubService | null>(null);
 
@@ -30,14 +33,14 @@ export default function PayerTransferer() {
     ];
     
     if (merchantService) {
-        const onBack = () => setMerchantService(null);
-        if (merchantService === 'pico') return <PICO onBack={onBack} />;
-        if (merchantService === 'picash') return <PICASH onBack={onBack} />;
-        if (merchantService === 'bnpl') return <BNPL onBack={onBack} />;
+        const onMerchantBack = () => setMerchantService(null);
+        if (merchantService === 'pico') return <PICO onBack={onMerchantBack} />;
+        if (merchantService === 'picash') return <PICASH onBack={onMerchantBack} />;
+        if (merchantService === 'bnpl') return <BNPL onBack={onMerchantBack} />;
     }
 
     if (state !== 'menu') {
-        const onBack = () => setState('menu');
+        const onSubMenuBack = () => setState('menu');
         let content;
         let title = '';
 
@@ -46,17 +49,18 @@ export default function PayerTransferer() {
                 title = "Envoyer de l'argent";
                 content = <PaymentForm />;
                 break;
+            // Split bill is handled in a dialog now, so this case might not be used
             case 'split':
                 title = "Partager une dépense";
                 content = <SplitBill />;
                 break;
             case 'bills':
                 title = "Payer une facture";
-                content = <BillPaymentForm onBack={onBack} />;
+                content = <BillPaymentForm onBack={onSubMenuBack} />;
                 break;
             case 'merchants':
                 title = "Services Marchands";
-                content = <MerchantServices onBack={onBack} onServiceClick={(service) => setMerchantService(service)}/>;
+                content = <MerchantServices onBack={onSubMenuBack} onServiceClick={(service) => setMerchantService(service)}/>;
                 break;
         }
 
@@ -66,7 +70,7 @@ export default function PayerTransferer() {
             <div>
                  {renderHeader && (
                     <div className="flex items-center gap-4 mb-4">
-                        <Button onClick={onBack} variant="ghost" size="icon">
+                        <Button onClick={onSubMenuBack} variant="ghost" size="icon">
                             <ArrowLeft />
                         </Button>
                         <h2 className="text-2xl font-bold text-primary">{title}</h2>
@@ -80,9 +84,14 @@ export default function PayerTransferer() {
 
     return (
          <div>
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-primary">Payer & Transférer</h2>
-                <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
+            <div className="flex items-center gap-4 mb-6">
+                <Button onClick={onBack} variant="ghost" size="icon">
+                    <ArrowLeft />
+                </Button>
+                <div>
+                     <h2 className="text-2xl font-bold text-primary">Payer & Transférer</h2>
+                     <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
+                </div>
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {menuItems.map(item => (
@@ -91,7 +100,7 @@ export default function PayerTransferer() {
                         className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
                         onClick={() => {
                             if(item.id === 'split') {
-                                // Split bill works best in a dialog
+                                // Split bill works best in a dialog, so we do nothing here to let the DialogTrigger handle it
                                 return;
                             }
                             setState(item.id as PayerTransfererState)

@@ -2,21 +2,15 @@
 "use client";
 
 import { useState } from 'react';
-import { Home, ArrowUp, User as UserIcon } from "lucide-react";
+import { Home, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TransactionHistory from './transaction-history';
 import Profile from './profile';
 import Tontine from './tontine';
-import Services from './services';
 import VirtualCard from './virtual-card';
 import HomeActions from './home-actions';
-import BillPaymentForm from './bill-payment-form';
 import type { Service } from './services';
-import MerchantServices from './merchant-services';
 import Vaults from './vaults';
-import PICO from './pico';
-import PICASH from './picash';
-import BNPL from './bnpl';
 import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
@@ -32,7 +26,8 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'payer' | 'profil';
+type NavItem = 'accueil' | 'profil';
+type ActiveAction = 'none' | 'payer';
 
 const servicesMap: { [key: string]: Service } = {
     "ma-carte": { name: "Ma Carte", icon: <></>, action: "ma-carte", description: "" },
@@ -44,6 +39,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
+    const [activeAction, setActiveAction] = useState<ActiveAction>('none');
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -52,6 +48,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
         setActiveService(null);
+        setActiveAction('none');
         setActiveTab(tab);
     }
     
@@ -62,10 +59,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         } else {
             const service = servicesMap[destination];
             if (service) {
-                // This logic needs to be revisited if services tab is removed.
-                // For now, let's assume we can show a specific service view.
                 setActiveService(service);
-                setActiveTab('accueil'); // Or a dedicated tab if we had one
+                setActiveTab('accueil');
+                setActiveAction('none');
             }
         }
       };
@@ -86,13 +82,17 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     setActiveService(null); // Fallback to reset state
              }
         }
+        if (activeAction === 'payer') {
+            return <PayerTransferer onBack={() => setActiveAction('none')} />
+        }
+        
         switch(activeTab){
             case 'accueil':
                 return (
                     <div className="space-y-8">
                         <DashboardHeader userInfo={userInfo} alias={alias} />
                         <HomeActions 
-                            onSendClick={() => onTabClick('payer')} 
+                            onSendClick={() => setActiveAction('payer')} 
                             alias={alias}
                             userInfo={userInfo}
                         />
@@ -100,8 +100,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
-            case 'payer':
-                return <PayerTransferer/>;
             case 'profil':
                 return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} />;
             default:
@@ -109,7 +107,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     <div className="space-y-8">
                         <DashboardHeader userInfo={userInfo} alias={alias} />
                         <HomeActions 
-                            onSendClick={() => onTabClick('payer')} 
+                            onSendClick={() => setActiveAction('payer')} 
                             alias={alias}
                             userInfo={userInfo}
                         />
@@ -126,14 +124,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             {renderContent()}
         </main>
       <footer className="fixed bottom-0 inset-x-0 z-40 flex justify-center p-4">
-          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-3 gap-1 p-2 max-w-sm w-full">
+          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-2 gap-1 p-2 max-w-xs w-full">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions && !activeService ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <Home />
                 <span className="text-xs">Accueil</span>
-            </Button>
-            <Button onClick={() => onTabClick('payer')} variant={activeTab === 'payer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
-                <ArrowUp />
-                <span className="text-xs">Payer</span>
             </Button>
             <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <UserIcon />

@@ -11,8 +11,8 @@ import { BalanceProvider } from '@/hooks/use-balance';
 import { AvatarProvider } from '@/hooks/use-avatar';
 
 export const metadata: Metadata = {
-  title: 'PAYTIK Simplifié',
-  description: 'Application de paiement simplifiée PAYTIK',
+  title: 'PAYTIK',
+  description: 'Application de paiement PAYTIK',
 };
 
 export default function RootLayout({
