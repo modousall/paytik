@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { ContactsProvider } from '@/hooks/use-contacts';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 
 export const metadata: Metadata = {
   title: 'PAYTIK Simplifié',
@@ -24,8 +25,10 @@ export default function RootLayout({
       <body className="font-body antialiased h-full">
         <TransactionsProvider>
           <ContactsProvider>
-            {children}
-            <Toaster />
+            <VirtualCardProvider>
+              {children}
+              <Toaster />
+            </VirtualCardProvider>
           </ContactsProvider>
         </TransactionsProvider>
       </body>

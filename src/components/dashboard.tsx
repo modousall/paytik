@@ -36,6 +36,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
+import VirtualCard from './virtual-card';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 
 type UserInfo = {
     name: string;
@@ -180,8 +182,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 return <PaymentForm />;
             case 'services':
                  if (activeService === 'tontine') return <Tontine />;
-                 // Add Ma Carte view here when ready
-                 // if (activeService === 'ma-carte') return <MaCarteComponent />;
+                 if (activeService === 'ma-carte') return <VirtualCard />;
                  return <Services onServiceClick={handleServiceClick}/>;
             case 'profil':
                 return <Profile alias={alias} onLogout={onLogout} />;
@@ -202,10 +203,12 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
-      <Header userInfo={userInfo} alias={alias} onLogout={onLogout} />
-       <main className="flex-grow container mx-auto p-4 sm:p-6">
-        {renderContent()}
-      </main>
+        <VirtualCardProvider>
+            <Header userInfo={userInfo} alias={alias} onLogout={onLogout} />
+            <main className="flex-grow container mx-auto p-4 sm:p-6">
+                {renderContent()}
+            </main>
+        </VirtualCardProvider>
       <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
           <div className="container mx-auto grid grid-cols-4 gap-1">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
