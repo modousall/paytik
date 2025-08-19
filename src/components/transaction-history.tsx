@@ -27,10 +27,10 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 type TransactionHistoryProps = {
   showAll: boolean;
@@ -146,7 +146,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
 export default function TransactionHistory({ showAll, onShowAll }: TransactionHistoryProps) {
     const { transactions } = useTransactions();
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeFilter, setActiveFilter] = useState<string>('all');
+    const [activeFilter, setActiveFilter] = useState('all');
 
     const filteredTransactions = useMemo(() => {
         return transactions.filter(tx => {
@@ -188,7 +188,23 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <Button variant="outline" size="icon"><Filter /></Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Filter />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                                <DropdownMenuLabel>Filtrer par type</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuRadioGroup value={activeFilter} onValueChange={setActiveFilter}>
+                                    <DropdownMenuRadioItem value="all">Toutes</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="sent">Envoyées</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="received">Reçues</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="tontine">Tontine</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 )}
             </CardHeader>
