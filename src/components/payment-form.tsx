@@ -13,10 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { paymentSecurityAssistant } from '@/ai/flows/payment-security-assistant';
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import SecurityAssistantDialog from './security-assistant-dialog';
-import { Loader2, Users, ClipboardPaste } from 'lucide-react';
+import { Loader2, ClipboardPaste } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
-import SplitBill from './split-bill';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 
 const paymentFormSchema = z.object({
   recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
@@ -104,17 +102,6 @@ export default function PaymentForm() {
     <>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-primary">Envoyer de l'argent</h2>
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline"><Users className="mr-2"/> Partager une dépense</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Partager une dépense</DialogTitle>
-                </DialogHeader>
-                <SplitBill />
-            </DialogContent>
-        </Dialog>
       </div>
 
       <p className="text-muted-foreground mb-6">Saisissez les détails du paiement pour envoyer de l'argent via PAYTIK.</p>

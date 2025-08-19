@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, LayoutGrid, Handshake, User as UserIcon, Search, Bell, QrCode, Home } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, Bell, QrCode, Home, Handshake, User as UserIcon } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
@@ -15,8 +15,16 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
 import Tontine from './tontine';
 import Services from './services';
+import SplitBill from './split-bill';
 
 type UserInfo = {
     name: string;
@@ -29,7 +37,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'payer' | 'tontine' | 'profil';
+type NavItem = 'accueil' | 'payer' | 'services' | 'profil';
 
 const Header = ({ userInfo, alias }: { userInfo: UserInfo; alias: string }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
@@ -42,7 +50,6 @@ const Header = ({ userInfo, alias }: { userInfo: UserInfo; alias: string }) => (
             <div className="font-bold text-lg text-primary">PAYTIK</div>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon"><Search /></Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><QrCode /></Button>
@@ -66,7 +73,7 @@ const BalanceDisplay = () => (
     </Card>
 );
 
-const HomeActions = ({ onSendClick, onReceiveClick, onServicesClick }: { onSendClick: () => void; onReceiveClick: () => void; onServicesClick: () => void; }) => (
+const HomeActions = ({ onSendClick, onReceiveClick, onSplitBillClick }: { onSendClick: () => void; onReceiveClick: () => void; onSplitBillClick: () => void; }) => (
     <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="flex flex-col items-center gap-2">
             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
@@ -74,19 +81,29 @@ const HomeActions = ({ onSendClick, onReceiveClick, onServicesClick }: { onSendC
         </div>
         <Sheet>
             <SheetTrigger asChild>
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={onReceiveClick}>
                     <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
                     <span className="text-sm font-medium">Recevoir</span>
                 </div>
             </SheetTrigger>
             <SheetContent className="p-0">
-                <QrCodeDisplay alias={onReceiveClick.toString()} userInfo={{name: "User", email: "email"}} />
+                <QrCodeDisplay alias={"alias_placeholder"} userInfo={{name: "User", email: "email"}} />
             </SheetContent>
         </Sheet>
-        <div className="flex flex-col items-center gap-2">
-            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onServicesClick}><LayoutGrid/></Button>
-            <span className="text-sm font-medium">Services</span>
-        </div>
+         <Dialog>
+            <DialogTrigger asChild>
+                <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={onSplitBillClick}>
+                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><Users/></Button>
+                    <span className="text-sm font-medium">Partager</span>
+                </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Partager une dépense</DialogTitle>
+                </DialogHeader>
+                <SplitBill />
+            </DialogContent>
+        </Dialog>
     </div>
 )
 
@@ -107,7 +124,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
       }
     
       const handleServiceClick = (service: string) => {
-        setActiveTab('tontine'); // A bit of a hack to show a service page, might need better routing
+        setActiveTab('services'); 
         setActiveService(service);
       }
 
@@ -122,20 +139,18 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         <BalanceDisplay />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
-                            onReceiveClick={() => {}} // The Sheet handles the click
-                            onServicesClick={() => handleServiceClick("grid")}
+                            onReceiveClick={() => { /* Sheet handles open */ }}
+                            onSplitBillClick={() => { /* Dialog handles open */ }}
                         />
                         <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
                 )
             case 'payer':
                 return <PaymentForm />;
-            case 'tontine':
+            case 'services':
                  if (activeService === 'tontine') return <Tontine />;
-                 if (activeService === 'grid') return <Services onServiceClick={handleServiceClick}/>;
                  // Add Ma Carte view here when ready
-                 // if (activeService === 'Ma Carte') return <MaCarteComponent />;
-                 // Default to something or show a message
+                 // if (activeService === 'ma-carte') return <MaCarteComponent />;
                  return <Services onServiceClick={handleServiceClick}/>;
             case 'profil':
                 return <Profile alias={alias} onLogout={onLogout} />;
@@ -143,10 +158,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                  return (
                     <div>
                         <BalanceDisplay />
-                        <HomeActions 
+                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             onReceiveClick={() => {}}
-                            onServicesClick={() => handleServiceClick("grid")}
+                            onSplitBillClick={() => {}}
                         />
                         <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
@@ -171,9 +186,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <ArrowUp />
                 <span className="text-xs">Payer</span>
             </Button>
-            <Button onClick={() => handleServiceClick('tontine')} variant={activeTab === 'tontine' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Handshake />
-                <span className="text-xs">Tontine</span>
+                <span className="text-xs">Services</span>
             </Button>
             <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <UserIcon />
