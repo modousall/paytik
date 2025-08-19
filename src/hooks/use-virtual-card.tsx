@@ -57,11 +57,13 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
         }
         if (storedTransactions) {
             setTransactions(JSON.parse(storedTransactions));
-        } else if (storedCard) {
+        } else if (storedCard) { // if card exists but no txs, load initial txs
             setTransactions(initialTransactions);
         }
     } catch (error) {
         console.error("Failed to parse virtual card from localStorage", error);
+        setCard(null); // Reset to a safe state
+        setTransactions([]);
     }
     setIsInitialized(true);
   }, []);
