@@ -14,7 +14,9 @@ import Header from './header';
 import BalanceDisplay from './balance-display';
 import HomeActions from './home-actions';
 import BillPaymentForm from './bill-payment-form';
-import type { Service } from './services';
+import type { Service, BillService } from './services';
+import BillSelection from './bill-selection';
+import MerchantServices from './merchant-services';
 
 type UserInfo = {
     name: string;
@@ -33,6 +35,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
+    const [activeBill, setActiveBill] = useState<BillService | null>(null);
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -41,12 +44,22 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
         setActiveService(null);
+        setActiveBill(null);
         setActiveTab(tab);
       }
     
       const handleServiceClick = (service: Service) => {
         setActiveTab('services'); 
         setActiveService(service);
+      }
+
+      const handleBillSelect = (bill: BillService) => {
+          setActiveBill(bill);
+      }
+
+      const backToServices = () => {
+        setActiveService(null);
+        setActiveBill(null);
       }
 
       const renderContent = () => {
@@ -76,12 +89,22 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         return <Tontine />;
                     case 'ma-carte':
                         return <VirtualCard />;
-                    case 'eau':
-                    case 'electricite':
-                    case 'internet':
-                    case 'credit':
-                    case 'tv':
-                        return <BillPaymentForm service={activeService} onBack={() => setActiveService(null)} />;
+                    case 'factures':
+                        if (activeBill) {
+                           return <BillPaymentForm service={activeBill} onBack={() => setActiveBill(null)} />;
+                        }
+                        return <BillSelection onSelect={handleBillSelect} onBack={backToServices} />;
+                    case 'marchands':
+                        return <MerchantServices onBack={backToServices} />;
+                    case 'coffres':
+                         // Placeholder for Coffres component
+                         return (
+                            <div className="text-center py-10">
+                                <h2 className="text-2xl font-bold">Coffres</h2>
+                                <p className="text-muted-foreground">Bientôt disponible.</p>
+                                <Button onClick={backToServices} className="mt-4">Retour</Button>
+                            </div>
+                        );
                     default:
                         return <Services onServiceClick={handleServiceClick}/>;
                  }
