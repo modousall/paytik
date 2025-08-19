@@ -1,90 +1,82 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { useCameraPermission } from '@/hooks/use-camera-permission';
+import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Video, VideoOff, Loader2 } from 'lucide-react';
-import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { VideoOff, Loader2 } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeScannerState, QrCodeError } from 'html5-qrcode';
 
 type QRCodeScannerProps = {
     onScan: (decodedText: string) => void;
 };
 
 const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isScanning, setIsScanning] = useState(false);
-    const { hasPermission, error } = useCameraPermission(videoRef);
+    const [scanState, setScanState] = useState<'idle' | 'scanning' | 'error' | 'success'>('idle');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!hasPermission || !videoRef.current || isScanning) {
-            return;
-        }
-
         const containerId = 'qr-reader';
-        
-        // Ensure the container element exists
-        let readerContainer = document.getElementById(containerId);
-        if (!readerContainer) {
-            readerContainer = document.createElement('div');
-            readerContainer.id = containerId;
-            videoRef.current?.parentNode?.insertBefore(readerContainer, videoRef.current.nextSibling);
-        }
+        const qrScanner = new Html5Qrcode(containerId, { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
 
-        // Hide the video element since Html5Qrcode will create its own
-        if (videoRef.current) {
-            videoRef.current.style.display = 'none';
-        }
-        
-        const qrScanner = new Html5Qrcode(containerId);
-        setIsScanning(true);
+        const startScanner = async () => {
+            setScanState('idle');
+            setErrorMessage(null);
+            
+            try {
+                 const devices = await Html5Qrcode.getCameras();
+                 if (!devices || devices.length === 0) {
+                     throw new Error("Aucun appareil photo trouvé.");
+                 }
 
-        const qrCodeSuccessCallback = (decodedText: string) => {
-            onScan(decodedText);
-            if (qrScanner.getState() === Html5QrcodeScannerState.SCANNING) {
-                qrScanner.stop().catch(err => console.error("Failed to stop scanner", err));
+                const qrCodeSuccessCallback = (decodedText: string) => {
+                    setScanState('success');
+                    onScan(decodedText);
+                    if (qrScanner.getState() === Html5QrcodeScannerState.SCANNING) {
+                        qrScanner.stop().catch(err => console.error("Impossible d'arrêter le scanner", err));
+                    }
+                };
+
+                const qrCodeErrorCallback = (error: QrCodeError) => {
+                    // This callback is often called when no QR code is in the frame. We can ignore these.
+                };
+
+                await qrScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    qrCodeSuccessCallback,
+                    qrCodeErrorCallback as (errorMessage: string, error: QrCodeError) => void
+                );
+                setScanState('scanning');
+
+            } catch (err: any) {
+                 if (err.name === 'NotAllowedError') {
+                    setErrorMessage("L'accès à la caméra a été refusé. Veuillez l'autoriser dans les paramètres de votre navigateur.");
+                } else if (err.name === 'NotFoundError') {
+                     setErrorMessage("Aucun appareil photo compatible n'a été trouvé.");
+                } else {
+                    setErrorMessage("Une erreur est survenue lors du démarrage du scanner: " + (err.message || err));
+                }
+                setScanState('error');
             }
         };
 
-        const qrCodeErrorCallback = (errorMessage: string) => {
-           // console.log(`QR Code no longer in front of camera. ${errorMessage}`);
-        };
-
-        qrScanner.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            qrCodeSuccessCallback,
-            qrCodeErrorCallback
-        ).catch(err => {
-            console.error("Failed to start scanner", err);
-        });
+        startScanner();
 
         return () => {
-            if (qrScanner.getState() === Html5QrcodeScannerState.SCANNING) {
+            if (qrScanner && qrScanner.getState() === Html5QrcodeScannerState.SCANNING) {
                 qrScanner.stop().catch(err => {
-                    console.error("Cleanup: Failed to stop scanner", err);
+                    console.error("Nettoyage: Impossible d'arrêter le scanner", err);
                 });
             }
         };
-    }, [hasPermission, onScan, isScanning]);
+    }, [onScan]);
 
 
     return (
         <div className="p-4 space-y-4">
             <div id="qr-reader-container" className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center text-muted-foreground">
-                 {/* This div is where the scanner will be rendered */}
-                 <div id="qr-reader" className='w-full'></div>
-
-                {/* We keep the videoRef for the permission hook, but it can be hidden */}
-                <video 
-                    ref={videoRef} 
-                    className="w-full h-full object-cover hidden" 
-                    autoPlay 
-                    muted 
-                    playsInline
-                />
-
-                {!isScanning && (
+                <div id="qr-reader" className='w-full'></div>
+                {scanState === 'idle' && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                         <Loader2 className="animate-spin h-8 w-8" />
                         <p>Démarrage du scanner...</p>
@@ -92,19 +84,11 @@ const QRCodeScanner = ({ onScan }: QRCodeScannerProps) => {
                 )}
             </div>
            
-            {error && (
+            {scanState === 'error' && (
                 <Alert variant="destructive">
                     <VideoOff className="h-4 w-4" />
                     <AlertTitle>Erreur de caméra</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-
-            {!hasPermission && !error && (
-                <Alert>
-                    <Video className="h-4 w-4" />
-                    <AlertTitle>En attente de la caméra</AlertTitle>
-                    <AlertDescription>Veuillez autoriser l'accès à la caméra pour scanner les codes QR.</AlertDescription>
+                    <AlertDescription>{errorMessage}</AlertDescription>
                 </Alert>
             )}
         </div>
