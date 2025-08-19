@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type Contact = {
   id: string;
@@ -60,7 +60,7 @@ export const ContactsProvider = ({ children }: ContactsProviderProps) => {
     setContacts(prevContacts => prevContacts.filter(c => c.id !== id));
   };
 
-  const value = { contacts, addContact, removeContact };
+  const value = { contacts, addTransaction: addContact, removeContact };
 
   return (
     <ContactsContext.Provider value={value}>

@@ -48,7 +48,7 @@ Fournissez une liste de suggestions de sécurité à l'utilisateur. Ces suggesti
 
 Tenez compte de facteurs tels que l'alias du destinataire, les détails du compte, le montant de la transaction et le type de transaction lors de la génération de vos suggestions.
 Si l'alias du destinataire ressemble à un numéro de téléphone ou à une adresse e-mail qui n'est pas dans un format standard, avertissez l'utilisateur.
-Si le destinataire est "Nouveau", avertissez l'utilisateur de vérifier qu'il connaît le destinataire.
+Si le destinataire est "Nouveau" ou n'est pas dans la liste de contacts, avertissez l'utilisateur de vérifier qu'il connaît le destinataire et que l'alias est correct.
 
 La sortie DOIT être un JSON valide conforme au schéma suivant:
 ${JSON.stringify(PaymentSecurityAssistantOutputSchema.describe(''))}`,

@@ -69,7 +69,6 @@ export default function PaymentForm() {
 
       if (paymentDetails) {
         addTransaction({
-            id: `TXN${Math.floor(Math.random() * 900000) + 100000}`,
             type: "sent",
             counterparty: paymentDetails.recipientAlias,
             reason: paymentDetails.reason || "Paiement",

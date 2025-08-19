@@ -25,7 +25,7 @@ import {
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
-  alias: z.string().min(9, { message: "L'alias doit être un numéro de téléphone ou un identifiant valide." }),
+  alias: z.string().min(3, { message: "L'alias doit contenir au moins 3 caractères." }),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -79,7 +79,7 @@ export default function Contacts() {
                   <FormItem>
                     <FormLabel>Alias (Téléphone/ID)</FormLabel>
                     <FormControl>
-                      <Input placeholder="+221771234567" {...field} />
+                      <Input placeholder="+221771234567 ou @alias" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
