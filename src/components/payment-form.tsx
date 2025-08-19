@@ -19,7 +19,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 const paymentFormSchema = z.object({
   recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant doit être positif." }),
-  reason: z.string().max(140).optional().default(''),
+  reason: z.string().max(140).optional(),
 });
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;

@@ -38,7 +38,7 @@ const initialTransactions: Transaction[] = [
       reason: "Achat T-shirt",
       date: "2024-07-24T18:05:00Z",
       amount: 12500,
-      status: "Terminé",
+      status: "Retourné",
     },
     {
       id: "TXN102938",
