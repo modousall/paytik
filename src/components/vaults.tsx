@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, PiggyBank, PlusCircle, Target, DollarSign, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from './ui/label';
 
 type VaultsProps = {
   onBack: () => void;
