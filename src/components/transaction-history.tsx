@@ -19,23 +19,23 @@ const transactions = [
     counterparty: "+221776543210",
     date: "2024-07-25",
     amount: 5000,
-    status: "Completed",
+    status: "Terminé",
   },
   {
     id: "TXN927481",
     type: "sent",
-    counterparty: "MerchStore Online",
+    counterparty: "BoutiqueEnLigne Merch",
     date: "2024-07-24",
     amount: 12500,
-    status: "Completed",
+    status: "Terminé",
   },
     {
     id: "TXN102938",
     type: "tontine",
-    counterparty: "Family Tontine",
+    counterparty: "Tontine Familiale",
     date: "2024-07-23",
     amount: 20000,
-    status: "Completed",
+    status: "Terminé",
   },
   {
     id: "TXN384756",
@@ -43,7 +43,7 @@ const transactions = [
     counterparty: "+221778765432",
     date: "2024-07-22",
     amount: 2500,
-    status: "Completed",
+    status: "Terminé",
   },
 ];
 
@@ -52,28 +52,28 @@ export default function TransactionHistory() {
 
   const handleReturn = (id: string) => {
     toast({
-        title: "Payment Returned",
-        description: `Transaction ${id} has been returned.`,
+        title: "Paiement retourné",
+        description: `La transaction ${id} a été retournée.`,
     });
   };
 
   const handleDownload = (id: string) => {
     toast({
-        title: "Receipt Downloaded",
-        description: `Receipt for transaction ${id} is being generated.`,
+        title: "Reçu téléchargé",
+        description: `Le reçu pour la transaction ${id} est en cours de génération.`,
     });
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4 text-primary">Transaction History</h2>
-      <p className="text-muted-foreground mb-6">View your recent transactions.</p>
+      <h2 className="text-2xl font-bold mb-4 text-primary">Historique des transactions</h2>
+      <p className="text-muted-foreground mb-6">Consultez vos transactions récentes.</p>
       <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Details</TableHead>
-              <TableHead className="text-right">Amount (XOF)</TableHead>
+              <TableHead>Détails</TableHead>
+              <TableHead className="text-right">Montant (Fcfa)</TableHead>
               <TableHead className="text-center hidden sm:table-cell">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -90,7 +90,7 @@ export default function TransactionHistory() {
                     </div>
                     <div>
                         <div className="font-medium">{tx.counterparty}</div>
-                        <div className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <div className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                     </div>
                   </div>
                 </TableCell>
@@ -101,11 +101,11 @@ export default function TransactionHistory() {
                     <div className="flex items-center justify-center gap-2">
                         {(tx.type === 'received') && (
                             <Button variant="outline" size="sm" onClick={() => handleReturn(tx.id)}>
-                                <RotateCcw className="mr-2 h-3 w-3" /> Return
+                                <RotateCcw className="mr-2 h-3 w-3" /> Retour
                             </Button>
                         )}
                         <Button variant="ghost" size="sm" onClick={() => handleDownload(tx.id)}>
-                            <Download className="mr-2 h-3 w-3" /> Receipt
+                            <Download className="mr-2 h-3 w-3" /> Reçu
                         </Button>
                     </div>
                 </TableCell>

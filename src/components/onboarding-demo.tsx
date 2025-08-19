@@ -19,31 +19,31 @@ export default function OnboardingDemo({ onComplete }: OnboardingDemoProps) {
   const features = [
     {
       icon: <Zap className="h-12 w-12 text-primary" />,
-      title: "Instant Transactions",
-      description: "Experience lightning-fast payment processing for all your needs.",
+      title: "Transactions Instantanées",
+      description: "Profitez d'un traitement des paiements ultra-rapide pour tous vos besoins.",
     },
     {
       icon: <ShieldCheck className="h-12 w-12 text-primary" />,
-      title: "Always Available",
-      description: "Our interoperable platform is available 24/7, ensuring you can transact anytime.",
+      title: "Toujours Disponible",
+      description: "Notre plateforme interopérable est disponible 24/7, vous assurant de pouvoir effectuer des transactions à tout moment.",
     },
     {
       icon: <DollarSign className="h-12 w-12 text-primary" />,
-      title: "Affordable Costs",
-      description: "Enjoy competitive and transparent transaction fees with PAYTIK.",
+      title: "Coûts Abordables",
+      description: "Profitez de frais de transaction compétitifs et transparents avec PAYTIK.",
     },
     {
       icon: <Handshake className="h-12 w-12 text-primary" />,
-      title: "Permissions",
-      description: "To enhance your experience, PAYTIK requires access to your contacts and notifications. Your data is safe with us.",
+      title: "Autorisations",
+      description: "Pour améliorer votre expérience, PAYTIK nécessite l'accès à vos contacts et notifications. Vos données sont en sécurité avec nous.",
     },
   ];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
       <div className="w-full max-w-md mx-auto">
-        <h1 className="text-3xl font-bold text-center text-primary mb-2">Welcome to PAYTIK</h1>
-        <p className="text-center text-muted-foreground mb-8">Your simplified and secure payment solution.</p>
+        <h1 className="text-3xl font-bold text-center text-primary mb-2">Bienvenue sur PAYTIK</h1>
+        <p className="text-center text-muted-foreground mb-8">Votre solution de paiement simplifiée et sécurisée.</p>
         <Carousel className="w-full">
           <CarouselContent>
             {features.map((feature, index) => (
@@ -64,7 +64,7 @@ export default function OnboardingDemo({ onComplete }: OnboardingDemoProps) {
           <CarouselNext className="hidden sm:flex" />
         </Carousel>
         <Button onClick={onComplete} className="w-full mt-8 bg-accent text-accent-foreground hover:bg-accent/90">
-          Get Started
+          Commencer
         </Button>
       </div>
     </div>

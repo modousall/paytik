@@ -36,15 +36,15 @@ const Header = ({ alias, onLogout }: { alias: string, onLogout: () => void; }) =
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
               <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>Profil</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onLogout}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>Se déconnecter</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -64,7 +64,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
       case 'qr':
         return <QrCodeDisplay alias={alias} />;
       case 'manage':
-        return <div className="p-8 text-center text-muted-foreground">Alias management coming soon.</div>;
+        return <div className="p-8 text-center text-muted-foreground">La gestion des alias sera bientôt disponible.</div>;
       default:
         return <PaymentForm />;
     }
@@ -81,10 +81,10 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
                     <CardTitle>Menu</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
-                    <Button variant={activeTab === 'pay' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('pay')}><ArrowUpRight className="mr-2 h-5 w-5"/> Pay</Button>
-                    <Button variant={activeTab === 'history' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('history')}><History className="mr-2 h-5 w-5"/> History</Button>
-                    <Button variant={activeTab === 'qr' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('qr')}><QrCode className="mr-2 h-5 w-5"/> My QR</Button>
-                    <Button variant={activeTab === 'manage' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('manage')}><SlidersHorizontal className="mr-2 h-5 w-5"/> Manage Alias</Button>
+                    <Button variant={activeTab === 'pay' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('pay')}><ArrowUpRight className="mr-2 h-5 w-5"/> Payer</Button>
+                    <Button variant={activeTab === 'history' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('history')}><History className="mr-2 h-5 w-5"/> Historique</Button>
+                    <Button variant={activeTab === 'qr' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('qr')}><QrCode className="mr-2 h-5 w-5"/> Mon QR</Button>
+                    <Button variant={activeTab === 'manage' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('manage')}><SlidersHorizontal className="mr-2 h-5 w-5"/> Gérer l'alias</Button>
                 </CardContent>
             </Card>
           </aside>

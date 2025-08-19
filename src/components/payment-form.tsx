@@ -15,8 +15,8 @@ import SecurityAssistantDialog from './security-assistant-dialog';
 import { Loader2 } from 'lucide-react';
 
 const paymentFormSchema = z.object({
-  recipientAlias: z.string().min(1, { message: "Recipient alias is required." }),
-  amount: z.coerce.number().positive({ message: "Amount must be positive." }),
+  recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
+  amount: z.coerce.number().positive({ message: "Le montant doit être positif." }),
   reason: z.string().max(140).optional().default(''),
 });
 
@@ -44,17 +44,17 @@ export default function PaymentForm() {
     try {
       const result = await paymentSecurityAssistant({
         recipientAlias: values.recipientAlias,
-        recipientAccountDetails: 'N/A for alias payment',
+        recipientAccountDetails: 'N/A pour le paiement par alias',
         amount: values.amount,
-        transactionType: 'Alias Payment',
+        transactionType: 'Paiement par alias',
       });
       setSecurityAnalysis(result);
       setIsDialogOpen(true);
     } catch (error) {
-      console.error("AI security check failed:", error);
+      console.error("L'analyse de sécurité par l'IA a échoué:", error);
       toast({
-        title: "Error",
-        description: "Could not perform security check. Please try again.",
+        title: "Erreur",
+        description: "Impossible d'effectuer la vérification de sécurité. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -66,8 +66,8 @@ export default function PaymentForm() {
       setIsDialogOpen(false);
       form.reset();
       toast({
-        title: "Payment Sent!",
-        description: `Successfully sent ${paymentDetails?.amount.toLocaleString()} XOF to ${paymentDetails?.recipientAlias}.`,
+        title: "Paiement Envoyé!",
+        description: `Envoyé avec succès ${paymentDetails?.amount.toLocaleString()} Fcfa à ${paymentDetails?.recipientAlias}.`,
       });
       setSecurityAnalysis(null);
       setPaymentDetails(null);
@@ -75,8 +75,8 @@ export default function PaymentForm() {
 
   return (
     <>
-      <h2 className="text-2xl font-bold mb-4 text-primary">Send Money</h2>
-      <p className="text-muted-foreground mb-6">Enter payment details to send money via PAYTIK.</p>
+      <h2 className="text-2xl font-bold mb-4 text-primary">Envoyer de l'argent</h2>
+      <p className="text-muted-foreground mb-6">Saisissez les détails du paiement pour envoyer de l'argent via PAYTIK.</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -84,9 +84,9 @@ export default function PaymentForm() {
             name="recipientAlias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Recipient Alias</FormLabel>
+                <FormLabel>Alias du destinataire</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., +221771234567" {...field} />
+                  <Input placeholder="ex: +221771234567" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -97,7 +97,7 @@ export default function PaymentForm() {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount (XOF)</FormLabel>
+                <FormLabel>Montant (Fcfa)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="5000" {...field} />
                 </FormControl>
@@ -110,9 +110,9 @@ export default function PaymentForm() {
             name="reason"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reason (Optional)</FormLabel>
+                <FormLabel>Raison (Optionnel)</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="e.g., Lunch money (max 140 chars)" {...field} />
+                  <Textarea placeholder="ex: Argent pour le déjeuner (max 140 caractères)" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,7 +120,7 @@ export default function PaymentForm() {
           />
           <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 py-6 text-lg" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Review Payment
+            Vérifier le paiement
           </Button>
         </form>
       </Form>

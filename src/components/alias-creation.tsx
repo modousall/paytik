@@ -24,8 +24,8 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
     e.preventDefault();
     if (aliasValue.length < 9) {
       toast({
-        title: "Invalid Alias",
-        description: "Please enter a valid phone number.",
+        title: "Alias Invalide",
+        description: "Veuillez entrer un numéro de téléphone valide.",
         variant: "destructive",
       });
       return;
@@ -33,14 +33,14 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
     // Simulate API call to send OTP
     if (aliasValue === '+221771234567') { // Simulate used alias
       toast({
-        title: "Alias In Use",
-        description: "This alias is already taken. You can claim it or choose another.",
+        title: "Alias déjà utilisé",
+        description: "Cet alias est déjà pris. Vous pouvez le réclamer ou en choisir un autre.",
         variant: "destructive",
       });
       return;
     }
     
-    console.log("Sending OTP to", aliasValue);
+    console.log("Envoi de l'OTP à", aliasValue);
     setStep(2);
   };
 
@@ -48,14 +48,14 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
     e.preventDefault();
     if (otp === '123456') { // Simulate correct OTP
       toast({
-        title: "Success!",
-        description: "Your alias has been verified.",
+        title: "Succès!",
+        description: "Votre alias a été vérifié.",
       });
       onAliasCreated(aliasValue);
     } else {
       toast({
-        title: "Invalid OTP",
-        description: "The code you entered is incorrect. Please try again.",
+        title: "OTP Invalide",
+        description: "Le code que vous avez entré est incorrect. Veuillez réessayer.",
         variant: "destructive",
       });
     }
@@ -65,47 +65,47 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle className="text-primary text-2xl">Create Your PAYTIK Alias</CardTitle>
-          <CardDescription>This will be your unique identifier for sending and receiving money.</CardDescription>
+          <CardTitle className="text-primary text-2xl">Créez votre alias PAYTIK</CardTitle>
+          <CardDescription>Ce sera votre identifiant unique pour envoyer et recevoir de l'argent.</CardDescription>
         </CardHeader>
         <CardContent>
           {step === 1 && (
             <form onSubmit={handleAliasSubmit} className="space-y-6">
               <RadioGroup defaultValue="phone" onValueChange={(value) => setAliasType(value as 'phone' | 'email')}>
-                <Label>Alias Type</Label>
+                <Label>Type d'alias</Label>
                 <div className="flex items-center space-x-4 pt-2">
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="phone" id="phone" />
-                        <Label htmlFor="phone" className="flex items-center gap-2 cursor-pointer"><Smartphone size={16}/> Phone</Label>
+                        <Label htmlFor="phone" className="flex items-center gap-2 cursor-pointer"><Smartphone size={16}/> Téléphone</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="email" id="email" disabled />
-                        <Label htmlFor="email" className="flex items-center gap-2 text-muted-foreground"><Mail size={16}/> Payment Address (soon)</Label>
+                        <Label htmlFor="email" className="flex items-center gap-2 text-muted-foreground"><Mail size={16}/> Adresse de paiement (bientôt)</Label>
                     </div>
                 </div>
               </RadioGroup>
               
               <div>
-                <Label htmlFor="alias">{aliasType === 'phone' ? 'Phone Number' : 'Payment Address'}</Label>
+                <Label htmlFor="alias">{aliasType === 'phone' ? 'Numéro de téléphone' : 'Adresse de paiement'}</Label>
                 <Input
                   id="alias"
                   type={aliasType === 'phone' ? 'tel' : 'text'}
-                  placeholder={aliasType === 'phone' ? '+221771234567' : 'Generated automatically'}
+                  placeholder={aliasType === 'phone' ? '+221771234567' : 'Généré automatiquement'}
                   value={aliasValue}
                   onChange={(e) => setAliasValue(e.target.value)}
                   disabled={aliasType !== 'phone'}
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Continue</Button>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Continuer</Button>
             </form>
           )}
 
           {step === 2 && (
             <form onSubmit={handleOtpSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="otp">Verification Code</Label>
-                <p className="text-sm text-muted-foreground mb-2">Enter the 6-digit code sent to {aliasValue}.</p>
+                <Label htmlFor="otp">Code de vérification</Label>
+                <p className="text-sm text-muted-foreground mb-2">Entrez le code à 6 chiffres envoyé à {aliasValue}.</p>
                 <Input
                   id="otp"
                   type="text"
@@ -117,8 +117,8 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Verify Alias</Button>
-              <Button variant="link" onClick={() => setStep(1)} className="w-full text-primary">Change Alias</Button>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Vérifier l'alias</Button>
+              <Button variant="link" onClick={() => setStep(1)} className="w-full text-primary">Changer d'alias</Button>
             </form>
           )}
         </CardContent>

@@ -39,25 +39,25 @@ export default function SecurityAssistantDialog({
             ) : (
               <ShieldCheck className="text-[hsl(var(--chart-2))]" />
             )}
-            Confirm Payment
+            Confirmer le paiement
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Please review the security analysis before confirming your payment.
+            Veuillez examiner l'analyse de sécurité avant de confirmer votre paiement.
           </AlertDialogDescription>
         </AlertDialogHeader>
         
         <div className="text-sm space-y-4 py-4 border-y">
             <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">To:</span>
+                <span className="text-muted-foreground">À:</span>
                 <span className="font-medium">{paymentDetails.recipientAlias}</span>
             </div>
             <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Amount:</span>
-                <span className="font-medium text-lg text-primary">{paymentDetails.amount.toLocaleString()} XOF</span>
+                <span className="text-muted-foreground">Montant:</span>
+                <span className="font-medium text-lg text-primary">{paymentDetails.amount.toLocaleString()} Fcfa</span>
             </div>
             {paymentDetails.reason && (
                  <div className="flex justify-between items-start gap-4">
-                    <span className="text-muted-foreground">Reason:</span>
+                    <span className="text-muted-foreground">Raison:</span>
                     <span className="font-medium text-right">{paymentDetails.reason}</span>
                 </div>
             )}
@@ -66,11 +66,11 @@ export default function SecurityAssistantDialog({
         <div className="space-y-2">
             <h4 className="font-semibold flex items-center gap-2">
                 {analysis.isHighRisk ? (
-                    <Badge variant="destructive">High Risk</Badge>
+                    <Badge variant="destructive">Risque Élevé</Badge>
                 ) : (
-                    <Badge variant="default" className="bg-[hsl(var(--chart-2))] hover:bg-[hsl(var(--chart-2))]">Low Risk</Badge>
+                    <Badge variant="default" className="bg-[hsl(var(--chart-2))] hover:bg-[hsl(var(--chart-2))]">Faible Risque</Badge>
                 )}
-                AI Security Suggestions
+                Suggestions de sécurité IA
             </h4>
             <ul className="list-disc list-inside bg-secondary p-3 rounded-md text-secondary-foreground space-y-1 text-xs">
                 {analysis.securitySuggestions.map((suggestion, index) => (
@@ -80,9 +80,9 @@ export default function SecurityAssistantDialog({
         </div>
         
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Confirm & Pay
+            Confirmer et Payer
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

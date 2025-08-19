@@ -35,20 +35,20 @@ const prompt = ai.definePrompt({
   name: 'paymentSecurityAssistantPrompt',
   input: {schema: PaymentSecurityAssistantInputSchema},
   output: {schema: PaymentSecurityAssistantOutputSchema},
-  prompt: `You are a Smart Payment Security Assistant. Your role is to analyze the details of a payment transaction and provide security suggestions to the user to help them avoid scams or incorrect payments.
+  prompt: `Vous êtes un assistant de sécurité des paiements intelligent. Votre rôle est d'analyser les détails d'une transaction de paiement et de fournir des suggestions de sécurité à l'utilisateur pour l'aider à éviter les escroqueries ou les paiements incorrects.
 
-Analyze the following recipient and transaction details:
+Analysez les détails du destinataire et de la transaction suivants:
 
-Recipient Alias: {{{recipientAlias}}}
-Recipient Account Details: {{{recipientAccountDetails}}}
-Amount: {{{amount}}}
-Transaction Type: {{{transactionType}}}
+Alias du destinataire: {{{recipientAlias}}}
+Détails du compte du destinataire: {{{recipientAccountDetails}}}
+Montant: {{{amount}}}
+Type de transaction: {{{transactionType}}}
 
-Provide a list of security suggestions to the user. These suggestions should include warnings about potential scams, checks for incorrect information, and any other relevant security advice.  Also, based on the provided details, determine if the transaction is high risk, and set the "isHighRisk" field accordingly.
+Fournissez une liste de suggestions de sécurité à l'utilisateur. Ces suggestions doivent inclure des avertissements sur les escroqueries potentielles, des vérifications d'informations incorrectes et tout autre conseil de sécurité pertinent. De plus, en fonction des détails fournis, déterminez si la transaction présente un risque élevé et définissez le champ "isHighRisk" en conséquence.
 
-Consider factors such as the recipient's alias, account details, the transaction amount, and the transaction type when generating your suggestions.
+Tenez compte de facteurs tels que l'alias du destinataire, les détails du compte, le montant de la transaction et le type de transaction lors de la génération de vos suggestions.
 
-Output MUST be a valid JSON conforming to the following schema:
+La sortie DOIT être un JSON valide conforme au schéma suivant:
 ${JSON.stringify(PaymentSecurityAssistantOutputSchema.describe(''))}`,
 });
 
