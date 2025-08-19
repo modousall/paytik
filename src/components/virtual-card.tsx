@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useVirtualCard } from '@/hooks/use-virtual-card';
@@ -51,6 +51,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
   const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard } = useVirtualCard();
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
+  const cardHolderName = localStorage.getItem('paytik_username') || "Titulaire Inconnu";
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -86,46 +87,57 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
                 <p className="text-muted-foreground">Utilisez cette carte pour vos paiements en ligne en toute sécurité.</p>
             </div>
         </div>
+        
+        <div className="w-full max-w-md mx-auto space-y-4">
+            <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl relative overflow-hidden">
+                <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <CardTitle className="text-lg font-semibold tracking-wider">PAYTIK CARD</CardTitle>
+                            <p className="text-xs opacity-80">Virtual</p>
+                        </div>
+                        <p className="font-mono text-xl">VISA</p>
+                    </div>
+                </CardHeader>
+                <CardContent className="font-mono space-y-2">
+                    <p className="text-center text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
+                    <div className="flex justify-between text-sm">
+                        <div>
+                            <p className="text-xs opacity-70">Expire Fin</p>
+                            <p>{showDetails ? card.expiry : "**/**"}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs opacity-70">CVV</p>
+                            <p>{showDetails ? card.cvv : "***"}</p>
+                        </div>
+                    </div>
+                    <div className="pt-2">
+                        <p className="text-xs opacity-70">Titulaire</p>
+                        <p className="font-medium tracking-wider uppercase">{cardHolderName}</p>
+                    </div>
+                </CardContent>
+                
+                {card.isFrozen && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <div className='text-center'>
+                            <Ban size={48} className='mx-auto mb-2 text-white/80' />
+                            <p className="text-2xl font-bold text-white/90">CARTE GELÉE</p>
+                        </div>
+                    </div>
+                )}
+            </Card>
 
-        <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl mb-8 relative overflow-hidden">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle className="text-lg font-semibold tracking-wider">PAYTIK CARD</CardTitle>
-                        <p className="text-xs opacity-80">Virtual</p>
-                    </div>
-                    <p className="font-mono text-xl">VISA</p>
-                </div>
-            </CardHeader>
-            <CardContent className="font-mono space-y-4">
-                <p className="text-center text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
-                <div className="flex justify-between text-sm">
-                    <div>
-                        <p className="text-xs opacity-70">Expire Fin</p>
-                        <p>{showDetails ? card.expiry : "**/**"}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs opacity-70">CVV</p>
-                        <p>{showDetails ? card.cvv : "***"}</p>
-                    </div>
-                </div>
-                 <div className="text-right pt-2">
-                    <p className="text-xs opacity-70">Solde disponible</p>
-                    <p className="text-lg font-bold">{(card.balance || 0).toLocaleString()} Fcfa</p>
-                </div>
-            </CardContent>
-            
-            {card.isFrozen && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className='text-center'>
-                        <Ban size={48} className='mx-auto mb-2 text-white/80' />
-                        <p className="text-2xl font-bold text-white/90">CARTE GELÉE</p>
-                    </div>
-                </div>
-            )}
-        </Card>
+            <Card>
+                <CardContent className="p-4 flex justify-between items-center">
+                    <p className="text-muted-foreground">Solde de la carte</p>
+                    <p className="text-2xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
+                </CardContent>
+            </Card>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center max-w-2xl mx-auto">
+        </div>
+
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 text-center max-w-2xl mx-auto">
              <Button variant="outline" onClick={() => setShowDetails(!showDetails)}>
                 {showDetails ? <EyeOff /> : <Eye />} {showDetails ? "Cacher" : "Afficher"}
              </Button>
@@ -159,7 +171,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
         </div>
         
         <Dialog>
-            <Card className="max-w-2xl mx-auto">
+            <Card className="max-w-2xl mx-auto mt-8">
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <CardTitle>Transactions de la carte</CardTitle>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
-import { KeyRound, Trash2 } from 'lucide-react';
+import { KeyRound, Trash2, Edit } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,6 +27,8 @@ type ManageAliasProps = {
 
 export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
   const { toast } = useToast();
+  const [currentAlias, setCurrentAlias] = useState(alias);
+  const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAlias = () => {
@@ -41,6 +43,17 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
         setIsDeleting(false);
     }, 1500);
   };
+  
+  const handleSaveAlias = () => {
+      // Here you would normally make an API call to update the alias.
+      // For this demo, we'll just update localStorage.
+      localStorage.setItem('paytik_alias', currentAlias);
+      toast({
+          title: "Alias mis à jour !",
+          description: `Votre nouvel alias est ${currentAlias}.`,
+      });
+      setIsEditing(false);
+  }
 
   const handleCopyAlias = () => {
     navigator.clipboard.writeText(alias);
@@ -53,7 +66,7 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
   return (
     <div>
         <h2 className="text-2xl font-bold mb-4 text-primary">Gérer votre alias</h2>
-        <p className="text-muted-foreground mb-6">Affichez, copiez ou supprimez votre alias PAYTIK existant.</p>
+        <p className="text-muted-foreground mb-6">Affichez, modifiez, copiez ou supprimez votre alias PAYTIK existant.</p>
       
       <Card className="max-w-lg mx-auto shadow-sm">
         <CardHeader>
@@ -62,15 +75,22 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
             Votre Alias Actif
           </CardTitle>
           <CardDescription>
-            C'est l'identifiant que les autres peuvent utiliser pour vous envoyer de l'argent.
+            C'est l'identifiant que les autres peuvent utiliser pour vous envoyer de l'argent. Il est lié à votre numéro de téléphone vérifié.
           </CardDescription>
         </CardHeader>
         <CardContent>
             <div className="space-y-2">
                 <Label htmlFor="current-alias">Alias</Label>
                 <div className="flex gap-2">
-                    <Input id="current-alias" value={alias} readOnly />
-                    <Button onClick={handleCopyAlias} variant="outline">Copier</Button>
+                    <Input id="current-alias" value={currentAlias} readOnly={!isEditing} onChange={(e) => setCurrentAlias(e.target.value)} />
+                    {!isEditing ? (
+                        <>
+                            <Button onClick={handleCopyAlias} variant="outline">Copier</Button>
+                            <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4"/>Modifier</Button>
+                        </>
+                    ) : (
+                         <Button onClick={handleSaveAlias} className='bg-accent text-accent-foreground'>Sauvegarder</Button>
+                    )}
                 </div>
             </div>
         </CardContent>
@@ -79,20 +99,20 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
              <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="destructive">
-                        <Trash2 className="mr-2 h-4 w-4" /> Supprimer l'alias
+                        <Trash2 className="mr-2 h-4 w-4" /> Supprimer le compte
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Cette action est irréversible. La suppression de votre alias réinitialisera l'application et vous devrez créer un nouvel alias pour continuer.
+                        Cette action est irréversible. La suppression de votre alias et de votre compte réinitialisera l'application et vous devrez vous réinscrire pour continuer.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAlias} disabled={isDeleting}>
-                        {isDeleting ? "Suppression..." : "Oui, supprimer l'alias"}
+                        {isDeleting ? "Suppression..." : "Oui, supprimer le compte"}
                     </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
