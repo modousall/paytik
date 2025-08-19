@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -15,7 +14,7 @@ export type Transaction = {
 
 type TransactionsContextType = {
   transactions: Transaction[];
-  addTransaction: (transaction: Transaction) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -79,12 +78,18 @@ export const TransactionsProvider = ({ children }: TransactionsProviderProps) =>
     }
   }, [transactions, isInitialized]);
 
-  const addTransaction = (transaction: Transaction) => {
-    setTransactions(prevTransactions => [transaction, ...prevTransactions]);
+  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+    const newTransaction = {
+        ...transaction,
+        id: `TXN${Math.floor(Math.random() * 900000) + 100000}`
+    };
+    setTransactions(prevTransactions => [newTransaction, ...prevTransactions]);
   };
 
+  const value = { transactions, addTransaction };
+
   return (
-    <TransactionsContext.Provider value={{ transactions, addTransaction }}>
+    <TransactionsContext.Provider value={value}>
       {children}
     </TransactionsContext.Provider>
   );
