@@ -111,7 +111,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
                 </div>
                  <div className="text-right pt-2">
                     <p className="text-xs opacity-70">Solde disponible</p>
-                    <p className="text-lg font-bold">{card.balance.toLocaleString()} Fcfa</p>
+                    <p className="text-lg font-bold">{(card.balance || 0).toLocaleString()} Fcfa</p>
                 </div>
             </CardContent>
             
@@ -137,10 +137,24 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
             </Button>
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="destructive" onClick={deleteCard}>
+                    <Button variant="destructive">
                         <Trash2 /> Supprimer
                     </Button>
                 </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Êtes-vous sûr ?</DialogTitle>
+                    </DialogHeader>
+                    <p>La suppression de votre carte est définitive. Voulez-vous continuer ?</p>
+                    <DialogFooter>
+                         <DialogClose asChild>
+                            <Button variant="ghost">Annuler</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button variant="destructive" onClick={deleteCard}>Supprimer</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
             </Dialog>
         </div>
         
