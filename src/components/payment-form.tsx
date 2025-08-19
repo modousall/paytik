@@ -13,6 +13,7 @@ import { paymentSecurityAssistant } from '@/ai/flows/payment-security-assistant'
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import SecurityAssistantDialog from './security-assistant-dialog';
 import { Loader2 } from 'lucide-react';
+import { useTransactions } from '@/hooks/use-transactions';
 
 const paymentFormSchema = z.object({
   recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
@@ -28,6 +29,7 @@ export default function PaymentForm() {
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { addTransaction } = useTransactions();
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
@@ -64,11 +66,24 @@ export default function PaymentForm() {
   
   const handlePaymentConfirm = () => {
       setIsDialogOpen(false);
+
+      if (paymentDetails) {
+        addTransaction({
+            id: `TXN${Math.floor(Math.random() * 900000) + 100000}`,
+            type: "sent",
+            counterparty: paymentDetails.recipientAlias,
+            reason: paymentDetails.reason || "Paiement",
+            date: new Date().toISOString(),
+            amount: paymentDetails.amount,
+            status: "Terminé",
+        });
+        toast({
+            title: "Paiement Envoyé!",
+            description: `Envoyé avec succès ${paymentDetails.amount.toLocaleString()} Fcfa à ${paymentDetails.recipientAlias}.`,
+        });
+      }
+
       form.reset();
-      toast({
-        title: "Paiement Envoyé!",
-        description: `Envoyé avec succès ${paymentDetails?.amount.toLocaleString()} Fcfa à ${paymentDetails?.recipientAlias}.`,
-      });
       setSecurityAnalysis(null);
       setPaymentDetails(null);
   };
@@ -86,7 +101,7 @@ export default function PaymentForm() {
               <FormItem>
                 <FormLabel>Alias du destinataire</FormLabel>
                 <FormControl>
-                  <Input placeholder="ex: +221771234567" {...field} />
+                  <Input placeholder="ex: +221771234567 ou nom du contact" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

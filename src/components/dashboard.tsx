@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, History, QrCode, User, SlidersHorizontal, LogOut } from "lucide-react";
+import { ArrowUpRight, History, QrCode, User, SlidersHorizontal, LogOut, Users } from "lucide-react";
 import PaymentForm from './payment-form';
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import ManageAlias from './manage-alias';
+import Contacts from './contacts'; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 
-type DashboardTab = 'pay' | 'history' | 'qr' | 'manage';
+type DashboardTab = 'pay' | 'history' | 'qr' | 'manage' | 'contacts';
 
 type DashboardProps = {
   alias: string;
@@ -66,6 +67,8 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
         return <QrCodeDisplay alias={alias} />;
       case 'manage':
         return <ManageAlias alias={alias} onLogout={onLogout} />;
+      case 'contacts':
+        return <Contacts />;
       default:
         return <PaymentForm />;
     }
@@ -84,6 +87,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
                 <CardContent className="flex flex-col gap-2">
                     <Button variant={activeTab === 'pay' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('pay')}><ArrowUpRight className="mr-2 h-5 w-5"/> Payer</Button>
                     <Button variant={activeTab === 'history' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('history')}><History className="mr-2 h-5 w-5"/> Historique</Button>
+                    <Button variant={activeTab === 'contacts' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('contacts')}><Users className="mr-2 h-5 w-5"/> Contacts</Button>
                     <Button variant={activeTab === 'qr' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('qr')}><QrCode className="mr-2 h-5 w-5"/> Mon QR</Button>
                     <Button variant={activeTab === 'manage' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('manage')}><SlidersHorizontal className="mr-2 h-5 w-5"/> Gérer l'alias</Button>
                 </CardContent>
