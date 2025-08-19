@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for suggesting user aliases.
@@ -24,14 +25,11 @@ export type AliasSuggestionOutput = z.infer<typeof AliasSuggestionOutputSchema>;
 
 
 export async function aliasSuggestion(input: AliasSuggestionInput): Promise<AliasSuggestionOutput> {
-  return aliasSuggestionFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'aliasSuggestionPrompt',
-  input: {schema: AliasSuggestionInputSchema},
-  output: {schema: AliasSuggestionOutputSchema},
-  prompt: `Vous êtes un assistant créatif qui aide les utilisateurs à choisir un alias unique pour un service de paiement en Afrique de l'Ouest.
+  const prompt = ai.definePrompt({
+    name: 'aliasSuggestionPrompt',
+    input: {schema: AliasSuggestionInputSchema},
+    output: {schema: AliasSuggestionOutputSchema},
+    prompt: `Vous êtes un assistant créatif qui aide les utilisateurs à choisir un alias unique pour un service de paiement en Afrique de l'Ouest.
 L'alias doit être facile à retenir, professionnel mais convivial. Inspirez-vous des noms de services existants comme Wave, Orange Money, Free Money, Wari, Wizall, ou Mixx.
 
 Informations sur l'utilisateur:
@@ -45,17 +43,19 @@ Alias déjà existants (ne pas les suggérer):
 
 Veuillez générer une liste de 3 à 5 suggestions d'alias uniques et créatives. Les suggestions ne doivent pas être des numéros de téléphone.
 `,
-});
+  });
 
+  const aliasSuggestionFlow = ai.defineFlow(
+    {
+      name: 'aliasSuggestionFlow',
+      inputSchema: AliasSuggestionInputSchema,
+      outputSchema: AliasSuggestionOutputSchema,
+    },
+    async (input) => {
+      const {output} = await prompt(input);
+      return output!;
+    }
+  );
 
-const aliasSuggestionFlow = ai.defineFlow(
-  {
-    name: 'aliasSuggestionFlow',
-    inputSchema: AliasSuggestionInputSchema,
-    outputSchema: AliasSuggestionOutputSchema,
-  },
-  async (input) => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+  return aliasSuggestionFlow(input);
+}

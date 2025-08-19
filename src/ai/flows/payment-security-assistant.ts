@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -28,14 +29,11 @@ const PaymentSecurityAssistantOutputSchema = z.object({
 export type PaymentSecurityAssistantOutput = z.infer<typeof PaymentSecurityAssistantOutputSchema>;
 
 export async function paymentSecurityAssistant(input: PaymentSecurityAssistantInput): Promise<PaymentSecurityAssistantOutput> {
-  return paymentSecurityAssistantFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'paymentSecurityAssistantPrompt',
-  input: {schema: PaymentSecurityAssistantInputSchema},
-  output: {schema: PaymentSecurityAssistantOutputSchema},
-  prompt: `Vous êtes un assistant de sécurité des paiements intelligent. Votre rôle est d'analyser les détails d'une transaction de paiement et de fournir des suggestions de sécurité à l'utilisateur pour l'aider à éviter les escroqueries ou les paiements incorrects.
+  const prompt = ai.definePrompt({
+    name: 'paymentSecurityAssistantPrompt',
+    input: {schema: PaymentSecurityAssistantInputSchema},
+    output: {schema: PaymentSecurityAssistantOutputSchema},
+    prompt: `Vous êtes un assistant de sécurité des paiements intelligent. Votre rôle est d'analyser les détails d'une transaction de paiement et de fournir des suggestions de sécurité à l'utilisateur pour l'aider à éviter les escroqueries ou les paiements incorrects.
 
 Analysez les détails du destinataire et de la transaction suivants:
 
@@ -50,16 +48,19 @@ Tenez compte de facteurs tels que l'alias du destinataire, les détails du compt
 Si l'alias du destinataire ressemble à un numéro de téléphone ou à une adresse e-mail qui n'est pas dans un format standard, avertissez l'utilisateur.
 Si le destinataire est "Nouveau" ou n'est pas dans la liste de contacts, avertissez l'utilisateur de vérifier qu'il connaît le destinataire et que l'alias est correct.
 `,
-});
+  });
 
-const paymentSecurityAssistantFlow = ai.defineFlow(
-  {
-    name: 'paymentSecurityAssistantFlow',
-    inputSchema: PaymentSecurityAssistantInputSchema,
-    outputSchema: PaymentSecurityAssistantOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+  const paymentSecurityAssistantFlow = ai.defineFlow(
+    {
+      name: 'paymentSecurityAssistantFlow',
+      inputSchema: PaymentSecurityAssistantInputSchema,
+      outputSchema: PaymentSecurityAssistantOutputSchema,
+    },
+    async input => {
+      const {output} = await prompt(input);
+      return output!;
+    }
+  );
+  
+  return paymentSecurityAssistantFlow(input);
+}
