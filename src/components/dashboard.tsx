@@ -128,24 +128,24 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-        <main className="flex-grow container mx-auto p-4 sm:p-6">
+        <main className="flex-grow container mx-auto p-4 sm:p-6 pb-24">
             {renderContent()}
         </main>
-      <footer className="bg-background/95 backdrop-blur-sm p-2 border-t mt-auto sticky bottom-0 z-40">
-          <nav className="container mx-auto grid grid-cols-4 gap-1">
-            <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+      <footer className="fixed bottom-4 inset-x-0 z-40 flex justify-center">
+          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-4 gap-1 p-2">
+            <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <Home />
                 <span className="text-xs">Accueil</span>
             </Button>
-            <Button onClick={() => onTabClick('payer')} variant={activeTab === 'payer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => onTabClick('payer')} variant={activeTab === 'payer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <ArrowUp />
                 <span className="text-xs">Payer</span>
             </Button>
-            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <Handshake />
                 <span className="text-xs">Services</span>
             </Button>
-            <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <UserIcon />
                 <span className="text-xs">Profil</span>
             </Button>
