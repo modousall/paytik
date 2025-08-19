@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { ContactsProvider } from '@/hooks/use-contacts';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { TontineProvider } from '@/hooks/use-tontine';
 
 export const metadata: Metadata = {
   title: 'PAYTIK Simplifié',
@@ -26,8 +27,10 @@ export default function RootLayout({
         <TransactionsProvider>
           <ContactsProvider>
             <VirtualCardProvider>
-              {children}
-              <Toaster />
+              <TontineProvider>
+                {children}
+                <Toaster />
+              </TontineProvider>
             </VirtualCardProvider>
           </ContactsProvider>
         </TransactionsProvider>
