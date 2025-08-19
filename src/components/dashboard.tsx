@@ -7,6 +7,7 @@ import { ArrowUpRight, History, QrCode, User, SlidersHorizontal, LogOut } from "
 import PaymentForm from './payment-form';
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
+import ManageAlias from './manage-alias';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +65,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
       case 'qr':
         return <QrCodeDisplay alias={alias} />;
       case 'manage':
-        return <div className="p-8 text-center text-muted-foreground">La gestion des alias sera bientôt disponible.</div>;
+        return <ManageAlias alias={alias} onLogout={onLogout} />;
       default:
         return <PaymentForm />;
     }
