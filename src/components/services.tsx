@@ -15,11 +15,8 @@ export type Service = {
 
 
 const servicesList: Service[] = [
-    { name: "Tontine", icon: <Handshake className="h-8 w-8 text-primary" />, action: "tontine", description: "Créez ou rejoignez des groupes d'épargne rotatifs avec vos contacts en toute confiance." },
-    { name: "Ma Carte", icon: <CreditCard className="h-8 w-8 text-primary" />, action: "ma-carte", description: "Générez et gérez des cartes virtuelles sécurisées pour vos paiements en ligne." },
     { name: "Marchands", icon: <ShoppingCart className="h-8 w-8 text-primary" />, action: "marchands", description: "Payez, retirez du cash (PICO) ou financez vos achats (BNPL) chez nos partenaires." },
     { name: "Factures", icon: <Receipt className="h-8 w-8 text-primary" />, action: "factures", description: "Réglez vos factures SENELEC, SDE, Orange et autres services rapidement." },
-    { name: "Coffres", icon: <PiggyBank className="h-8 w-8 text-primary" />, action: "coffres", description: "Mettez de l'argent de côté pour vos projets personnels dans des tirelires sécurisées." },
 ];
 
 
