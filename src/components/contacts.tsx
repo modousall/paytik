@@ -130,7 +130,11 @@ export default function Contacts() {
             </Card>
           ))
         ) : (
-          <p className="text-muted-foreground text-center py-8">Votre liste de contacts est vide.</p>
+          <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg">
+            <User className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h4 className="mt-4 text-lg font-semibold">Aucun contact</h4>
+            <p className="mt-1 text-sm text-muted-foreground">Commencez par ajouter votre premier contact ci-dessus.</p>
+          </div>
         )}
       </div>
     </div>

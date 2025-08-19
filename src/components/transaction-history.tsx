@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -34,7 +34,7 @@ import { Input } from './ui/input';
 
 type TransactionHistoryProps = {
   showAll: boolean;
-  onShowAll: () => void;
+  onShowAll: (show: boolean) => void;
 };
 
 const formatDate = (dateString: string) => {
@@ -159,7 +159,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                     {showAll && (
-                        <Button onClick={onShowAll} variant="ghost" size="icon" className="mr-2">
+                        <Button onClick={() => onShowAll(false)} variant="ghost" size="icon" className="mr-2">
                             <ArrowLeft />
                         </Button>
                     )}
@@ -178,37 +178,42 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                 )}
             </CardHeader>
             <CardContent>
-                <div className="space-y-1">
-                    {transactionsToShow.map((tx) => (
-                        <Dialog key={tx.id}>
-                            <DialogTrigger asChild>
-                                <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
-                                    <TransactionIcon type={tx.type} counterparty={tx.counterparty}/>
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{tx.counterparty}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {showAll ? formatDate(tx.date) : tx.reason}
-                                        </p>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
-                                            {tx.type === 'sent' ? '-' : '+'}{tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
+                {transactionsToShow.length > 0 ? (
+                    <div className="space-y-1">
+                        {transactionsToShow.map((tx) => (
+                            <Dialog key={tx.id}>
+                                <DialogTrigger asChild>
+                                    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
+                                        <TransactionIcon type={tx.type} counterparty={tx.counterparty}/>
+                                        <div className="flex-grow">
+                                            <p className="font-semibold">{tx.counterparty}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {showAll ? formatDate(tx.date) : tx.reason}
+                                            </p>
                                         </div>
-                                        {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={tx.status === 'Terminé' ? 'bg-green-600/20 text-green-800' : ''}>{tx.status}</Badge>}
+                                        <div className="text-right">
+                                            <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
+                                                {tx.type === 'sent' ? '-' : '+'}{tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
+                                            </div>
+                                            {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={tx.status === 'Terminé' ? 'bg-green-600/20 text-green-800' : ''}>{tx.status}</Badge>}
+                                        </div>
                                     </div>
-                                </div>
-                            </DialogTrigger>
-                            <TransactionDetailsDialog transaction={tx} />
-                        </Dialog>
-                    ))}
-                </div>
+                                </DialogTrigger>
+                                <TransactionDetailsDialog transaction={tx} />
+                            </Dialog>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg">
+                        <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
+                        <h4 className="mt-4 text-lg font-semibold">Aucune transaction</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">Vos transactions apparaîtront ici.</p>
+                    </div>
+                )}
                 {!showAll && transactions.length > 3 && (
-                    <Button variant="link" className="w-full mt-4 text-accent" onClick={onShowAll}>
+                    <Button variant="link" className="w-full mt-4 text-accent" onClick={() => onShowAll(true)}>
                         Tout afficher
                     </Button>
-                )}
-                 {transactions.length === 0 && (
-                    <p className="text-muted-foreground text-center py-8">Aucune transaction pour le moment.</p>
                 )}
             </CardContent>
         </Card>
