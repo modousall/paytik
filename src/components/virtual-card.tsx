@@ -11,6 +11,8 @@ import Image from 'next/image';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { useBalance } from '@/hooks/use-balance';
+import { useTransactions } from '@/hooks/use-transactions';
 
 type VirtualCardProps = {
     onBack: () => void;
@@ -24,6 +26,7 @@ const RechargeDialog = ({ onRecharge }: { onRecharge: (amount: number) => void }
                 <DialogTitle>Recharger la carte</DialogTitle>
             </DialogHeader>
             <div className='space-y-4 py-4'>
+                <p className='text-sm text-muted-foreground'>Les fonds seront prélevés de votre solde principal.</p>
                 <Label htmlFor="recharge-amount">Montant à recharger (Fcfa)</Label>
                 <Input 
                     id="recharge-amount" 
@@ -47,8 +50,42 @@ const RechargeDialog = ({ onRecharge }: { onRecharge: (amount: number) => void }
     )
 }
 
+const WithdrawDialog = ({ onWithdraw }: { onWithdraw: (amount: number) => void }) => {
+    const [amount, setAmount] = useState(0);
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Retirer de la carte</DialogTitle>
+            </DialogHeader>
+            <div className='space-y-4 py-4'>
+                <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal.</p>
+                <Label htmlFor="withdraw-amount">Montant à retirer (Fcfa)</Label>
+                <Input 
+                    id="withdraw-amount" 
+                    type="number" 
+                    value={amount || ''}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    placeholder="ex: 5000"
+                />
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Annuler</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                    <Button onClick={() => onWithdraw(amount)} disabled={amount <= 0}>
+                        Confirmer le retrait
+                    </Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
 export default function VirtualCard({ onBack }: VirtualCardProps) {
-  const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard } = useVirtualCard();
+  const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard, withdrawFromCard } = useVirtualCard();
+  const { balance: mainBalance, debit, credit } = useBalance();
+  const { addTransaction } = useTransactions();
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
   const cardHolderName = localStorage.getItem('paytik_username') || "Titulaire Inconnu";
@@ -59,7 +96,37 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
   };
 
   const handleRecharge = (amount: number) => {
+    if (amount > mainBalance) {
+        toast({ title: "Solde principal insuffisant", variant: "destructive" });
+        return;
+    }
+    debit(amount);
     rechargeCard(amount);
+    addTransaction({
+        type: 'sent',
+        counterparty: 'Carte Virtuelle',
+        reason: 'Approvisionnement',
+        date: new Date().toISOString(),
+        amount: amount,
+        status: 'Terminé',
+    });
+  }
+
+  const handleWithdraw = (amount: number) => {
+    if (!card || amount > card.balance) {
+        toast({ title: "Solde de la carte insuffisant", variant: "destructive" });
+        return;
+    }
+    withdrawFromCard(amount);
+    credit(amount);
+    addTransaction({
+        type: 'received',
+        counterparty: 'Carte Virtuelle',
+        reason: 'Retrait',
+        date: new Date().toISOString(),
+        amount: amount,
+        status: 'Terminé',
+    });
   }
 
   if (!card) {
@@ -94,7 +161,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
                     <div className="flex justify-between items-start">
                         <div>
                             <CardTitle className="text-lg font-semibold tracking-wider">PAYTIK CARD</CardTitle>
-                            <p className="text-xs opacity-80">Virtual</p>
+                            <CardDescription className="text-xs opacity-80 text-primary-foreground/80">Virtual</CardDescription>
                         </div>
                         <p className="font-mono text-xl">VISA</p>
                     </div>
@@ -170,42 +237,50 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
             </Dialog>
         </div>
         
-        <Dialog>
-            <Card className="max-w-2xl mx-auto mt-8">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Transactions de la carte</CardTitle>
-                        <DialogTrigger asChild>
-                            <Button><Wallet className="mr-2"/>Approvisionner</Button>
-                        </DialogTrigger>
+        <Card className="max-w-2xl mx-auto mt-8">
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle>Transactions de la carte</CardTitle>
+                    <div className="flex gap-2">
+                        <Dialog>
+                           <DialogTrigger asChild>
+                               <Button variant="outline"><ArrowLeft className="mr-2"/>Retirer</Button>
+                           </DialogTrigger>
+                           <WithdrawDialog onWithdraw={handleWithdraw}/>
+                        </Dialog>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button><Wallet className="mr-2"/>Approvisionner</Button>
+                            </DialogTrigger>
+                            <RechargeDialog onRecharge={handleRecharge} />
+                        </Dialog>
                     </div>
-                    <CardDescription>Historique des paiements effectués avec cette carte.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {transactions.length > 0 ? (
-                        <div className="space-y-4">
-                            {transactions.map(tx => (
-                                <div key={tx.id} className="flex items-center gap-4">
-                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'debit' ? 'bg-red-100' : 'bg-green-100'}`}>
-                                        {tx.type === 'debit' ? <ArrowUp className="text-red-600"/> : <ArrowDown className="text-green-600"/>}
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">{tx.merchant}</p>
-                                        <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
-                                    </div>
-                                    <p className={`ml-auto font-semibold ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
-                                        {tx.type === 'debit' ? '-' : '+'} {tx.amount.toLocaleString()} Fcfa
-                                    </p>
+                </div>
+                <CardDescription>Historique des paiements effectués avec cette carte.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {transactions.length > 0 ? (
+                    <div className="space-y-4">
+                        {transactions.map(tx => (
+                            <div key={tx.id} className="flex items-center gap-4">
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'debit' ? 'bg-red-100' : 'bg-green-100'}`}>
+                                    {tx.type === 'debit' ? <ArrowUp className="text-red-600"/> : <ArrowDown className="text-green-600"/>}
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">Aucune transaction pour cette carte.</p>
-                    )}
-                </CardContent>
-            </Card>
-            <RechargeDialog onRecharge={handleRecharge} />
-        </Dialog>
+                                <div>
+                                    <p className="font-semibold">{tx.merchant}</p>
+                                    <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
+                                </div>
+                                <p className={`ml-auto font-semibold ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
+                                    {tx.type === 'debit' ? '-' : '+'} {tx.amount.toLocaleString()} Fcfa
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucune transaction pour cette carte.</p>
+                )}
+            </CardContent>
+        </Card>
     </div>
   );
 }

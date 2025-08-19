@@ -145,10 +145,14 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
             id: `vtx${Date.now()}`,
             type: 'debit',
             amount,
-            merchant: 'Transfert vers Tirelire',
+            merchant: 'Transfert vers Solde Principal',
             date: new Date().toISOString()
         };
         setTransactions(prev => [newTransaction, ...prev]);
+        toast({
+            title: "Retrait réussi",
+            description: `${amount.toLocaleString()} Fcfa ont été transférés sur votre solde principal.`
+        });
     }
   }
 

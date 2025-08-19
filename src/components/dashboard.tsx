@@ -20,6 +20,8 @@ import Vaults from './vaults';
 import PICO from './pico';
 import PICASH from './picash';
 import BNPL from './bnpl';
+import { useVirtualCard } from '@/hooks/use-virtual-card';
+import { Card, CardContent } from './ui/card';
 
 type UserInfo = {
     name: string;
@@ -39,6 +41,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
     const [activeMerchantService, setActiveMerchantService] = useState<string | null>(null);
+    const { card } = useVirtualCard();
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -74,6 +77,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 return (
                     <div>
                         <BalanceDisplay />
+                        {card && (
+                            <Card className="bg-card shadow-lg w-full max-w-sm mx-auto mb-6">
+                                <CardContent className="p-4 text-center">
+                                    <p className="text-sm text-muted-foreground">Solde Carte Virtuelle</p>
+                                    <p className="text-2xl font-bold tracking-tight">{(card.balance || 0).toLocaleString()} <span className="text-base font-normal">Fcfa</span></p>
+                                </CardContent>
+                            </Card>
+                        )}
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             alias={alias}
