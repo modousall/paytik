@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Share2, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SheetHeader, SheetTitle } from './ui/sheet';
 
 
 type QrCodeDisplayProps = {
@@ -33,6 +34,9 @@ export default function QrCodeDisplay({ alias }: QrCodeDisplayProps) {
 
   return (
     <div className="p-4 flex flex-col h-full">
+        <SheetHeader>
+            <SheetTitle className="sr-only">Afficher le QR Code</SheetTitle>
+        </SheetHeader>
         <header className="flex items-center gap-4 mb-8">
             <Avatar className="h-16 w-16">
                 <AvatarImage src="https://placehold.co/64x64.png" alt="John Willson" data-ai-hint="person face" />
