@@ -73,9 +73,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setActiveMerchantService(service);
       }
 
-      const handleCardNavigation = (destination: string) => {
+      const handleCardNavigation = (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => {
         if (destination === 'transactions') {
             setShowAllTransactions(true);
+            setActiveTab('accueil'); 
         } else {
             const service = servicesMap[destination];
             if (service) {

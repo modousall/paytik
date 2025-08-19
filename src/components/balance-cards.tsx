@@ -44,7 +44,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             color: 'from-amber-500 to-yellow-400'
         }] : []),
         ...(totalTontinesBalance > 0 ? [{
-            id: 'tontines' as const,
+            id: 'tontine' as const,
             title: 'Mes Tontines',
             balance: totalTontinesBalance,
             icon: <Users className="h-6 w-6 text-white" />,
