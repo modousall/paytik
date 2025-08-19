@@ -4,40 +4,43 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useContacts } from "@/hooks/use-contacts";
 import type { Tontine } from "@/hooks/use-tontine";
-import { ArrowDown, ArrowUp, CheckCircle, Clock, User } from "lucide-react";
+import { ArrowDown, ArrowUp, CheckCircle, Clock } from "lucide-react";
 
 type TontineDetailsProps = {
     tontine: Tontine;
 };
 
-// Mock data for demonstration
-const mockParticipants = (tontine: Tontine, contacts: any[]) => {
+// This function now uses real contact data
+const getParticipantsDetails = (tontine: Tontine, contacts: any[]) => {
     return tontine.participants.map(id => {
-        const contact = contacts.find(c => c.id === id) || { name: `Membre ${id}`, alias: 'Inconnu' };
+        const contact = contacts.find(c => c.id === id);
+        // In a real app, status would come from the backend. We'll keep the random simulation for now for UI purposes.
         return {
             id,
-            name: contact.name,
+            name: contact ? contact.name : `Membre Inconnu`,
+            alias: contact ? contact.alias : 'N/A',
             status: Math.random() > 0.3 ? 'paid' : 'pending'
         }
     });
 }
 
+// History is still mocked for demonstration as it would require more complex logic
 const mockHistory = (tontine: Tontine) => {
+    const totalPot = tontine.amount * tontine.participants.length;
     return [
         { id: '1', type: 'contribution', amount: tontine.amount, date: '2024-07-01', user: 'Maman' },
-        { id: '2', type: 'payout', amount: tontine.amount * tontine.participants.length, date: '2024-07-01', user: 'Papa' },
+        { id: '2', type: 'payout', amount: totalPot, date: '2024-07-01', user: 'Papa' },
         { id: '3', type: 'contribution', amount: tontine.amount, date: '2024-06-01', user: 'Moi' },
-    ];
+    ].filter(Boolean);
 }
 
 
 export default function TontineDetails({ tontine }: TontineDetailsProps) {
     const { contacts } = useContacts();
-    const participants = mockParticipants(tontine, contacts);
+    const participants = getParticipantsDetails(tontine, contacts);
     const history = mockHistory(tontine);
 
     return (
@@ -58,6 +61,7 @@ export default function TontineDetails({ tontine }: TontineDetailsProps) {
                                     </Avatar>
                                     <div>
                                         <p className="font-medium">{p.name}</p>
+                                        <p className="text-sm text-muted-foreground">{p.alias}</p>
                                     </div>
                                 </div>
                                 <Badge variant={p.status === 'paid' ? 'default' : 'secondary'} className={p.status === 'paid' ? 'bg-green-100 text-green-800' : ''}>

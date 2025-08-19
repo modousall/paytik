@@ -39,7 +39,7 @@ const initialTontines: Tontine[] = [
         amount: 20000,
         frequency: "monthly",
         progress: 90,
-        isMyTurn: false,
+        isMyTurn: true,
     }
 ];
 
