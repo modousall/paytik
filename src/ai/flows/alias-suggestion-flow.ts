@@ -7,8 +7,7 @@
  * - AliasSuggestionInput - The input type for the aliasSuggestion function.
  * - AliasSuggestionOutput - The return type for the aliasSuggestion function.
  */
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AliasSuggestionInputSchema = z.object({
@@ -25,15 +24,11 @@ export type AliasSuggestionOutput = z.infer<typeof AliasSuggestionOutputSchema>;
 
 
 export async function aliasSuggestion(input: AliasSuggestionInput): Promise<AliasSuggestionOutput> {
-  const ai = genkit({
-    plugins: [googleAI()],
-    model: 'googleai/gemini-1.5-flash-latest',
-  });
-
   const prompt = ai.definePrompt({
     name: 'aliasSuggestionPrompt',
     input: {schema: AliasSuggestionInputSchema},
     output: {schema: AliasSuggestionOutputSchema},
+    model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Vous êtes un assistant créatif qui aide les utilisateurs à choisir un alias unique pour un service de paiement en Afrique de l'Ouest.
 L'alias doit être facile à retenir, professionnel mais convivial. Inspirez-vous des noms de services existants comme Wave, Orange Money, Free Money, Wari, Wizall, ou Mixx.
 

@@ -7,17 +7,13 @@
  * - BillPaymentAssistantInput - The input type for the function.
  * - BillPaymentAssistantOutput - The return type for the function.
  */
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
 import {z} from 'genkit';
 import type { BillPaymentAssistantInput, BillPaymentAssistantOutput } from '@/components/bill-payment-form';
 import { BillPaymentAssistantInputSchema, BillPaymentAssistantOutputSchema } from '@/components/bill-payment-form';
 
 
 export async function billPaymentAssistant(input: BillPaymentAssistantInput): Promise<BillPaymentAssistantOutput> {
-  const ai = genkit({
-    plugins: [googleAI()],
-  });
 
   const prompt = ai.definePrompt({
     name: 'billPaymentAssistantPrompt',

@@ -8,8 +8,7 @@
  * - PaymentSecurityAssistantInput - The input type for the paymentSecurityAssistant function.
  * - PaymentSecurityAssistantOutput - The return type for the paymentSecurityAssistant function.
  */
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
 import {z} from 'genkit';
 
 const PaymentSecurityAssistantInputSchema = z.object({
@@ -29,15 +28,12 @@ const PaymentSecurityAssistantOutputSchema = z.object({
 export type PaymentSecurityAssistantOutput = z.infer<typeof PaymentSecurityAssistantOutputSchema>;
 
 export async function paymentSecurityAssistant(input: PaymentSecurityAssistantInput): Promise<PaymentSecurityAssistantOutput> {
-  const ai = genkit({
-    plugins: [googleAI()],
-    model: 'googleai/gemini-1.5-flash-latest',
-  });
-  
+
   const prompt = ai.definePrompt({
     name: 'paymentSecurityAssistantPrompt',
     input: {schema: PaymentSecurityAssistantInputSchema},
     output: {schema: PaymentSecurityAssistantOutputSchema},
+    model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Vous êtes un assistant de sécurité des paiements intelligent. Votre rôle est d'analyser les détails d'une transaction de paiement et de fournir des suggestions de sécurité à l'utilisateur pour l'aider à éviter les escroqueries ou les paiements incorrects.
 
 Analysez les détails du destinataire et de la transaction suivants:
