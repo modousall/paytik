@@ -53,6 +53,12 @@ export const ContactsProvider = ({ children }: ContactsProviderProps) => {
   }, [contacts, isInitialized]);
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
+    const isDuplicate = contacts.some(c => c.name === contact.name || c.alias === contact.alias);
+    if(isDuplicate) {
+        // In a real app, you would show a toast notification here
+        console.warn("Attempted to add a duplicate contact.");
+        return;
+    }
     const newContact = { ...contact, id: Date.now().toString() };
     setContacts(prevContacts => [...prevContacts, newContact]);
   };

@@ -10,7 +10,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Zap, ShieldCheck, DollarSign, Handshake } from "lucide-react";
+import { Zap, ShieldCheck, DollarSign, UserPlus } from "lucide-react";
 
 type OnboardingDemoProps = {
   onStart: () => void;
@@ -35,8 +35,8 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
       description: "Profitez de frais de transaction compétitifs et transparents avec PAYTIK.",
     },
     {
-      icon: <Handshake className="h-12 w-12 text-primary" />,
-      title: "Autorisations",
+      icon: <UserPlus className="h-12 w-12 text-primary" />,
+      title: "Autorisations Requises",
       description: "Pour améliorer votre expérience, PAYTIK nécessite l'accès à vos contacts et notifications. Vos données sont en sécurité avec nous.",
     },
   ];
@@ -70,7 +70,7 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
             Se connecter
           </Button>
           <Button onClick={onStart} className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Commencer
+            Créer un compte
           </Button>
         </div>
       </div>

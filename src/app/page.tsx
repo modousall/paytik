@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
+import PermissionsRequest from '@/components/permissions-request';
+import LoginForm from '@/components/login-form';
 
 
 type UserInfo = {
@@ -17,7 +19,7 @@ type UserInfo = {
   email: string;
 };
 
-type AppStep = 'demo' | 'login' | 'kyc' | 'alias' | 'dashboard';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'dashboard';
 
 const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void }) => {
   const [name, setName] = useState('');
@@ -77,64 +79,6 @@ const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void })
   );
 };
 
-const LoginForm = ({ onLoginSuccess, onBack }: { onLoginSuccess: (alias: string) => void; onBack: () => void; }) => {
-    const [alias, setAlias] = useState('');
-    const { toast } = useToast();
-  
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      // Simulate checking if alias exists in localStorage
-      const storedAlias = localStorage.getItem('paytik_alias');
-      const storedName = localStorage.getItem('paytik_username');
-  
-      if (storedAlias && storedName && alias === storedAlias) {
-        toast({
-          title: `Bienvenue, ${storedName} !`,
-          description: "Connexion réussie.",
-        });
-        onLoginSuccess(alias);
-      } else {
-        toast({
-          title: "Alias non trouvé",
-          description: "Cet alias n'existe pas ou ne correspond à aucun utilisateur. Veuillez créer un compte.",
-          variant: "destructive",
-        });
-      }
-    };
-  
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-          <Card className="w-full max-w-md">
-              <CardHeader>
-                  <CardTitle>Se Connecter</CardTitle>
-              </CardHeader>
-              <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                      <div>
-                          <Label htmlFor="alias-login">Votre Alias</Label>
-                          <Input
-                              id="alias-login"
-                              type="text"
-                              placeholder="Entrez votre alias"
-                              value={alias}
-                              onChange={(e) => setAlias(e.target.value)}
-                              required
-                          />
-                      </div>
-                      <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                         Se Connecter
-                      </Button>
-                      <Button variant="link" onClick={onBack} className="w-full">
-                         Retour
-                      </Button>
-                  </form>
-              </CardContent>
-          </Card>
-      </div>
-    );
-  };
-
-
 export default function Home() {
   const [step, setStep] = useState<AppStep>('demo');
   const [alias, setAlias] = useState<string | null>(null);
@@ -167,6 +111,10 @@ export default function Home() {
   };
   
   const handleOnboardingStart = () => {
+    setStep('permissions');
+  };
+
+  const handlePermissionsGranted = () => {
     setStep('kyc');
   };
 
@@ -203,6 +151,8 @@ export default function Home() {
     switch (step) {
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+      case 'permissions':
+        return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
         return <LoginForm onLoginSuccess={handleLoginSuccess} onBack={() => setStep('demo')} />;
       case 'kyc':
