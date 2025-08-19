@@ -50,7 +50,7 @@ const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void })
                         <Input
                             id="name"
                             type="text"
-                            placeholder="ex: John Willson"
+                            placeholder="ex: Fatoumata Diop"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
@@ -61,7 +61,7 @@ const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void })
                         <Input
                             id="email"
                             type="email"
-                            placeholder="ex: john.willson@example.com"
+                            placeholder="ex: fatoumata.diop@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
