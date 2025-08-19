@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Users, Bell, QrCode, Home, Handshake, User as UserIcon } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, Bell, QrCode, Home, Handshake, User as UserIcon, LogOut } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
@@ -25,6 +25,17 @@ import {
 import Tontine from './tontine';
 import Services from './services';
 import SplitBill from './split-bill';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
 
 type UserInfo = {
     name: string;
@@ -39,7 +50,7 @@ type DashboardProps = {
 
 type NavItem = 'accueil' | 'payer' | 'services' | 'profil';
 
-const Header = ({ userInfo, alias }: { userInfo: UserInfo; alias: string }) => (
+const Header = ({ userInfo, alias, onLogout }: { userInfo: UserInfo; alias: string, onLogout: () => void }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -59,6 +70,27 @@ const Header = ({ userInfo, alias }: { userInfo: UserInfo; alias: string }) => (
               </SheetContent>
             </Sheet>
             <Button variant="ghost" size="icon"><Bell /></Button>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                        <LogOut />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Se déconnecter ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                       Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous reconnecter pour accéder à nouveau à votre compte.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={onLogout} className="bg-destructive hover:bg-destructive/90">
+                        Se déconnecter
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
       </div>
     </header>
@@ -170,7 +202,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
-      <Header userInfo={userInfo} alias={alias}/>
+      <Header userInfo={userInfo} alias={alias} onLogout={onLogout} />
        <main className="flex-grow container mx-auto p-4 sm:p-6">
         {renderContent()}
       </main>
