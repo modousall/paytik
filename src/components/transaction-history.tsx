@@ -4,7 +4,7 @@
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
@@ -58,7 +58,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
         <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               {showAll && (
-                <Button onClick={onShowAll} variant="ghost" size="icon" className="mr-2">
+                <Button onClick={() => onShowAll()} variant="ghost" size="icon" className="mr-2">
                   <ArrowLeft />
                 </Button>
               )}
@@ -70,7 +70,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
         <CardContent>
             <div className="space-y-4">
                 {transactionsToShow.map((tx) => (
-                    <div key={tx.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50">
+                    <div key={tx.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
                         <TransactionIcon type={tx.type} />
                         <div className="flex-grow">
                             <p className="font-semibold">{tx.counterparty}</p>
@@ -85,7 +85,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     </div>
                 ))}
             </div>
-            {!showAll && (
+            {!showAll && transactions.length > 3 && (
               <Button variant="link" className="w-full mt-4 text-accent" onClick={onShowAll}>
                   Tout afficher
               </Button>
