@@ -44,9 +44,7 @@ Alias déjà existants (ne pas les suggérer):
 {{/each}}
 
 Veuillez générer une liste de 3 à 5 suggestions d'alias uniques et créatives. Les suggestions ne doivent pas être des numéros de téléphone.
-
-La sortie DOIT être un JSON valide conforme au schéma suivant:
-${JSON.stringify(AliasSuggestionOutputSchema.describe(''))}`,
+`,
 });
 
 
