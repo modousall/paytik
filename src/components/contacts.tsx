@@ -23,6 +23,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
@@ -48,7 +49,7 @@ export default function Contacts() {
 
   return (
     <div className="pt-4">
-      <Card className="mb-8 shadow-none border-0">
+      <Card className="mb-8 shadow-none border-0 bg-transparent">
         <CardHeader className="px-2 pt-0">
           <CardTitle className="flex items-center gap-2 text-lg">
             <PlusCircle size={20}/> Ajouter un nouveau contact
@@ -56,7 +57,7 @@ export default function Contacts() {
         </CardHeader>
         <CardContent className="px-2">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-4 items-end">
               <FormField
                 control={form.control}
                 name="name"
@@ -75,15 +76,15 @@ export default function Contacts() {
                 name="alias"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alias (Téléphone/ID)</FormLabel>
+                    <FormLabel>Alias ou N°</FormLabel>
                     <FormControl>
-                      <Input placeholder="+221771234567 ou @alias" {...field} />
+                      <Input placeholder="VotreAlias ou +221..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="sm:col-start-3 bg-primary hover:bg-primary/90">Ajouter</Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90">Ajouter</Button>
             </form>
           </Form>
         </CardContent>
@@ -93,19 +94,21 @@ export default function Contacts() {
       <div className="space-y-3">
         {contacts.length > 0 ? (
           contacts.map(contact => (
-            <Card key={contact.id} className="flex items-center justify-between p-3">
+            <Card key={contact.id} className="flex items-center justify-between p-3 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-4">
-                <div className="bg-secondary p-2 rounded-full">
-                    <User className="text-secondary-foreground" />
-                </div>
+                <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
+                        {contact.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                </Avatar>
                 <div>
-                  <p className="font-medium">{contact.name}</p>
+                  <p className="font-semibold">{contact.name}</p>
                   <p className="text-sm text-muted-foreground">{contact.alias}</p>
                 </div>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full">
                         <Trash2 size={18} />
                     </Button>
                 </AlertDialogTrigger>
