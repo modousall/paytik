@@ -23,10 +23,9 @@ import {
 type ManageAliasProps = {
   alias: string;
   onLogout: () => void;
-  noTitle?: boolean;
 };
 
-export default function ManageAlias({ alias, onLogout, noTitle = false }: ManageAliasProps) {
+export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -53,16 +52,12 @@ export default function ManageAlias({ alias, onLogout, noTitle = false }: Manage
 
   return (
     <div>
-        {!noTitle && (
-            <>
-                <h2 className="text-2xl font-bold mb-4 text-primary">Gérer votre alias</h2>
-                <p className="text-muted-foreground mb-6">Affichez, copiez ou supprimez votre alias PAYTIK existant.</p>
-            </>
-        )}
+        <h2 className="text-2xl font-bold mb-4 text-primary">Gérer votre alias</h2>
+        <p className="text-muted-foreground mb-6">Affichez, copiez ou supprimez votre alias PAYTIK existant.</p>
       
-      <Card className="max-w-lg mx-auto shadow-none border-0 bg-transparent">
-        <CardHeader className="px-2 pt-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
+      <Card className="max-w-lg mx-auto shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <KeyRound className="text-primary"/>
             Votre Alias Actif
           </CardTitle>
@@ -70,7 +65,7 @@ export default function ManageAlias({ alias, onLogout, noTitle = false }: Manage
             C'est l'identifiant que les autres peuvent utiliser pour vous envoyer de l'argent.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-2">
+        <CardContent>
             <div className="space-y-2">
                 <Label htmlFor="current-alias">Alias</Label>
                 <div className="flex gap-2">
@@ -79,7 +74,7 @@ export default function ManageAlias({ alias, onLogout, noTitle = false }: Manage
                 </div>
             </div>
         </CardContent>
-        <CardFooter className="flex-col items-start gap-4 border-t pt-6 mt-6 px-2 pb-2">
+        <CardFooter className="flex-col items-start gap-4 border-t pt-6 mt-6">
             <h3 className="font-semibold text-destructive">Zone de Danger</h3>
              <AlertDialog>
                 <AlertDialogTrigger asChild>
