@@ -11,6 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { ArrowLeft, Loader2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useBalance } from '@/hooks/use-balance';
+import { useTransactions } from '@/hooks/use-transactions';
 
 const picashFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -27,6 +29,8 @@ export default function PICASH({ onBack }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const { toast } = useToast();
+  const { balance, debit } = useBalance();
+  const { addTransaction } = useTransactions();
 
   const form = useForm<PicashFormValues>({
     resolver: zodResolver(picashFormSchema),
@@ -37,9 +41,28 @@ export default function PICASH({ onBack }: PicashProps) {
   });
 
   const onSubmit = (values: PicashFormValues) => {
+    if (values.amount > balance) {
+        toast({
+            title: "Solde insuffisant",
+            description: "Votre solde principal est insuffisant pour effectuer ce retrait.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsLoading(true);
     // Simulate API call to generate a withdrawal code
     setTimeout(() => {
+      debit(values.amount);
+      addTransaction({
+          type: "sent",
+          counterparty: `PICASH - ${values.merchantAlias}`,
+          reason: `Retrait d'argent`,
+          date: new Date().toISOString(),
+          amount: values.amount,
+          status: "Terminé",
+      });
+
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setGeneratedCode(code);
       toast({

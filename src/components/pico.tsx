@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Separator } from './ui/separator';
+import { useBalance } from '@/hooks/use-balance';
+import { useTransactions } from '@/hooks/use-transactions';
 
 const picoFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -28,6 +29,8 @@ type PicoProps = {
 export default function PICO({ onBack }: PicoProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { balance, debit } = useBalance();
+  const { addTransaction } = useTransactions();
 
   const form = useForm<PicoFormValues>({
     resolver: zodResolver(picoFormSchema),
@@ -43,9 +46,28 @@ export default function PICO({ onBack }: PicoProps) {
   const totalAmount = (Number(purchaseAmount) || 0) + (Number(cashOutAmount) || 0);
 
   const onSubmit = (values: PicoFormValues) => {
+    if (totalAmount > balance) {
+        toast({
+            title: "Solde insuffisant",
+            description: "Votre solde principal est insuffisant pour effectuer cette opération.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
+      debit(totalAmount);
+      addTransaction({
+          type: "sent",
+          counterparty: `PICO - ${values.merchantAlias}`,
+          reason: `Achat + Retrait`,
+          date: new Date().toISOString(),
+          amount: totalAmount,
+          status: "Terminé",
+      });
+
       toast({
         title: 'Opération PICO initiée',
         description: `Un paiement de ${totalAmount.toLocaleString()} Fcfa à ${values.merchantAlias} a été effectué.`,
@@ -119,13 +141,13 @@ export default function PICO({ onBack }: PicoProps) {
               <CardContent>
                 <p className="font-bold text-2xl text-primary">{totalAmount.toLocaleString()} Fcfa</p>
                 <p className="text-sm text-muted-foreground">
-                    {purchaseAmount.toLocaleString()} Fcfa (Achat) + {cashOutAmount.toLocaleString()} Fcfa (Retrait)
+                    {(Number(purchaseAmount) || 0).toLocaleString()} Fcfa (Achat) + {(Number(cashOutAmount) || 0).toLocaleString()} Fcfa (Retrait)
                 </p>
               </CardContent>
             </Card>
           )}
 
-          <Button type="submit" className="w-full py-6" disabled={isLoading}>
+          <Button type="submit" className="w-full py-6" disabled={isLoading || totalAmount <= 0}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirmer l'opération
           </Button>

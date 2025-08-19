@@ -31,6 +31,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { useVirtualCard } from '@/hooks/use-virtual-card';
+import { useBalance } from '@/hooks/use-balance';
+import { useTransactions } from '@/hooks/use-transactions';
 
 type VaultsProps = {
   onBack: () => void;
@@ -93,13 +95,12 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
 const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: string, currentBalance: number, vaultName: string }) => {
     const { deposit, withdraw } = useVaults();
     const { card, withdrawFromCard } = useVirtualCard();
+    const { balance: mainBalance, debit, credit } = useBalance();
+    const { addTransaction } = useTransactions();
     const { toast } = useToast();
     const [amount, setAmount] = useState(0);
     const [action, setAction] = useState<'deposit' | 'withdraw' | null>(null);
     const [source, setSource] = useState('main'); // 'main' or 'card'
-
-    // Mock main balance
-    const mainBalance = 22017800;
 
     const handleDeposit = () => {
         if(amount <= 0) return;
@@ -109,7 +110,15 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                 toast({ title: "Solde principal insuffisant", variant: "destructive"});
                 return;
             }
-            // In a real app, you'd update the main balance state. Here we simulate.
+            debit(amount);
+            addTransaction({
+                type: 'sent',
+                counterparty: `Coffre "${vaultName}"`,
+                reason: 'Approvisionnement',
+                date: new Date().toISOString(),
+                amount: amount,
+                status: 'Terminé',
+            });
         } else if (source === 'card') {
             if (!card || amount > card.balance) {
                 toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
@@ -131,6 +140,15 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
             return;
         }
         withdraw(vaultId, amount);
+        credit(amount);
+        addTransaction({
+            type: 'received',
+            counterparty: `Coffre "${vaultName}"`,
+            reason: 'Retrait',
+            date: new Date().toISOString(),
+            amount: amount,
+            status: 'Terminé',
+        });
         toast({ title: "Retrait effectué", description: `${amount.toLocaleString()} Fcfa ont été retirés de la tirelire "${vaultName}".`});
         setAction(null);
         setAmount(0);
