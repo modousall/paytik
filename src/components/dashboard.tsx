@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -17,20 +18,26 @@ import {
 } from "@/components/ui/sheet";
 import Tontine from './tontine';
 
+type UserInfo = {
+    name: string;
+    email: string;
+};
+
 type DashboardProps = {
   alias: string;
+  userInfo: UserInfo;
   onLogout: () => void;
 };
 
 type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'contacts' | 'alias';
 
-const Header = ({ alias }: { alias: string }) => (
+const Header = ({ userInfo }: { userInfo: UserInfo }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
             <Avatar>
-                <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="person face" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src="https://placehold.co/40x40.png" alt={userInfo.name} data-ai-hint="person face" />
+                <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="font-bold text-lg text-primary">PAYTIK</div>
         </div>
@@ -42,7 +49,7 @@ const Header = ({ alias }: { alias: string }) => (
                 <Button variant="ghost" size="icon"><QrCode /></Button>
               </SheetTrigger>
               <SheetContent>
-                  <QrCodeDisplay alias={alias} />
+                  <QrCodeDisplay alias={userInfo.name} userInfo={userInfo} />
               </SheetContent>
             </Sheet>
 
@@ -61,7 +68,7 @@ const BalanceDisplay = () => (
     </Card>
 );
 
-const Accueil = ({onSendClick}: {onSendClick: () => void}) => (
+const Accueil = ({onSendClick, alias, userInfo}: {onSendClick: () => void, alias: string, userInfo: UserInfo}) => (
     <div>
         <BalanceDisplay />
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -75,7 +82,7 @@ const Accueil = ({onSendClick}: {onSendClick: () => void}) => (
                         <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
                     </SheetTrigger>
                     <SheetContent>
-                        <QrCodeDisplay alias="MyAlias" />
+                        <QrCodeDisplay alias={alias} userInfo={userInfo}/>
                     </SheetContent>
                 </Sheet>
                 <span className="text-sm font-medium">Recevoir</span>
@@ -90,34 +97,13 @@ const Accueil = ({onSendClick}: {onSendClick: () => void}) => (
 );
 
 
-export default function Dashboard({ alias, onLogout }: DashboardProps) {
+export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
 
     const handleShowAllTransactions = () => {
         setShowAllTransactions(true);
     };
-
-    const renderContent = () => {
-        if (showAllTransactions) {
-            return <TransactionHistory showAll={true} onShowAll={() => setShowAllTransactions(false)} />;
-        }
-
-        switch(activeTab) {
-            case 'accueil':
-                return <Accueil onSendClick={() => setActiveTab('envoyer')} />;
-            case 'envoyer':
-                return <PaymentForm />;
-            case 'tontine':
-                return <Tontine />;
-            case 'contacts':
-                return <Contacts />;
-            case 'alias':
-                return <ManageAlias alias={alias} onLogout={onLogout} />;
-            default:
-                return <Accueil onSendClick={() => setActiveTab('envoyer')} />;
-        }
-    }
     
     const MainContent = () => {
         if (showAllTransactions) {
@@ -126,7 +112,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
     
         switch (activeTab) {
           case 'accueil':
-            return <Accueil onSendClick={() => setActiveTab('envoyer')} />;
+            return <Accueil onSendClick={() => setActiveTab('envoyer')} alias={alias} userInfo={userInfo} />;
           case 'envoyer':
             return <PaymentForm />;
           case 'tontine':
@@ -136,7 +122,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
           case 'alias':
             return <ManageAlias alias={alias} onLogout={onLogout} />;
           default:
-            return <Accueil onSendClick={() => setActiveTab('envoyer')} />;
+            return <Accueil onSendClick={() => setActiveTab('envoyer')} alias={alias} userInfo={userInfo} />;
         }
       };
       
@@ -147,7 +133,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
-      <Header alias={alias} />
+      <Header userInfo={userInfo} />
        <main className="flex-grow container mx-auto p-4 sm:p-6">
         {activeTab === 'accueil' && !showAllTransactions ? (
           <div>
@@ -163,7 +149,7 @@ export default function Dashboard({ alias, onLogout }: DashboardProps) {
                             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
                         </SheetTrigger>
                         <SheetContent>
-                            <QrCodeDisplay alias={alias} />
+                            <QrCodeDisplay alias={alias} userInfo={userInfo} />
                         </SheetContent>
                     </Sheet>
                     <span className="text-sm font-medium">Recevoir</span>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -13,9 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type AliasCreationProps = {
   onAliasCreated: (alias: string) => void;
+  userInfo: { name: string; email: string } | null;
 };
 
-export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
+export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreationProps) {
   const [aliasValue, setAliasValue] = useState('');
   const [phoneValue, setPhoneValue] = useState('');
   const [otpValue, setOtpValue] = useState('');
@@ -30,8 +32,8 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
       try {
         const result = await aliasSuggestion({
             existingAliases: ["testuser", "johndoe"],
-            name: 'Utilisateur Anonyme',
-            email: 'user@example.com'
+            name: userInfo?.name || 'Utilisateur Anonyme',
+            email: userInfo?.email || 'user@example.com'
         });
         setSuggestions(result.suggestions);
       } catch (error) {
@@ -43,7 +45,7 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
       }
     }
     getSuggestions();
-  }, []);
+  }, [userInfo]);
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +114,7 @@ export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
             <p className="text-muted-foreground mt-2">Revendiquez votre numéro ou choisissez un alias unique pour recevoir des paiements.</p>
         </div>
 
-        <Tabs defaultValue="phone" className="w-full">
+        <Tabs defaultValue="custom" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="phone"><Smartphone className="mr-2"/> Par téléphone</TabsTrigger>
                 <TabsTrigger value="custom"><KeyRound className="mr-2"/> Personnalisé</TabsTrigger>
