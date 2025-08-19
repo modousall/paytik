@@ -73,7 +73,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             case 'accueil':
                 return (
                     <div className="space-y-8">
-                        <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
+                        <DashboardHeader userInfo={userInfo} alias={alias} />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             alias={alias}
@@ -112,7 +112,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             default:
                  return (
                     <div className="space-y-8">
-                        <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
+                        <DashboardHeader userInfo={userInfo} alias={alias} />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             alias={alias}

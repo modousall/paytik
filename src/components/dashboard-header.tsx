@@ -3,24 +3,13 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { QrCode, LogOut, Bell, Eye, EyeOff } from "lucide-react";
+import { QrCode, Bell, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog";
 import QrCodeDisplay from './qr-code-display';
 import Notifications from "./notifications";
 import { Progress } from './ui/progress';
@@ -28,6 +17,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { useVirtualCard } from '@/hooks/use-virtual-card';
 import { useVaults } from '@/hooks/use-vaults';
 import { useTontine } from '@/hooks/use-tontine';
+import { useAvatar } from '@/hooks/use-avatar';
 
 type UserInfo = {
     name: string;
@@ -37,14 +27,14 @@ type UserInfo = {
 type HeaderProps = { 
     userInfo: UserInfo; 
     alias: string; 
-    onLogout: () => void;
 };
 
-export default function DashboardHeader({ userInfo, alias, onLogout }: HeaderProps) {
+export default function DashboardHeader({ userInfo, alias }: HeaderProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
     const { tontines } = useTontine();
+    const { avatar } = useAvatar();
 
     const [isBalanceVisible, setIsBalanceVisible] = useState(true);
 
@@ -63,7 +53,7 @@ export default function DashboardHeader({ userInfo, alias, onLogout }: HeaderPro
             <div className="flex justify-between items-center mb-4">
                  <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
+                        <AvatarImage src={avatar ?? `https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
                         <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                      <div>

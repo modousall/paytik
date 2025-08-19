@@ -8,6 +8,7 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { BalanceProvider } from '@/hooks/use-balance';
+import { AvatarProvider } from '@/hooks/use-avatar';
 
 export const metadata: Metadata = {
   title: 'PAYTIK Simplifié',
@@ -27,20 +28,22 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased h-full">
-        <BalanceProvider>
-          <TransactionsProvider>
-            <ContactsProvider>
-              <VirtualCardProvider>
-                <TontineProvider>
-                  <VaultsProvider>
-                    {children}
-                    <Toaster />
-                  </VaultsProvider>
-                </TontineProvider>
-              </VirtualCardProvider>
-            </ContactsProvider>
-          </TransactionsProvider>
-        </BalanceProvider>
+        <AvatarProvider>
+            <BalanceProvider>
+              <TransactionsProvider>
+                <ContactsProvider>
+                  <VirtualCardProvider>
+                    <TontineProvider>
+                      <VaultsProvider>
+                        {children}
+                        <Toaster />
+                      </VaultsProvider>
+                    </TontineProvider>
+                  </VirtualCardProvider>
+                </ContactsProvider>
+              </TransactionsProvider>
+            </BalanceProvider>
+        </AvatarProvider>
       </body>
     </html>
   );

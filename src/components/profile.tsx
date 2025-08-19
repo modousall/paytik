@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import ManageAlias from "./manage-alias";
 import Contacts from "./contacts";
 import { Separator } from "./ui/separator";
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAvatar } from '@/hooks/use-avatar';
 
 type UserInfo = {
   name: string;
@@ -22,16 +23,9 @@ type ProfileProps = {
 };
 
 export default function Profile({ userInfo, alias, onLogout }: ProfileProps) {
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const { avatar, setAvatar } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const storedAvatar = localStorage.getItem('paytik_avatar');
-    if (storedAvatar) {
-        setAvatar(storedAvatar);
-    }
-  }, []);
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -40,7 +34,6 @@ export default function Profile({ userInfo, alias, onLogout }: ProfileProps) {
       reader.onloadend = () => {
         const newAvatar = reader.result as string;
         setAvatar(newAvatar);
-        localStorage.setItem('paytik_avatar', newAvatar);
         toast({
             title: "Photo de profil mise à jour",
             description: "Votre nouvelle photo a été enregistrée.",
