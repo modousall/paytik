@@ -60,7 +60,7 @@ export default function ManageAlias({ alias, onLogout, noTitle = false }: Manage
             </>
         )}
       
-      <Card className="max-w-lg mx-auto shadow-none border-0">
+      <Card className="max-w-lg mx-auto shadow-none border-0 bg-transparent">
         <CardHeader className="px-2 pt-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <KeyRound className="text-primary"/>
