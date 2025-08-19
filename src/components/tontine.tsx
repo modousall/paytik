@@ -21,6 +21,23 @@ export default function Tontine({ onBack }: TontineProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTontine, setSelectedTontine] = useState<TontineType | null>(null);
 
+  if (selectedTontine) {
+    return (
+        <div>
+            <div className="flex items-center gap-4 mb-6">
+                <Button onClick={() => setSelectedTontine(null)} variant="ghost" size="icon">
+                    <ArrowLeft />
+                </Button>
+                <div>
+                    <h2 className="text-2xl font-bold text-primary">{selectedTontine.name}</h2>
+                    <p className="text-muted-foreground">Détails du groupe et historique.</p>
+                </div>
+            </div>
+            <TontineDetails tontine={selectedTontine} />
+        </div>
+    )
+  }
+
   return (
     <div>
       <div className="flex justify-between items-start mb-6">
@@ -79,13 +96,9 @@ export default function Tontine({ onBack }: TontineProps) {
                 </div>
               </CardContent>
               <CardFooter>
-                 <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full" onClick={() => setSelectedTontine(tontine)}>
-                            <Eye className="mr-2 h-4 w-4" /> Voir les détails
-                        </Button>
-                    </DialogTrigger>
-                 </Dialog>
+                 <Button variant="outline" className="w-full" onClick={() => setSelectedTontine(tontine)}>
+                    <Eye className="mr-2 h-4 w-4" /> Voir les détails
+                </Button>
               </CardFooter>
             </Card>
           ))}
@@ -110,22 +123,6 @@ export default function Tontine({ onBack }: TontineProps) {
             </Dialog>
         </div>
       )}
-
-      <Dialog open={!!selectedTontine} onOpenChange={(isOpen) => !isOpen && setSelectedTontine(null)}>
-        <DialogContent className="max-w-2xl">
-           {selectedTontine && (
-            <>
-                 <DialogHeader>
-                    <DialogTitle>{selectedTontine.name}</DialogTitle>
-                    <DialogDescription>
-                        Consultez les détails, les participants et l'historique de ce groupe.
-                    </DialogDescription>
-                </DialogHeader>
-                <TontineDetails tontine={selectedTontine} />
-            </>
-           )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
