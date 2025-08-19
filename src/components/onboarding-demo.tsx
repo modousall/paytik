@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Zap, ShieldCheck, DollarSign, Handshake } from "lucide-react";
 
 type OnboardingDemoProps = {
-  onComplete: () => void;
+  onStart: () => void;
+  onLogin: () => void;
 };
 
-export default function OnboardingDemo({ onComplete }: OnboardingDemoProps) {
+export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps) {
   const features = [
     {
       icon: <Zap className="h-12 w-12 text-primary" />,
@@ -63,9 +65,14 @@ export default function OnboardingDemo({ onComplete }: OnboardingDemoProps) {
           <CarouselPrevious className="hidden sm:flex" />
           <CarouselNext className="hidden sm:flex" />
         </Carousel>
-        <Button onClick={onComplete} className="w-full mt-8 bg-accent text-accent-foreground hover:bg-accent/90">
-          Commencer
-        </Button>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button onClick={onLogin} variant="outline">
+            Se connecter
+          </Button>
+          <Button onClick={onStart} className="bg-accent text-accent-foreground hover:bg-accent/90">
+            Commencer
+          </Button>
+        </div>
       </div>
     </div>
   );

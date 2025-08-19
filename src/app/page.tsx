@@ -17,7 +17,7 @@ type UserInfo = {
   email: string;
 };
 
-type AppStep = 'demo' | 'kyc' | 'alias' | 'dashboard';
+type AppStep = 'demo' | 'login' | 'kyc' | 'alias' | 'dashboard';
 
 const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void }) => {
   const [name, setName] = useState('');
@@ -77,6 +77,63 @@ const KYCForm = ({ onKycComplete }: { onKycComplete: (info: UserInfo) => void })
   );
 };
 
+const LoginForm = ({ onLoginSuccess, onBack }: { onLoginSuccess: (alias: string) => void; onBack: () => void; }) => {
+    const [alias, setAlias] = useState('');
+    const { toast } = useToast();
+  
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      // Simulate checking if alias exists in localStorage
+      const storedAlias = localStorage.getItem('paytik_alias');
+      const storedName = localStorage.getItem('paytik_username');
+  
+      if (storedAlias && storedName && alias === storedAlias) {
+        toast({
+          title: `Bienvenue, ${storedName} !`,
+          description: "Connexion réussie.",
+        });
+        onLoginSuccess(alias);
+      } else {
+        toast({
+          title: "Alias non trouvé",
+          description: "Cet alias n'existe pas ou ne correspond à aucun utilisateur. Veuillez créer un compte.",
+          variant: "destructive",
+        });
+      }
+    };
+  
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+          <Card className="w-full max-w-md">
+              <CardHeader>
+                  <CardTitle>Se Connecter</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                          <Label htmlFor="alias-login">Votre Alias</Label>
+                          <Input
+                              id="alias-login"
+                              type="text"
+                              placeholder="Entrez votre alias"
+                              value={alias}
+                              onChange={(e) => setAlias(e.target.value)}
+                              required
+                          />
+                      </div>
+                      <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                         Se Connecter
+                      </Button>
+                      <Button variant="link" onClick={onBack} className="w-full">
+                         Retour
+                      </Button>
+                  </form>
+              </CardContent>
+          </Card>
+      </div>
+    );
+  };
+
 
 export default function Home() {
   const [step, setStep] = useState<AppStep>('demo');
@@ -109,14 +166,28 @@ export default function Home() {
     setStep('dashboard');
   };
   
-  const handleOnboardingComplete = () => {
+  const handleOnboardingStart = () => {
     setStep('kyc');
+  };
+
+  const handleLoginStart = () => {
+    setStep('login');
   };
   
   const handleKycComplete = (info: UserInfo) => {
     setUserInfo(info);
     setStep('alias');
   };
+
+  const handleLoginSuccess = (loggedInAlias: string) => {
+    const userName = localStorage.getItem('paytik_username');
+    const userEmail = localStorage.getItem('paytik_useremail');
+    if (userName && userEmail) {
+      setAlias(loggedInAlias);
+      setUserInfo({name: userName, email: userEmail});
+      setStep('dashboard');
+    }
+  }
 
   const logout = () => {
     localStorage.removeItem('paytik_onboarded');
@@ -131,7 +202,9 @@ export default function Home() {
   const renderStep = () => {
     switch (step) {
       case 'demo':
-        return <OnboardingDemo onComplete={handleOnboardingComplete} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+      case 'login':
+        return <LoginForm onLoginSuccess={handleLoginSuccess} onBack={() => setStep('demo')} />;
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'alias':
@@ -139,7 +212,7 @@ export default function Home() {
       case 'dashboard':
         return <Dashboard alias={alias!} userInfo={userInfo!} onLogout={logout} />;
       default:
-        return <OnboardingDemo onComplete={handleOnboardingComplete} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
   };
   
