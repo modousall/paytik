@@ -18,74 +18,101 @@ type VirtualCardProps = {
     onBack: () => void;
 };
 
-const RechargeDialog = ({ onRecharge }: { onRecharge: (amount: number) => void }) => {
+const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, onRecharge: (amount: number) => void, onWithdraw: (amount: number) => void }) => {
     const [amount, setAmount] = useState(0);
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Recharger la carte</DialogTitle>
-            </DialogHeader>
-            <div className='space-y-4 py-4'>
-                <p className='text-sm text-muted-foreground'>Les fonds seront prélevés de votre solde principal.</p>
-                <Label htmlFor="recharge-amount">Montant à recharger (Fcfa)</Label>
-                <Input 
-                    id="recharge-amount" 
-                    type="number" 
-                    value={amount || ''}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    placeholder="ex: 10000"
-                />
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="secondary">Annuler</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                    <Button onClick={() => onRecharge(amount)} disabled={amount <= 0}>
-                        Recharger
-                    </Button>
-                </DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    )
-}
+    const [action, setAction] = useState<'recharge' | 'withdraw' | null>(null);
+    const { balance: mainBalance } = useBalance();
 
-const WithdrawDialog = ({ onWithdraw }: { onWithdraw: (amount: number) => void }) => {
-    const [amount, setAmount] = useState(0);
+    const handleRecharge = () => {
+        onRecharge(amount);
+        setAction(null);
+        setAmount(0);
+    }
+    
+    const handleWithdraw = () => {
+        onWithdraw(amount);
+        setAction(null);
+        setAmount(0);
+    }
+
+    if (action === 'recharge') {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Approvisionner la carte</DialogTitle>
+                </DialogHeader>
+                 <div className='space-y-4 py-4'>
+                    <p className='text-sm text-muted-foreground'>Les fonds seront prélevés de votre solde principal. Solde disponible: {mainBalance.toLocaleString()} Fcfa.</p>
+                    <Label htmlFor="recharge-amount">Montant à recharger (Fcfa)</Label>
+                    <Input 
+                        id="recharge-amount" 
+                        type="number" 
+                        value={amount || ''}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                        placeholder="ex: 10000"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setAction(null)}>Retour</Button>
+                    <DialogClose asChild>
+                        <Button onClick={handleRecharge} disabled={amount <= 0 || amount > mainBalance}>
+                            Confirmer
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        )
+    }
+
+    if (action === 'withdraw') {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Retirer de la carte</DialogTitle>
+                </DialogHeader>
+                <div className='space-y-4 py-4'>
+                    <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal. Solde disponible sur la carte: {card.balance.toLocaleString()} Fcfa.</p>
+                    <Label htmlFor="withdraw-amount">Montant à retirer (Fcfa)</Label>
+                    <Input 
+                        id="withdraw-amount" 
+                        type="number" 
+                        value={amount || ''}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                        placeholder="ex: 5000"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setAction(null)}>Retour</Button>
+                    <DialogClose asChild>
+                        <Button onClick={handleWithdraw} disabled={amount <= 0 || amount > card.balance}>
+                            Confirmer
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        )
+    }
+
+
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Retirer de la carte</DialogTitle>
+                <DialogTitle>Gérer les fonds de la carte</DialogTitle>
             </DialogHeader>
-            <div className='space-y-4 py-4'>
-                <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal.</p>
-                <Label htmlFor="withdraw-amount">Montant à retirer (Fcfa)</Label>
-                <Input 
-                    id="withdraw-amount" 
-                    type="number" 
-                    value={amount || ''}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    placeholder="ex: 5000"
-                />
+            <div className="grid grid-cols-2 gap-4 py-4">
+                <Button variant="outline" className="py-10 flex-col h-auto" onClick={() => setAction('withdraw')}>
+                    <ArrowDown className="h-6 w-6 mb-2"/> Retirer vers solde principal
+                </Button>
+                <Button className="py-10 flex-col h-auto bg-primary hover:bg-primary/90" onClick={() => setAction('recharge')}>
+                    <Wallet className="h-6 w-6 mb-2"/> Approvisionner la carte
+                </Button>
             </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="secondary">Annuler</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                    <Button onClick={() => onWithdraw(amount)} disabled={amount <= 0}>
-                        Confirmer le retrait
-                    </Button>
-                </DialogClose>
-            </DialogFooter>
         </DialogContent>
-    )
-}
+    );
+};
 
 export default function VirtualCard({ onBack }: VirtualCardProps) {
   const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard, withdrawFromCard } = useVirtualCard();
-  const { balance: mainBalance, debit, credit } = useBalance();
-  const { addTransaction } = useTransactions();
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
   const cardHolderName = localStorage.getItem('paytik_username') || "Titulaire Inconnu";
@@ -215,20 +242,16 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <CardTitle>Transactions de la carte</CardTitle>
-                    <div className="flex gap-2">
-                        <Dialog>
-                           <DialogTrigger asChild>
-                               <Button variant="outline"><ArrowUp className="mr-2"/>Retirer</Button>
-                           </DialogTrigger>
-                           <WithdrawDialog onWithdraw={handleWithdraw}/>
-                        </Dialog>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button><Wallet className="mr-2"/>Approvisionner</Button>
-                            </DialogTrigger>
-                            <RechargeDialog onRecharge={handleRecharge} />
-                        </Dialog>
-                    </div>
+                     <Dialog>
+                        <DialogTrigger asChild>
+                           <Button><Wallet className="mr-2"/>Gérer les fonds</Button>
+                        </DialogTrigger>
+                        <ManageCardFundsDialog 
+                            card={card} 
+                            onRecharge={handleRecharge}
+                            onWithdraw={handleWithdraw}
+                        />
+                     </Dialog>
                 </div>
                 <CardDescription>Historique des paiements effectués avec cette carte.</CardDescription>
             </CardHeader>
