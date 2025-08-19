@@ -4,7 +4,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Droplets, Zap, Wifi, Smartphone, Tv, ShoppingCart, Plus, Handshake, CreditCard } from "lucide-react";
 
-type Service = {
+export type Service = {
     name: string;
     icon: JSX.Element;
     provider?: string;
@@ -24,7 +24,7 @@ const servicesList: Service[] = [
 ];
 
 
-export default function Services({ onServiceClick }: { onServiceClick: (action: string) => void }) {
+export default function Services({ onServiceClick }: { onServiceClick: (service: Service) => void }) {
     return (
         <div>
             <div className="mb-6">
@@ -37,7 +37,7 @@ export default function Services({ onServiceClick }: { onServiceClick: (action: 
                     <Card 
                         key={service.name} 
                         className="flex flex-col items-center justify-center text-center p-4 hover:bg-accent/50 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => onServiceClick(service.action)}
+                        onClick={() => onServiceClick(service)}
                     >
                         <div className="p-3 bg-accent/20 rounded-full mb-3">
                            {service.icon}

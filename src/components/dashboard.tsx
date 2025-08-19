@@ -13,6 +13,8 @@ import VirtualCard from './virtual-card';
 import Header from './header';
 import BalanceDisplay from './balance-display';
 import HomeActions from './home-actions';
+import BillPaymentForm from './bill-payment-form';
+import type { Service } from './services';
 
 type UserInfo = {
     name: string;
@@ -30,7 +32,7 @@ type NavItem = 'accueil' | 'payer' | 'services' | 'profil';
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
-    const [activeService, setActiveService] = useState<string | null>(null);
+    const [activeService, setActiveService] = useState<Service | null>(null);
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -42,7 +44,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setActiveTab(tab);
       }
     
-      const handleServiceClick = (service: string) => {
+      const handleServiceClick = (service: Service) => {
         setActiveTab('services'); 
         setActiveService(service);
       }
@@ -67,9 +69,22 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             case 'payer':
                 return <PaymentForm />;
             case 'services':
-                 if (activeService === 'tontine') return <Tontine />;
-                 if (activeService === 'ma-carte') return <VirtualCard />;
-                 return <Services onServiceClick={handleServiceClick}/>;
+                 if (!activeService) return <Services onServiceClick={handleServiceClick}/>;
+                 
+                 switch (activeService.action) {
+                    case 'tontine':
+                        return <Tontine />;
+                    case 'ma-carte':
+                        return <VirtualCard />;
+                    case 'eau':
+                    case 'electricite':
+                    case 'internet':
+                    case 'credit':
+                    case 'tv':
+                        return <BillPaymentForm service={activeService} onBack={() => setActiveService(null)} />;
+                    default:
+                        return <Services onServiceClick={handleServiceClick}/>;
+                 }
             case 'profil':
                 return <Profile alias={alias} onLogout={onLogout} />;
             default:
