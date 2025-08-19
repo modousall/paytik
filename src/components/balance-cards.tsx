@@ -22,29 +22,29 @@ export default function BalanceCards() {
             id: 'main',
             title: 'Solde Principal',
             balance: balance,
-            icon: <Wallet className="h-6 w-6" />,
-            color: 'bg-primary'
+            icon: <Wallet className="h-6 w-6 text-white" />,
+            color: 'from-primary to-blue-400'
         },
         ...(card ? [{
             id: 'virtual' as const,
             title: 'Carte Virtuelle',
             balance: card.balance,
-            icon: <CreditCard className="h-6 w-6" />,
-            color: 'bg-sky-500'
+            icon: <CreditCard className="h-6 w-6 text-white" />,
+            color: 'from-sky-500 to-cyan-400'
         }] : []),
         ...(totalVaultsBalance > 0 ? [{
             id: 'vaults' as const,
             title: 'Mes Coffres',
             balance: totalVaultsBalance,
-            icon: <PiggyBank className="h-6 w-6" />,
-            color: 'bg-amber-500'
+            icon: <PiggyBank className="h-6 w-6 text-white" />,
+            color: 'from-amber-500 to-yellow-400'
         }] : []),
         ...(totalTontinesBalance > 0 ? [{
             id: 'tontines' as const,
             title: 'Mes Tontines',
             balance: totalTontinesBalance,
-            icon: <Users className="h-6 w-6" />,
-            color: 'bg-emerald-500'
+            icon: <Users className="h-6 w-6 text-white" />,
+            color: 'from-emerald-500 to-green-400'
         }] : [])
     ];
 
@@ -53,13 +53,13 @@ export default function BalanceCards() {
             {cards.map((c) => (
                 <Card
                     key={c.id}
-                    className={`text-white shadow-lg p-4 flex flex-col justify-between ${c.color}`}
+                    className={`text-white shadow-lg p-4 flex flex-col justify-between bg-gradient-to-br ${c.color} border-none`}
                 >
                     <div className="flex justify-between items-start">
                         <p className="font-semibold">{c.title}</p>
                         {c.icon}
                     </div>
-                    <div className="text-right">
+                    <div className="text-right mt-4">
                         <p className="text-2xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
                         <p className="text-sm opacity-80">Fcfa</p>
                     </div>

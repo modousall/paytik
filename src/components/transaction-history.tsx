@@ -56,18 +56,11 @@ const TransactionIcon = ({ type, counterparty }: { type: string, counterparty: s
             return <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center"><ArrowUp className="text-red-600" /></div>;
         case 'received':
             return <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center"><ArrowDown className="text-green-600" /></div>;
-        case 'tontine':
-            return (
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt="Tontine" data-ai-hint="piggy bank" />
-                    <AvatarFallback className="bg-blue-100 text-blue-600">{initial}</AvatarFallback>
-                </Avatar>
-            );
         default:
-            return (
+             return (
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt="Transaction" data-ai-hint="person face" />
-                    <AvatarFallback>{initial}</AvatarFallback>
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt={counterparty} data-ai-hint="person face" />
+                    <AvatarFallback className="bg-muted text-muted-foreground">{initial}</AvatarFallback>
                 </Avatar>
             );
     }
@@ -118,7 +111,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                 <div className="flex justify-between">
                     <span className="text-muted-foreground">Statut</span>
                     <Badge variant={transaction.status === 'Terminé' ? 'default' : transaction.status === 'Retourné' ? 'secondary' : 'destructive'} 
-                           className={transaction.status === 'Terminé' ? 'bg-green-600/20 text-green-800' : ''}>
+                           className={transaction.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
                         {transaction.status}
                     </Badge>
                 </div>
@@ -152,11 +145,11 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
 
 export default function TransactionHistory({ showAll, onShowAll }: TransactionHistoryProps) {
     const { transactions } = useTransactions();
-    const transactionsToShow = showAll ? transactions : transactions.slice(0, 3);
+    const transactionsToShow = showAll ? transactions : transactions.slice(0, 5);
 
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="shadow-none border-none">
+            <CardHeader className="flex flex-row items-center justify-between px-2">
                 <div className="flex items-center gap-2">
                     {showAll && (
                         <Button onClick={() => onShowAll(false)} variant="ghost" size="icon" className="mr-2">
@@ -177,13 +170,13 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     </div>
                 )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0">
                 {transactionsToShow.length > 0 ? (
                     <div className="space-y-1">
                         {transactionsToShow.map((tx) => (
                             <Dialog key={tx.id}>
                                 <DialogTrigger asChild>
-                                    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
+                                    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary cursor-pointer">
                                         <TransactionIcon type={tx.type} counterparty={tx.counterparty}/>
                                         <div className="flex-grow">
                                             <p className="font-semibold">{tx.counterparty}</p>
@@ -195,7 +188,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                             <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
                                                 {tx.type === 'sent' ? '-' : '+'}{tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
                                             </div>
-                                            {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={tx.status === 'Terminé' ? 'bg-green-600/20 text-green-800' : ''}>{tx.status}</Badge>}
+                                            {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={`${tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''} text-xs`}>{tx.status}</Badge>}
                                         </div>
                                     </div>
                                 </DialogTrigger>
@@ -210,7 +203,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                         <p className="mt-1 text-sm text-muted-foreground">Vos transactions apparaîtront ici.</p>
                     </div>
                 )}
-                {!showAll && transactions.length > 3 && (
+                {!showAll && transactions.length > 5 && (
                     <Button variant="link" className="w-full mt-4 text-accent" onClick={() => onShowAll(true)}>
                         Tout afficher
                     </Button>

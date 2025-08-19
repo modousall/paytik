@@ -72,14 +72,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         switch(activeTab){
             case 'accueil':
                 return (
-                    <div>
+                    <div className="space-y-8">
                         <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
-                        <BalanceCards />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             alias={alias}
                             userInfo={userInfo}
                         />
+                        <BalanceCards />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
@@ -111,14 +111,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 return <Profile alias={alias} onLogout={onLogout} />;
             default:
                  return (
-                    <div>
+                    <div className="space-y-8">
                         <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
-                        <BalanceCards />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             alias={alias}
                             userInfo={userInfo}
                         />
+                        <BalanceCards />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
@@ -131,8 +131,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         <main className="flex-grow container mx-auto p-4 sm:p-6">
             {renderContent()}
         </main>
-      <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
-          <div className="container mx-auto grid grid-cols-4 gap-1">
+      <footer className="bg-background/95 backdrop-blur-sm p-2 border-t mt-auto sticky bottom-0 z-40">
+          <nav className="container mx-auto grid grid-cols-4 gap-1">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Home />
                 <span className="text-xs">Accueil</span>
@@ -149,7 +149,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <UserIcon />
                 <span className="text-xs">Profil</span>
             </Button>
-          </div>
+          </nav>
       </footer>
     </div>
   );
