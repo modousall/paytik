@@ -8,11 +8,13 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Copy } from 'lucide-react';
+import { ArrowLeft, Loader2, Copy, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import QRCodeScanner from './qr-code-scanner';
 
 const picashFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -28,6 +30,7 @@ type PicashProps = {
 export default function PICASH({ onBack }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
   const { balance, debit } = useBalance();
   const { addTransaction } = useTransactions();
@@ -83,6 +86,12 @@ export default function PICASH({ onBack }: PicashProps) {
     setGeneratedCode(null);
     form.reset();
   }
+  
+  const handleScannedCode = (decodedText: string) => {
+    form.setValue('merchantAlias', decodedText, { shouldValidate: true });
+    setIsScannerOpen(false);
+    toast({ title: "Code Scanné", description: "L'alias du marchand a été inséré." });
+  }
 
   if (generatedCode) {
     return (
@@ -132,7 +141,22 @@ export default function PICASH({ onBack }: PicashProps) {
               <FormItem>
                 <FormLabel>Alias ou Code Marchand</FormLabel>
                 <FormControl>
-                  <Input placeholder="Entrez l'identifiant du marchand" {...field} />
+                    <div className="flex gap-2">
+                        <Input placeholder="Entrez l'identifiant du marchand" {...field} />
+                         <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                                    <QrCode />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md p-0">
+                                <DialogHeader className="p-4">
+                                    <DialogTitle>Scanner le code du marchand</DialogTitle>
+                                </DialogHeader>
+                                <QRCodeScanner onScan={handleScannedCode}/>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
