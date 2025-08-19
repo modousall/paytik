@@ -1,12 +1,12 @@
 
 "use client";
 
+import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useBalance } from "@/hooks/use-balance";
 import { useVirtualCard } from "@/hooks/use-virtual-card";
 import { CreditCard, Wallet, PiggyBank, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 
@@ -15,9 +15,9 @@ export default function BalanceCards() {
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
     const { tontines } = useTontine();
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
-    // For tontines, we sum up the total pot of each tontine the user is in.
     const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
 
     const cards = [
@@ -50,38 +50,39 @@ export default function BalanceCards() {
             color: 'bg-emerald-500'
         }] : [])
     ];
-
+    
+    const handleCardClick = () => {
+        setActiveIndex((prevIndex) => (prevIndex + 1) % cards.length);
+    };
 
     return (
-        <div className="mb-8 -mx-4">
-            <Carousel opts={{
-                align: "start",
-                loop: false,
-            }}
-            className="w-full"
-            >
-                <CarouselContent className="-ml-2">
-                    {cards.map((c, index) => (
-                         <CarouselItem key={c.id} className="pl-4 basis-4/5 md:basis-1/3">
-                            <Card
-                                className={cn(
-                                    "text-white shadow-lg h-40 flex flex-col justify-between p-4",
-                                    c.color
-                                )}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <p className="font-semibold">{c.title}</p>
-                                    {c.icon}
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-3xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
-                                    <p className="text-sm opacity-80">Fcfa</p>
-                                </div>
-                            </Card>
-                         </CarouselItem>
-                    ))}
-                </CarouselContent>
-            </Carousel>
+        <div className="relative h-48 mb-8 cursor-pointer" onClick={handleCardClick} title="Cliquez pour changer de solde">
+            {cards.map((c, index) => {
+                const position = (index - activeIndex + cards.length) % cards.length;
+                return (
+                    <Card
+                        key={c.id}
+                        className={cn(
+                            "text-white shadow-lg h-40 flex flex-col justify-between p-4 absolute w-full transition-all duration-300 ease-in-out",
+                            c.color
+                        )}
+                        style={{
+                            transform: `translateY(${position * 10}px) scale(${1 - position * 0.05})`,
+                            zIndex: cards.length - position,
+                            opacity: position > 2 ? 0 : 1, // Hide cards that are too far back
+                        }}
+                    >
+                        <div className="flex justify-between items-start">
+                            <p className="font-semibold">{c.title}</p>
+                            {c.icon}
+                        </div>
+                        <div className="text-right">
+                            <p className="text-3xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
+                            <p className="text-sm opacity-80">Fcfa</p>
+                        </div>
+                    </Card>
+                );
+            })}
         </div>
     );
 }
