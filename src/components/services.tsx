@@ -3,20 +3,23 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Handshake, CreditCard, ShoppingCart, Receipt, PiggyBank } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
+import { Button } from "./ui/button";
 
 export type Service = {
     name: string;
     icon: JSX.Element;
     action: string;
+    description: string;
 };
 
 
 const servicesList: Service[] = [
-    { name: "Tontine", icon: <Handshake className="h-8 w-8 text-primary" />, action: "tontine" },
-    { name: "Ma Carte", icon: <CreditCard className="h-8 w-8 text-primary" />, action: "ma-carte" },
-    { name: "Marchands", icon: <ShoppingCart className="h-8 w-8 text-primary" />, action: "marchands" },
-    { name: "Factures", icon: <Receipt className="h-8 w-8 text-primary" />, action: "factures" },
-    { name: "Coffres", icon: <PiggyBank className="h-8 w-8 text-primary" />, action: "coffres" },
+    { name: "Tontine", icon: <Handshake className="h-8 w-8 text-primary" />, action: "tontine", description: "Créez ou rejoignez des groupes d'épargne rotatifs avec vos contacts en toute confiance." },
+    { name: "Ma Carte", icon: <CreditCard className="h-8 w-8 text-primary" />, action: "ma-carte", description: "Générez et gérez des cartes virtuelles sécurisées pour vos paiements en ligne." },
+    { name: "Marchands", icon: <ShoppingCart className="h-8 w-8 text-primary" />, action: "marchands", description: "Payez, retirez du cash (PICO) ou financez vos achats (BNPL) chez nos partenaires." },
+    { name: "Factures", icon: <Receipt className="h-8 w-8 text-primary" />, action: "factures", description: "Réglez vos factures SENELEC, SDE, Orange et autres services rapidement." },
+    { name: "Coffres", icon: <PiggyBank className="h-8 w-8 text-primary" />, action: "coffres", description: "Mettez de l'argent de côté pour vos projets personnels dans des tirelires sécurisées." },
 ];
 
 
@@ -25,23 +28,27 @@ export default function Services({ onServiceClick }: { onServiceClick: (service:
         <div>
             <div className="mb-6">
                 <h2 className="text-2xl font-bold text-primary">Services disponibles</h2>
-                <p className="text-muted-foreground">Accédez à tous nos services en un seul clic.</p>
+                <p className="text-muted-foreground">Découvrez tous les outils financiers à votre disposition.</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <Accordion type="single" collapsible className="w-full space-y-4">
                 {servicesList.map(service => (
-                    <Card 
-                        key={service.name} 
-                        className="flex flex-col items-center justify-center text-center p-4 hover:bg-accent/50 hover:shadow-lg transition-all cursor-pointer aspect-square"
-                        onClick={() => onServiceClick(service)}
-                    >
-                        <div className="p-3 bg-accent/20 rounded-full mb-3">
-                           {service.icon}
-                        </div>
-                        <p className="font-semibold text-sm">{service.name}</p>
-                    </Card>
+                     <AccordionItem value={service.name} key={service.name} className="border rounded-lg bg-card overflow-hidden">
+                        <AccordionTrigger className="p-6 hover:no-underline">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-accent/20 rounded-full">
+                                    {service.icon}
+                                </div>
+                                <span className="font-semibold text-lg">{service.name}</span>
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6">
+                            <p className="text-muted-foreground mb-4">{service.description}</p>
+                            <Button variant="outline" className="w-full" onClick={() => onServiceClick(service)}>Commencer</Button>
+                        </AccordionContent>
+                    </AccordionItem>
                 ))}
-            </div>
+            </Accordion>
         </div>
     )
 }
