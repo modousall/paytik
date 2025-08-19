@@ -68,6 +68,31 @@ const BalanceDisplay = () => (
     </Card>
 );
 
+const HomeActions = ({ onSendClick, onReceiveClick }: { onSendClick: () => void; onReceiveClick: () => void;}) => (
+    <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="flex flex-col items-center gap-2">
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
+            <span className="text-sm font-medium">Envoyer</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onReceiveClick}><ArrowDown/></Button>
+                </SheetTrigger>
+                <SheetContent>
+                    <QrCodeDisplay alias={onReceiveClick.toString()} userInfo={{name: "User", email: "email"}} />
+                </SheetContent>
+            </Sheet>
+            <span className="text-sm font-medium">Recevoir</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
+            <span className="text-sm font-medium">Services</span>
+        </div>
+    </div>
+)
+
+
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
@@ -76,117 +101,49 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setShowAllTransactions(true);
     };
     
-    const MainContent = () => {
-        if (showAllTransactions) {
-          return <TransactionHistory showAll={true} onShowAll={() => setShowAllTransactions(false)} />;
-        }
-    
-        switch (activeTab) {
-          case 'accueil':
-             return (
-                <div>
-                    <BalanceDisplay />
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                        <div className="flex flex-col items-center gap-2">
-                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={() => onTabClick('envoyer')}><ArrowUp/></Button>
-                            <span className="text-sm font-medium">Envoyer</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
-                                </SheetTrigger>
-                                <SheetContent>
-                                    <QrCodeDisplay alias={alias} userInfo={userInfo} />
-                                </SheetContent>
-                            </Sheet>
-                            <span className="text-sm font-medium">Recevoir</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
-                            <span className="text-sm font-medium">Services</span>
-                        </div>
-                    </div>
-                    <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
-                </div>
-            );
-          case 'envoyer':
-            return <PaymentForm />;
-          case 'tontine':
-            return <Tontine />;
-          case 'contacts':
-            return <Contacts />;
-          case 'alias':
-            return <ManageAlias alias={alias} onLogout={onLogout} />;
-          default:
-             return (
-                <div>
-                    <BalanceDisplay />
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                        <div className="flex flex-col items-center gap-2">
-                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={() => onTabClick('envoyer')}><ArrowUp/></Button>
-                            <span className="text-sm font-medium">Envoyer</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <Sheet>
-                                <SheetTrigger asChild>
-                                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
-                                </SheetTrigger>
-                                <SheetContent>
-                                    <QrCodeDisplay alias={alias} userInfo={userInfo} />
-                                </SheetContent>
-                            </Sheet>
-                            <span className="text-sm font-medium">Recevoir</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
-                            <span className="text-sm font-medium">Services</span>
-                        </div>
-                    </div>
-                    <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
-                </div>
-            );
-        }
-      };
-      
-      const onTabClick = (tab: NavItem) => {
+    const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
         setActiveTab(tab);
+      }
+
+      const renderContent = () => {
+        if (showAllTransactions) {
+            return <TransactionHistory showAll={true} onShowAll={() => setShowAllTransactions(false)} />;
+        }
+        switch(activeTab){
+            case 'accueil':
+                return (
+                    <div>
+                        <BalanceDisplay />
+                        <HomeActions 
+                            onSendClick={() => onTabClick('envoyer')} 
+                            onReceiveClick={() => {
+                                const sheetTrigger = document.querySelector('[aria-controls="radix-"]') as HTMLButtonElement | null;
+                                if (sheetTrigger) sheetTrigger.click();
+                            }}
+                        />
+                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                    </div>
+                )
+            case 'envoyer':
+                return <PaymentForm />;
+            case 'tontine':
+                return <Tontine />;
+            case 'contacts':
+                return <Contacts />;
+            case 'alias':
+                return <ManageAlias alias={alias} onLogout={onLogout} />;
+            default:
+                return null;
+
+        }
       }
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
       <Header userInfo={userInfo} />
        <main className="flex-grow container mx-auto p-4 sm:p-6">
-        {activeTab === 'accueil' && !showAllTransactions ? (
-          <div>
-            <BalanceDisplay />
-            <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="flex flex-col items-center gap-2">
-                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={() => onTabClick('envoyer')}><ArrowUp/></Button>
-                    <span className="text-sm font-medium">Envoyer</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
-                        </SheetTrigger>
-                        <SheetContent>
-                            <QrCodeDisplay alias={alias} userInfo={userInfo} />
-                        </SheetContent>
-                    </Sheet>
-                    <span className="text-sm font-medium">Recevoir</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
-                    <span className="text-sm font-medium">Services</span>
-                </div>
-            </div>
-            <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
-          </div>
-        ) : (
-          <MainContent />
-        )}
+        {renderContent()}
       </main>
       <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
           <div className="container mx-auto grid grid-cols-5 gap-1">
