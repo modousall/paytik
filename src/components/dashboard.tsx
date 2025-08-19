@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid, Handshake } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid, Handshake, User as UserIcon } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import Tontine from './tontine';
 import Services from './services';
+import Profile from './profile';
 
 type UserInfo = {
     name: string;
@@ -30,7 +31,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'services' | 'contacts' | 'alias';
+type NavItem = 'accueil' | 'payer' | 'tontine' | 'profil';
 
 const Header = ({ userInfo }: { userInfo: UserInfo }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
@@ -97,6 +98,7 @@ const HomeActions = ({ onSendClick, onReceiveClick, onServicesClick }: { onSendC
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
+    const [activeService, setActiveService] = useState<string | null>(null);
 
     const handleShowAllTransactions = () => {
         setShowAllTransactions(true);
@@ -104,7 +106,13 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     
     const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
+        setActiveService(null);
         setActiveTab(tab);
+      }
+    
+      const handleServiceClick = (service: string) => {
+        setActiveTab('tontine'); // A bit of a hack to show a service page, might need better routing
+        setActiveService(service);
       }
 
       const renderContent = () => {
@@ -117,28 +125,39 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     <div>
                         <BalanceDisplay />
                         <HomeActions 
-                            onSendClick={() => onTabClick('envoyer')} 
+                            onSendClick={() => onTabClick('payer')} 
                             onReceiveClick={() => {
                                 const sheetTrigger = document.querySelector('[aria-controls="radix-"]') as HTMLButtonElement | null;
                                 if (sheetTrigger) sheetTrigger.click();
                             }}
-                            onServicesClick={() => onTabClick('services')}
+                            onServicesClick={() => handleServiceClick("grid")}
                         />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
-            case 'envoyer':
+            case 'payer':
                 return <PaymentForm />;
             case 'tontine':
-                return <Tontine />;
-            case 'contacts':
-                return <Contacts />;
-            case 'alias':
-                return <ManageAlias alias={alias} onLogout={onLogout} />;
-            case 'services':
-                return <Services />;
+                 if (activeService === 'tontine') return <Tontine />;
+                 if (activeService === 'grid') return <Services onServiceClick={handleServiceClick}/>;
+                 // Add Ma Carte view here when ready
+                 // if (activeService === 'Ma Carte') return <MaCarteComponent />;
+                 // Default to something or show a message
+                 return <Services onServiceClick={handleServiceClick}/>;
+            case 'profil':
+                return <Profile alias={alias} onLogout={onLogout} />;
             default:
-                return null;
+                 return (
+                    <div>
+                        <BalanceDisplay />
+                        <HomeActions 
+                            onSendClick={() => onTabClick('payer')} 
+                            onReceiveClick={() => {}}
+                            onServicesClick={() => handleServiceClick("grid")}
+                        />
+                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                    </div>
+                )
 
         }
       }
@@ -150,26 +169,22 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         {renderContent()}
       </main>
       <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
-          <div className="container mx-auto grid grid-cols-5 gap-1">
+          <div className="container mx-auto grid grid-cols-4 gap-1">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Home />
                 <span className="text-xs">Accueil</span>
             </Button>
-            <Button onClick={() => onTabClick('envoyer')} variant={activeTab === 'envoyer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => onTabClick('payer')} variant={activeTab === 'payer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <ArrowUp />
-                <span className="text-xs">Envoyer</span>
+                <span className="text-xs">Payer</span>
             </Button>
-            <Button onClick={() => onTabClick('tontine')} variant={activeTab === 'tontine' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+            <Button onClick={() => handleServiceClick('tontine')} variant={activeTab === 'tontine' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Handshake />
                 <span className="text-xs">Tontine</span>
             </Button>
-            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
-                <LayoutGrid />
-                <span className="text-xs">Services</span>
-            </Button>
-            <Button onClick={() => setActiveTab('alias')} variant={activeTab === 'alias' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
-                <KeyRound />
-                <span className="text-xs">Alias</span>
+            <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+                <UserIcon />
+                <span className="text-xs">Profil</span>
             </Button>
           </div>
       </footer>

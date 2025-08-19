@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -46,17 +47,14 @@ export default function Contacts() {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4 text-primary">Gérer les contacts</h2>
-      <p className="text-muted-foreground mb-6">Ajoutez ou supprimez des bénéficiaires pour des paiements rapides.</p>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+    <div className="pt-4">
+      <Card className="mb-8 shadow-none border-0">
+        <CardHeader className="px-2 pt-0">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <PlusCircle size={20}/> Ajouter un nouveau contact
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
               <FormField
@@ -91,11 +89,11 @@ export default function Contacts() {
         </CardContent>
       </Card>
       
-      <h3 className="text-xl font-bold mb-4">Votre liste de contacts</h3>
+      <h3 className="text-xl font-bold mb-4 px-2">Votre liste de contacts</h3>
       <div className="space-y-3">
         {contacts.length > 0 ? (
           contacts.map(contact => (
-            <Card key={contact.id} className="flex items-center justify-between p-4">
+            <Card key={contact.id} className="flex items-center justify-between p-3">
               <div className="flex items-center gap-4">
                 <div className="bg-secondary p-2 rounded-full">
                     <User className="text-secondary-foreground" />
