@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -30,6 +30,7 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { Input } from './ui/input';
 
 type TransactionHistoryProps = {
   showAll: boolean;
@@ -48,7 +49,8 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const TransactionIcon = ({ type }: { type: string }) => {
+const TransactionIcon = ({ type, counterparty }: { type: string, counterparty: string }) => {
+    const initial = counterparty.charAt(0).toUpperCase();
     switch (type) {
         case 'sent':
             return <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center"><ArrowUp className="text-red-600" /></div>;
@@ -57,15 +59,15 @@ const TransactionIcon = ({ type }: { type: string }) => {
         case 'tontine':
             return (
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="Tontine" data-ai-hint="piggy bank" />
-                    <AvatarFallback>T</AvatarFallback>
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt="Tontine" data-ai-hint="piggy bank" />
+                    <AvatarFallback className="bg-blue-100 text-blue-600">{initial}</AvatarFallback>
                 </Avatar>
             );
         default:
             return (
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="Transaction" />
-                    <AvatarFallback>T</AvatarFallback>
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt="Transaction" data-ai-hint="person face" />
+                    <AvatarFallback>{initial}</AvatarFallback>
                 </Avatar>
             );
     }
@@ -165,6 +167,15 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                         {showAll ? 'Historique des transactions' : 'Transactions Récentes'}
                     </CardTitle>
                 </div>
+                {showAll && (
+                    <div className="flex items-center gap-2">
+                        <div className="relative">
+                           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                           <Input placeholder="Rechercher..." className="pl-8 w-40" />
+                        </div>
+                        <Button variant="outline" size="icon"><Filter /></Button>
+                    </div>
+                )}
             </CardHeader>
             <CardContent>
                 <div className="space-y-1">
@@ -172,7 +183,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                         <Dialog key={tx.id}>
                             <DialogTrigger asChild>
                                 <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer">
-                                    <TransactionIcon type={tx.type} />
+                                    <TransactionIcon type={tx.type} counterparty={tx.counterparty}/>
                                     <div className="flex-grow">
                                         <p className="font-semibold">{tx.counterparty}</p>
                                         <p className="text-sm text-muted-foreground">
@@ -195,6 +206,9 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     <Button variant="link" className="w-full mt-4 text-accent" onClick={onShowAll}>
                         Tout afficher
                     </Button>
+                )}
+                 {transactions.length === 0 && (
+                    <p className="text-muted-foreground text-center py-8">Aucune transaction pour le moment.</p>
                 )}
             </CardContent>
         </Card>

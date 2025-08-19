@@ -134,6 +134,10 @@ export default function Home() {
       setAlias(loggedInAlias);
       setUserInfo({name: userName, email: userEmail});
       setStep('dashboard');
+    } else {
+        // This case can happen if localStorage is cleared between login and here
+        // We'll treat it as a new user flow
+        setStep('kyc');
     }
   }
 
@@ -167,7 +171,7 @@ export default function Home() {
   };
   
   if (!isClient) {
-    return null;
+    return null; // Render nothing on the server to avoid hydration mismatch
   }
 
   return <main className="bg-background min-h-screen">{renderStep()}</main>;

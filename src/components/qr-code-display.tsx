@@ -2,13 +2,11 @@
 "use client";
 
 import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SheetHeader, SheetTitle } from './ui/sheet';
-
 
 type UserInfo = {
     name: string;
@@ -29,7 +27,7 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
       shid: alias,
       merchantChannel: 731
   });
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
   
   const handleCopyAlias = () => {
     navigator.clipboard.writeText(alias);
@@ -40,26 +38,26 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
   }
 
   return (
-    <div className="p-4 flex flex-col h-full">
-        <SheetHeader>
+    <div className="flex flex-col h-full">
+        <SheetHeader className="p-4">
             <SheetTitle className="sr-only">Afficher le QR Code</SheetTitle>
-        </SheetHeader>
-        <header className="flex items-center gap-4 mb-8">
-            <Avatar className="h-16 w-16">
-                <AvatarImage src="https://placehold.co/64x64.png" alt={userInfo.name} data-ai-hint="person face" />
-                <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div>
-                <h2 className="text-2xl font-bold">{userInfo.name}</h2>
-                <div className="text-muted-foreground flex items-center gap-2">
-                    <span>{alias}</span> 
-                    <button onClick={handleCopyAlias} className="hover:text-primary"><Copy size={16}/></button>
+            <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
+                    <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <h2 className="text-2xl font-bold">{userInfo.name}</h2>
+                    <div className="text-muted-foreground flex items-center gap-2">
+                        <span>{alias}</span> 
+                        <button onClick={handleCopyAlias} className="hover:text-primary"><Copy size={16}/></button>
+                    </div>
                 </div>
+                <Button variant="ghost" size="icon" className="ml-auto"><Share2/></Button>
             </div>
-            <Button variant="ghost" size="icon" className="ml-auto"><Share2/></Button>
-        </header>
+        </SheetHeader>
 
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center p-4">
             <div className="relative">
                 <Image
                     src={qrCodeUrl}
@@ -78,7 +76,7 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
             </div>
         </div>
 
-      <div className="mt-auto grid grid-cols-2 gap-2">
+      <div className="mt-auto grid grid-cols-2 gap-2 p-4 border-t">
             <Button variant="secondary" className="py-6">Scan</Button>
             <Button className="bg-primary hover:bg-primary/90 py-6">Mon Code</Button>
       </div>

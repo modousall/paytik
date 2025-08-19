@@ -2,14 +2,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid, Handshake, User as UserIcon } from "lucide-react";
+import { ArrowUp, ArrowDown, LayoutGrid, Handshake, User as UserIcon, Search, Bell, QrCode, Home } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
-import Contacts from './contacts';
-import ManageAlias from './manage-alias';
+import Profile from './profile';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
@@ -18,7 +17,6 @@ import {
 } from "@/components/ui/sheet";
 import Tontine from './tontine';
 import Services from './services';
-import Profile from './profile';
 
 type UserInfo = {
     name: string;
@@ -33,28 +31,26 @@ type DashboardProps = {
 
 type NavItem = 'accueil' | 'payer' | 'tontine' | 'profil';
 
-const Header = ({ userInfo }: { userInfo: UserInfo }) => (
+const Header = ({ userInfo, alias }: { userInfo: UserInfo; alias: string }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-2">
             <Avatar>
-                <AvatarImage src="https://placehold.co/40x40.png" alt={userInfo.name} data-ai-hint="person face" />
+                <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
                 <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="font-bold text-lg text-primary">PAYTIK</div>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon"><Search /></Button>
-            
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><QrCode /></Button>
               </SheetTrigger>
-              <SheetContent>
-                  <QrCodeDisplay alias={userInfo.name} userInfo={userInfo} />
+              <SheetContent className="p-0">
+                  <QrCodeDisplay alias={alias} userInfo={userInfo} />
               </SheetContent>
             </Sheet>
-
             <Button variant="ghost" size="icon"><Bell /></Button>
         </div>
       </div>
@@ -76,17 +72,17 @@ const HomeActions = ({ onSendClick, onReceiveClick, onServicesClick }: { onSendC
             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
             <span className="text-sm font-medium">Envoyer</span>
         </div>
-        <div className="flex flex-col items-center gap-2">
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onReceiveClick}><ArrowDown/></Button>
-                </SheetTrigger>
-                <SheetContent>
-                    <QrCodeDisplay alias={onReceiveClick.toString()} userInfo={{name: "User", email: "email"}} />
-                </SheetContent>
-            </Sheet>
-            <span className="text-sm font-medium">Recevoir</span>
-        </div>
+        <Sheet>
+            <SheetTrigger asChild>
+                <div className="flex flex-col items-center gap-2">
+                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
+                    <span className="text-sm font-medium">Recevoir</span>
+                </div>
+            </SheetTrigger>
+            <SheetContent className="p-0">
+                <QrCodeDisplay alias={onReceiveClick.toString()} userInfo={{name: "User", email: "email"}} />
+            </SheetContent>
+        </Sheet>
         <div className="flex flex-col items-center gap-2">
             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onServicesClick}><LayoutGrid/></Button>
             <span className="text-sm font-medium">Services</span>
@@ -100,8 +96,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<string | null>(null);
 
-    const handleShowAllTransactions = () => {
-        setShowAllTransactions(true);
+    const handleShowAllTransactions = (show: boolean) => {
+        setShowAllTransactions(show);
     };
     
     const onTabClick = (tab: NavItem) => {
@@ -117,7 +113,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
       const renderContent = () => {
         if (showAllTransactions) {
-            return <TransactionHistory showAll={true} onShowAll={() => setShowAllTransactions(false)} />;
+            return <TransactionHistory showAll={true} onShowAll={() => handleShowAllTransactions(false)} />;
         }
         switch(activeTab){
             case 'accueil':
@@ -126,13 +122,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         <BalanceDisplay />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
-                            onReceiveClick={() => {
-                                const sheetTrigger = document.querySelector('[aria-controls="radix-"]') as HTMLButtonElement | null;
-                                if (sheetTrigger) sheetTrigger.click();
-                            }}
+                            onReceiveClick={() => {}} // The Sheet handles the click
                             onServicesClick={() => handleServiceClick("grid")}
                         />
-                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                        <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
                 )
             case 'payer':
@@ -155,7 +148,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                             onReceiveClick={() => {}}
                             onServicesClick={() => handleServiceClick("grid")}
                         />
-                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                        <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
                 )
 
@@ -164,7 +157,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/50">
-      <Header userInfo={userInfo} />
+      <Header userInfo={userInfo} alias={alias}/>
        <main className="flex-grow container mx-auto p-4 sm:p-6">
         {renderContent()}
       </main>
