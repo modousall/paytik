@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Bell, QrCode, LogOut } from "lucide-react";
+import { QrCode, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
@@ -21,6 +21,7 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
 import QrCodeDisplay from './qr-code-display';
+import Notifications from "./notifications";
 
 
 type UserInfo = {
@@ -54,7 +55,7 @@ export default function Header({ userInfo, alias, onLogout }: HeaderProps) {
                     <QrCodeDisplay alias={alias} userInfo={userInfo} />
                 </SheetContent>
                 </Sheet>
-                <Button variant="ghost" size="icon"><Bell /></Button>
+                <Notifications />
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
