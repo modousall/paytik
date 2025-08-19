@@ -3,10 +3,12 @@
 
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { Share2, Copy } from "lucide-react";
+import { Share2, Copy, ScanLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SheetHeader, SheetTitle } from './ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import QRCodeScanner from './qr-code-scanner';
 
 type UserInfo = {
     name: string;
@@ -34,6 +36,13 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
     toast({
         title: "Copié !",
         description: "Votre alias a été copié dans le presse-papiers.",
+    });
+  }
+
+  const handleScannedCode = (decodedText: string) => {
+    toast({
+        title: "Code Scanné !",
+        description: `Code QR décodé (simulation): ${decodedText}`,
     });
   }
 
@@ -77,7 +86,17 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
         </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2 p-4 border-t">
-            <Button variant="secondary" className="py-6">Scan</Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="secondary" className="py-6"><ScanLine className="mr-2"/>Scanner</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md p-0">
+                  <DialogHeader className="p-4">
+                      <DialogTitle>Scanner un code QR</DialogTitle>
+                  </DialogHeader>
+                  <QRCodeScanner onScan={handleScannedCode}/>
+              </DialogContent>
+            </Dialog>
             <Button className="bg-primary hover:bg-primary/90 py-6">Mon Code</Button>
       </div>
     </div>
