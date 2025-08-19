@@ -1,8 +1,8 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { TransactionsProvider } from '@/hooks/use-transactions';
-import { ContactsProvider } from '@/hooks/use-contacts';
+import { TransactionsProvider } from '@/hooks/use-transactions.tsx';
+import { ContactsProvider } from '@/hooks/use-contacts.tsx';
 
 export const metadata: Metadata = {
   title: 'PAYTIK Simplifié',

@@ -52,7 +52,8 @@ export const ContactsProvider = ({ children }: ContactsProviderProps) => {
   }, [contacts, isInitialized]);
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
-    setContacts(prevContacts => [...prevContacts, { ...contact, id: Date.now().toString() }]);
+    const newContact = { ...contact, id: Date.now().toString() };
+    setContacts(prevContacts => [...prevContacts, newContact]);
   };
 
   const removeContact = (id: string) => {

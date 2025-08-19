@@ -50,7 +50,11 @@ const initialTransactions: Transaction[] = [
     }
 ];
 
-export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
+type TransactionsProviderProps = {
+    children: ReactNode;
+};
+
+export const TransactionsProvider = ({ children }: TransactionsProviderProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   
