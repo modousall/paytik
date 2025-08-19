@@ -1,18 +1,24 @@
 
 "use client";
 
-import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useBalance } from "@/hooks/use-balance";
 import { useVirtualCard } from "@/hooks/use-virtual-card";
-import { CreditCard, Wallet } from 'lucide-react';
+import { CreditCard, Wallet, PiggyBank, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
+import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
+import { useVaults } from "@/hooks/use-vaults";
+import { useTontine } from "@/hooks/use-tontine";
 
 export default function BalanceCards() {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
-    const [activeCard, setActiveCard] = useState<'main' | 'virtual'>('main');
+    const { vaults } = useVaults();
+    const { tontines } = useTontine();
+
+    const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
+    // For tontines, we sum up the total pot of each tontine the user is in.
+    const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
 
     const cards = [
         {
@@ -27,44 +33,55 @@ export default function BalanceCards() {
             title: 'Carte Virtuelle',
             balance: card.balance,
             icon: <CreditCard className="h-6 w-6" />,
-            color: 'bg-accent'
+            color: 'bg-sky-500'
+        }] : []),
+        ...(totalVaultsBalance > 0 ? [{
+            id: 'vaults' as const,
+            title: 'Mes Coffres',
+            balance: totalVaultsBalance,
+            icon: <PiggyBank className="h-6 w-6" />,
+            color: 'bg-amber-500'
+        }] : []),
+        ...(totalTontinesBalance > 0 ? [{
+            id: 'tontines' as const,
+            title: 'Mes Tontines',
+            balance: totalTontinesBalance,
+            icon: <Users className="h-6 w-6" />,
+            color: 'bg-emerald-500'
         }] : [])
     ];
 
-    const totalBalance = cards.reduce((acc, curr) => acc + curr.balance, 0);
 
     return (
-        <div className="mb-8">
-             <div className="text-center mb-4">
-                <p className="text-sm text-muted-foreground">Solde Total</p>
-                <p className="text-2xl font-bold tracking-tight">{totalBalance.toLocaleString()} <span className="text-lg font-normal">Fcfa</span></p>
-            </div>
-            <div className="relative h-48 flex items-center justify-center">
-                {cards.map((c, index) => (
-                    <Card 
-                        key={c.id}
-                        onClick={() => setActiveCard(c.id as 'main' | 'virtual')}
-                        className={cn(
-                            "absolute w-10/12 text-white shadow-lg transition-all duration-300 ease-in-out cursor-pointer",
-                            c.color,
-                            activeCard === c.id 
-                                ? 'z-10 transform scale-105' 
-                                : `z-0 transform scale-0.95 ${index === 0 ? '-translate-x-4' : 'translate-x-4'} opacity-70`
-                        )}
-                    >
-                        <CardContent className="p-4 flex flex-col justify-between h-36">
-                           <div className="flex justify-between items-start">
-                                <p className="font-semibold">{c.title}</p>
-                                {c.icon}
-                           </div>
-                           <div className="text-right">
-                                <p className="text-3xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
-                                <p className="text-sm opacity-80">Fcfa</p>
-                           </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+        <div className="mb-8 -mx-4">
+            <Carousel opts={{
+                align: "start",
+                loop: false,
+            }}
+            className="w-full"
+            >
+                <CarouselContent className="-ml-2">
+                    {cards.map((c, index) => (
+                         <CarouselItem key={c.id} className="pl-4 basis-4/5 md:basis-1/3">
+                            <Card
+                                className={cn(
+                                    "text-white shadow-lg h-40 flex flex-col justify-between p-4",
+                                    c.color
+                                )}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <p className="font-semibold">{c.title}</p>
+                                    {c.icon}
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-3xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
+                                    <p className="text-sm opacity-80">Fcfa</p>
+                                </div>
+                            </Card>
+                         </CarouselItem>
+                    ))}
+                </CarouselContent>
+            </Carousel>
         </div>
     );
 }

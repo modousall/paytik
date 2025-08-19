@@ -10,7 +10,6 @@ import Profile from './profile';
 import Tontine from './tontine';
 import Services from './services';
 import VirtualCard from './virtual-card';
-import Header from './header';
 import HomeActions from './home-actions';
 import BillPaymentForm from './bill-payment-form';
 import type { Service } from './services';
@@ -20,6 +19,7 @@ import PICO from './pico';
 import PICASH from './picash';
 import BNPL from './bnpl';
 import BalanceCards from './balance-cards';
+import DashboardHeader from './dashboard-header';
 
 type UserInfo = {
     name: string;
@@ -73,6 +73,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             case 'accueil':
                 return (
                     <div>
+                        <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
                         <BalanceCards />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
@@ -111,6 +112,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             default:
                  return (
                     <div>
+                        <DashboardHeader userInfo={userInfo} alias={alias} onLogout={onLogout} />
                         <BalanceCards />
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
@@ -125,8 +127,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
       }
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary/50">
-        <Header userInfo={userInfo} alias={alias} onLogout={onLogout} />
+    <div className="flex flex-col min-h-screen bg-background">
         <main className="flex-grow container mx-auto p-4 sm:p-6">
             {renderContent()}
         </main>
