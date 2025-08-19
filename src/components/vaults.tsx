@@ -47,6 +47,7 @@ type VaultFormValues = z.infer<typeof vaultFormSchema>;
 
 const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => {
     const { addVault } = useVaults();
+    const { toast } = useToast();
     const form = useForm<VaultFormValues>({
         resolver: zodResolver(vaultFormSchema),
         defaultValues: { name: "", targetAmount: '' as any },
@@ -58,6 +59,7 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
             balance: 0,
             targetAmount: values.targetAmount || null,
         });
+        toast({ title: "Tirelire créée !", description: `La tirelire "${values.name}" est prête.`})
         onVaultCreated();
     };
 
@@ -86,7 +88,12 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full">Créer la tirelire</Button>
+                <ModalFooter className="pt-4">
+                    <DialogClose asChild>
+                      <Button type="button" variant="ghost">Annuler</Button>
+                    </DialogClose>
+                    <Button type="submit">Créer la tirelire</Button>
+                </ModalFooter>
             </form>
         </Form>
     )
@@ -157,14 +164,16 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
     if (action === 'deposit') {
         return (
             <DialogContent>
-                <DialogHeader><DialogTitle>Approvisionner "{vaultName}"</DialogTitle></DialogHeader>
+                <DialogHeader>
+                    <DialogTitle>Approvisionner "{vaultName}"</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-4 py-4">
                     <Label htmlFor="deposit-amount">Montant (Fcfa)</Label>
                     <Input id="deposit-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 10000" />
 
                     <Label>Depuis</Label>
                     <RadioGroup defaultValue="main" onValueChange={setSource}>
-                        <div className="flex items-center space-x-2 rounded-md border p-3">
+                        <div className="flex items-center space-x-2 rounded-md border p-3 has-[:checked]:border-primary">
                             <RadioGroupItem value="main" id="main" />
                             <Label htmlFor="main" className="flex-grow cursor-pointer">
                                 Solde Principal
@@ -172,7 +181,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                             </Label>
                         </div>
                         {card && (
-                             <div className="flex items-center space-x-2 rounded-md border p-3">
+                             <div className="flex items-center space-x-2 rounded-md border p-3 has-[:checked]:border-primary">
                                 <RadioGroupItem value="card" id="card" />
                                 <Label htmlFor="card" className="flex-grow cursor-pointer">
                                     Carte Virtuelle
@@ -193,7 +202,9 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
     if (action === 'withdraw') {
          return (
             <DialogContent>
-                <DialogHeader><DialogTitle>Retirer de "{vaultName}"</DialogTitle></DialogHeader>
+                <DialogHeader>
+                    <DialogTitle>Retirer de "{vaultName}"</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-4 py-4">
                     <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal.</p>
                     <Label htmlFor="withdraw-amount">Montant (Fcfa)</Label>
@@ -291,9 +302,17 @@ export default function Vaults({ onBack }: VaultsProps) {
             <Target className="mx-auto h-16 w-16 text-muted-foreground" />
             <h4 className="mt-4 text-xl font-semibold">Aucune tirelire</h4>
             <p className="mt-2 text-muted-foreground">Commencez à épargner en créant votre première tirelire.</p>
-            <Button className="mt-6" onClick={() => setIsCreateOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Créer une tirelire
-            </Button>
+             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogTrigger asChild>
+                    <Button className="mt-6">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Créer une tirelire
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Créer une nouvelle tirelire</DialogTitle></DialogHeader>
+                    <CreateVaultForm onVaultCreated={() => setIsCreateOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </div>
       )}
     </div>
