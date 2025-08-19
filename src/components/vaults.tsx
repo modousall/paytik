@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -20,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-  DialogFooter
+  DialogFooter as ModalFooter
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -163,10 +164,10 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                         )}
                     </RadioGroup>
                 </div>
-                <DialogFooter>
+                <ModalFooter>
                     <Button variant="ghost" onClick={() => setAction(null)}>Annuler</Button>
                     <DialogClose asChild><Button onClick={handleDeposit} disabled={amount <= 0}>Confirmer Dépôt</Button></DialogClose>
-                </DialogFooter>
+                </ModalFooter>
             </DialogContent>
         )
     }
@@ -180,10 +181,10 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                     <Label htmlFor="withdraw-amount">Montant (Fcfa)</Label>
                     <Input id="withdraw-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 5000" />
                 </div>
-                <DialogFooter>
+                <ModalFooter>
                      <Button variant="ghost" onClick={() => setAction(null)}>Annuler</Button>
                      <DialogClose asChild><Button onClick={handleWithdraw} disabled={amount <= 0}>Confirmer Retrait</Button></DialogClose>
-                </DialogFooter>
+                </ModalFooter>
             </DialogContent>
         )
     }
@@ -235,20 +236,14 @@ export default function Vaults({ onBack }: VaultsProps) {
       {vaults.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {vaults.map(vault => (
-                <Card key={vault.id}>
+                <Card key={vault.id} className="flex flex-col">
                     <CardHeader>
-                        <div className="flex justify-between items-start">
-                             <div className="flex items-center gap-3">
-                                <PiggyBank className="h-8 w-8 text-primary" />
-                                <CardTitle>{vault.name}</CardTitle>
-                             </div>
-                             <Dialog>
-                                <DialogTrigger asChild><Button variant="ghost" size="icon"><Edit size={16}/></Button></DialogTrigger>
-                                <ManageVaultDialog vaultId={vault.id} currentBalance={vault.balance} vaultName={vault.name}/>
-                             </Dialog>
+                        <div className="flex items-center gap-3">
+                            <PiggyBank className="h-8 w-8 text-primary" />
+                            <CardTitle>{vault.name}</CardTitle>
                         </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex-grow">
                         <div className="text-2xl font-bold mb-2">{vault.balance.toLocaleString()} Fcfa</div>
                         {vault.targetAmount && (
                             <div>
@@ -260,6 +255,16 @@ export default function Vaults({ onBack }: VaultsProps) {
                             </div>
                         )}
                     </CardContent>
+                    <CardFooter>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" className="w-full">
+                                    <Edit className="mr-2 h-4 w-4" /> Gérer
+                                </Button>
+                            </DialogTrigger>
+                            <ManageVaultDialog vaultId={vault.id} currentBalance={vault.balance} vaultName={vault.name}/>
+                        </Dialog>
+                    </CardFooter>
                 </Card>
             ))}
         </div>
