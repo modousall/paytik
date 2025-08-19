@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -27,9 +25,11 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, PiggyBank, PlusCircle, Target, DollarSign, Edit } from 'lucide-react';
+import { ArrowLeft, PiggyBank, PlusCircle, Target, Edit, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { useVirtualCard } from '@/hooks/use-virtual-card';
 
 type VaultsProps = {
   onBack: () => void;
@@ -78,7 +78,7 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Objectif de montant (Fcfa, optionnel)</FormLabel>
-                            <FormControl><Input type="number" placeholder="ex: 500000" {...field} /></FormControl>
+                            <FormControl><Input type="number" placeholder="ex: 500000" {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -89,51 +89,119 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
     )
 }
 
-const ManageVaultDialog = ({ vaultId, currentBalance }: { vaultId: string, currentBalance: number }) => {
+const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: string, currentBalance: number, vaultName: string }) => {
     const { deposit, withdraw } = useVaults();
+    const { card, withdrawFromCard } = useVirtualCard();
     const { toast } = useToast();
     const [amount, setAmount] = useState(0);
+    const [action, setAction] = useState<'deposit' | 'withdraw' | null>(null);
+    const [source, setSource] = useState('main'); // 'main' or 'card'
+
+    // Mock main balance
+    const mainBalance = 22017800;
 
     const handleDeposit = () => {
         if(amount <= 0) return;
+        
+        if (source === 'main') {
+            if (amount > mainBalance) {
+                toast({ title: "Solde principal insuffisant", variant: "destructive"});
+                return;
+            }
+            // In a real app, you'd update the main balance state. Here we simulate.
+        } else if (source === 'card') {
+            if (!card || amount > card.balance) {
+                toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
+                return;
+            }
+            withdrawFromCard(amount);
+        }
+        
         deposit(vaultId, amount);
-        toast({ title: "Dépôt effectué", description: `${amount.toLocaleString()} Fcfa ont été ajoutés à votre tirelire.`});
+        toast({ title: "Dépôt effectué", description: `${amount.toLocaleString()} Fcfa ont été ajoutés à votre tirelire "${vaultName}".`});
+        setAction(null);
+        setAmount(0);
     }
 
     const handleWithdraw = () => {
         if(amount <= 0) return;
         if(amount > currentBalance) {
-            toast({ title: "Solde insuffisant", variant: "destructive"});
+            toast({ title: "Solde de la tirelire insuffisant", variant: "destructive"});
             return;
         }
         withdraw(vaultId, amount);
-        toast({ title: "Retrait effectué", description: `${amount.toLocaleString()} Fcfa ont été retirés de votre tirelire.`});
+        toast({ title: "Retrait effectué", description: `${amount.toLocaleString()} Fcfa ont été retirés de la tirelire "${vaultName}".`});
+        setAction(null);
+        setAmount(0);
     }
     
+    if (action === 'deposit') {
+        return (
+            <DialogContent>
+                <DialogHeader><DialogTitle>Approvisionner "{vaultName}"</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <Label htmlFor="deposit-amount">Montant (Fcfa)</Label>
+                    <Input id="deposit-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 10000" />
+
+                    <Label>Depuis</Label>
+                    <RadioGroup defaultValue="main" onValueChange={setSource}>
+                        <div className="flex items-center space-x-2 rounded-md border p-3">
+                            <RadioGroupItem value="main" id="main" />
+                            <Label htmlFor="main" className="flex-grow cursor-pointer">
+                                Solde Principal
+                                <span className='block text-xs text-muted-foreground'>Disponible: {mainBalance.toLocaleString()} Fcfa</span>
+                            </Label>
+                        </div>
+                        {card && (
+                             <div className="flex items-center space-x-2 rounded-md border p-3">
+                                <RadioGroupItem value="card" id="card" />
+                                <Label htmlFor="card" className="flex-grow cursor-pointer">
+                                    Carte Virtuelle
+                                    <span className='block text-xs text-muted-foreground'>Disponible: {(card.balance || 0).toLocaleString()} Fcfa</span>
+                                </Label>
+                            </div>
+                        )}
+                    </RadioGroup>
+                </div>
+                <DialogFooter>
+                    <Button variant="ghost" onClick={() => setAction(null)}>Annuler</Button>
+                    <DialogClose asChild><Button onClick={handleDeposit} disabled={amount <= 0}>Confirmer Dépôt</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        )
+    }
+
+    if (action === 'withdraw') {
+         return (
+            <DialogContent>
+                <DialogHeader><DialogTitle>Retirer de "{vaultName}"</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal.</p>
+                    <Label htmlFor="withdraw-amount">Montant (Fcfa)</Label>
+                    <Input id="withdraw-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 5000" />
+                </div>
+                <DialogFooter>
+                     <Button variant="ghost" onClick={() => setAction(null)}>Annuler</Button>
+                     <DialogClose asChild><Button onClick={handleWithdraw} disabled={amount <= 0}>Confirmer Retrait</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        )
+    }
+
     return (
-        <DialogContent>
+         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Gérer ma tirelire</DialogTitle>
+                <DialogTitle>Gérer "{vaultName}"</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-                <Label htmlFor="manage-amount">Montant (Fcfa)</Label>
-                <Input 
-                    id="manage-amount"
-                    type="number"
-                    value={amount || ''}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    placeholder="ex: 10000"
-                />
+            <div className="grid grid-cols-2 gap-4 py-4">
+                <Button variant="outline" className="py-10 flex-col h-auto" onClick={() => setAction('withdraw')}>
+                    <ArrowLeft className="h-6 w-6 mb-2"/> Retirer de la tirelire
+                </Button>
+                <Button className="py-10 flex-col h-auto bg-primary hover:bg-primary/90" onClick={() => setAction('deposit')}>
+                    <Wallet className="h-6 w-6 mb-2"/> Approvisionner
+                </Button>
             </div>
-            <DialogFooter className="grid grid-cols-2 gap-4">
-                <DialogClose asChild>
-                    <Button onClick={handleWithdraw} variant="outline" disabled={amount <= 0}>Retirer</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                    <Button onClick={handleDeposit} disabled={amount <= 0}>Déposer</Button>
-                </DialogClose>
-            </DialogFooter>
-        </DialogContent>
+         </DialogContent>
     )
 }
 
@@ -176,7 +244,7 @@ export default function Vaults({ onBack }: VaultsProps) {
                              </div>
                              <Dialog>
                                 <DialogTrigger asChild><Button variant="ghost" size="icon"><Edit size={16}/></Button></DialogTrigger>
-                                <ManageVaultDialog vaultId={vault.id} currentBalance={vault.balance}/>
+                                <ManageVaultDialog vaultId={vault.id} currentBalance={vault.balance} vaultName={vault.name}/>
                              </Dialog>
                         </div>
                     </CardHeader>

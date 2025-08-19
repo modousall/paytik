@@ -27,6 +27,7 @@ type VirtualCardContextType = {
   toggleFreeze: () => void;
   deleteCard: () => void;
   rechargeCard: (amount: number) => void;
+  withdrawFromCard: (amount: number) => void;
 };
 
 const VirtualCardContext = createContext<VirtualCardContextType | undefined>(undefined);
@@ -75,11 +76,6 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
     if (storedCard) {
         setCard(storedCard);
         setTransactions(storedTransactions || [initialCreditTransaction(storedCard.balance)]);
-    } else {
-        // If no card is stored, create one by default.
-        const newCard = generateCardDetails();
-        setCard(newCard);
-        setTransactions([initialCreditTransaction(newCard.balance)]);
     }
 
     setIsInitialized(true);
@@ -141,8 +137,23 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  const withdrawFromCard = (amount: number) => {
+    if (card && amount > 0 && card.balance >= amount) {
+        setCard(prevCard => prevCard ? { ...prevCard, balance: prevCard.balance - amount } : null);
+        
+        const newTransaction: CardTransaction = {
+            id: `vtx${Date.now()}`,
+            type: 'debit',
+            amount,
+            merchant: 'Transfert vers Tirelire',
+            date: new Date().toISOString()
+        };
+        setTransactions(prev => [newTransaction, ...prev]);
+    }
+  }
+
   return (
-    <VirtualCardContext.Provider value={{ card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard }}>
+    <VirtualCardContext.Provider value={{ card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard, withdrawFromCard }}>
       {children}
     </VirtualCardContext.Provider>
   );
