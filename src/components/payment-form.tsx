@@ -13,8 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { paymentSecurityAssistant } from '@/ai/flows/payment-security-assistant';
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import SecurityAssistantDialog from './security-assistant-dialog';
-import { Loader2, ClipboardPaste } from 'lucide-react';
+import { Loader2, ClipboardPaste, QrCode } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import QRCodeScanner from './qr-code-scanner';
 
 const paymentFormSchema = z.object({
   recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
@@ -29,6 +31,7 @@ export default function PaymentForm() {
   const [securityAnalysis, setSecurityAnalysis] = useState<PaymentSecurityAssistantOutput | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
   const { addTransaction } = useTransactions();
 
@@ -98,13 +101,31 @@ export default function PaymentForm() {
     }
   };
 
+  const handleScannedCode = (decodedText: string) => {
+    try {
+        const data = JSON.parse(decodedText);
+        if(data.shid) {
+            form.setValue('recipientAlias', data.shid, { shouldValidate: true });
+            toast({ title: "Marchand détecté !", description: `Code marchand ${data.shid} inséré.` });
+        } else {
+            form.setValue('recipientAlias', decodedText, { shouldValidate: true });
+            toast({ title: "Code scanné", description: "Le code a été inséré dans le champ." });
+        }
+    } catch(e) {
+        // Not a JSON, treat as raw string
+        form.setValue('recipientAlias', decodedText, { shouldValidate: true });
+        toast({ title: "Code scanné", description: "Le code a été inséré dans le champ." });
+    }
+    setIsScannerOpen(false);
+  }
+
   return (
     <>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-primary">Envoyer de l'argent</h2>
       </div>
 
-      <p className="text-muted-foreground mb-6">Saisissez les détails du paiement pour envoyer de l'argent via PAYTIK.</p>
+      <p className="text-muted-foreground mb-6">Saisissez les détails du paiement pour envoyer de l'argent à un alias ou à un marchand.</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -112,13 +133,26 @@ export default function PaymentForm() {
             name="recipientAlias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Alias du destinataire</FormLabel>
+                <FormLabel>Alias, N° ou Code Marchand</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
-                    <Input placeholder="ex: +221771234567 ou nom du contact" {...field} />
-                    <Button type="button" variant="outline" size="icon" onClick={handlePaste} aria-label="Coller l'alias">
+                    <Input placeholder="ex: +221771234567 ou nom contact" {...field} />
+                    <Button type="button" variant="outline" size="icon" onClick={handlePaste} aria-label="Coller">
                       <ClipboardPaste />
                     </Button>
+                    <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                      <DialogTrigger asChild>
+                          <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                              <QrCode />
+                          </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md p-0">
+                          <DialogHeader className="p-4">
+                              <DialogTitle>Scanner un code QR</DialogTitle>
+                          </DialogHeader>
+                          <QRCodeScanner onScan={handleScannedCode}/>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </FormControl>
                 <FormMessage />

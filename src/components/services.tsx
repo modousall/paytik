@@ -10,12 +10,6 @@ export type Service = {
     action: string;
 };
 
-export type BillService = {
-    name: string;
-    icon: JSX.Element;
-    provider?: string;
-};
-
 
 const servicesList: Service[] = [
     { name: "Tontine", icon: <Handshake className="h-8 w-8 text-primary" />, action: "tontine" },
@@ -34,7 +28,7 @@ export default function Services({ onServiceClick }: { onServiceClick: (service:
                 <p className="text-muted-foreground">Accédez à tous nos services en un seul clic.</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {servicesList.map(service => (
                     <Card 
                         key={service.name} 

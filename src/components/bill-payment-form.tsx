@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 // Define Zod schemas and types here
 export const BillPaymentAssistantInputSchema = z.object({
@@ -40,18 +41,27 @@ export type BillPaymentAssistantOutput = z.infer<typeof BillPaymentAssistantOutp
 
 
 const paymentFormSchema = z.object({
+  biller: z.string().min(1, { message: "Le facturier est requis." }),
   identifier: z.string().min(1, { message: "L'identifiant est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant doit être positif." }),
 });
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
+const billers = [
+    { id: "SENELEC", name: "SENELEC - Électricité" },
+    { id: "SDE", name: "SDE - Eau" },
+    { id: "Orange", name: "Orange - Internet / Mobile" },
+    { id: "Free", name: "Free - Internet / Mobile" },
+    { id: "Canal+", name: "Canal+ - TV" },
+];
+
+
 type BillPaymentFormProps = {
-    service: { name: string, provider?: string };
     onBack: () => void;
 }
 
-export default function BillPaymentForm({ service, onBack }: BillPaymentFormProps) {
+export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<BillPaymentAssistantOutput | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
@@ -62,6 +72,7 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
+      biller: "",
       identifier: "",
       amount: '' as any,
     },
@@ -72,7 +83,7 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
     setPaymentDetails(values);
     try {
       const result = await billPaymentAssistant({
-        service: service.name,
+        service: values.biller,
         identifier: values.identifier,
         amount: values.amount,
       });
@@ -96,22 +107,21 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
       if (paymentDetails) {
         addTransaction({
             type: "sent",
-            counterparty: `${service.name} (${service.provider})`,
-            reason: `Facture ${service.name} - ${paymentDetails.identifier}`,
+            counterparty: `${paymentDetails.biller}`,
+            reason: `Facture ${paymentDetails.biller} - ${paymentDetails.identifier}`,
             date: new Date().toISOString(),
             amount: paymentDetails.amount,
             status: "Terminé",
         });
         toast({
             title: "Paiement de facture effectué !",
-            description: `Votre facture ${service.name} de ${paymentDetails.amount.toLocaleString()} Fcfa a été réglée.`,
+            description: `Votre facture ${paymentDetails.biller} de ${paymentDetails.amount.toLocaleString()} Fcfa a été réglée.`,
         });
       }
 
       form.reset();
       setAnalysis(null);
       setPaymentDetails(null);
-      onBack();
   };
 
   return (
@@ -120,12 +130,35 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
         <Button onClick={onBack} variant="ghost" size="icon">
             <ArrowLeft />
         </Button>
-        <h2 className="text-2xl font-bold text-primary">Payer une facture : {service.name}</h2>
+        <h2 className="text-2xl font-bold text-primary">Payer une facture</h2>
       </div>
 
-      <p className="text-muted-foreground mb-6">Saisissez les détails de votre facture {service.provider}.</p>
+      <p className="text-muted-foreground mb-6">Sélectionnez le facturier et saisissez les détails de votre facture.</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="biller"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Facturier</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sélectionnez le service à payer" />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        {billers.map(b => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+           />
+
           <FormField
             control={form.control}
             name="identifier"
@@ -133,7 +166,7 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
               <FormItem>
                 <FormLabel>N° de contrat / police / téléphone</FormLabel>
                 <FormControl>
-                    <Input placeholder={`Entrez votre identifiant ${service.provider}`} {...field} />
+                    <Input placeholder={`Entrez votre identifiant`} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -169,7 +202,7 @@ export default function BillPaymentForm({ service, onBack }: BillPaymentFormProp
                 <div className="text-sm space-y-4 py-4 border-y">
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Service:</span>
-                        <span className="font-medium">{service.name} ({service.provider})</span>
+                        <span className="font-medium">{paymentDetails.biller}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Identifiant:</span>

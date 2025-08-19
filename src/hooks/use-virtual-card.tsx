@@ -9,6 +9,7 @@ type CardDetails = {
   expiry: string;
   cvv: string;
   isFrozen: boolean;
+  balance: number;
 };
 
 type CardTransaction = {
@@ -25,6 +26,7 @@ type VirtualCardContextType = {
   createCard: () => void;
   toggleFreeze: () => void;
   deleteCard: () => void;
+  rechargeCard: (amount: number) => void;
 };
 
 const VirtualCardContext = createContext<VirtualCardContextType | undefined>(undefined);
@@ -33,13 +35,13 @@ const generateCardDetails = (): CardDetails => ({
     number: `4${Math.floor(100 + Math.random() * 900)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`,
     expiry: `${String(Math.floor(1 + Math.random() * 12)).padStart(2, '0')}/${new Date().getFullYear() % 100 + 3}`,
     cvv: `${Math.floor(100 + Math.random() * 900)}`,
-    isFrozen: false
+    isFrozen: false,
+    balance: 50000, // Initial balance
 });
 
 const initialTransactions: CardTransaction[] = [
     { id: 'vtx1', type: 'debit', amount: 15000, merchant: 'Amazon', date: new Date().toISOString() },
     { id: 'vtx2', type: 'debit', amount: 4500, merchant: 'Netflix', date: new Date(Date.now() - 86400000 * 2).toISOString() },
-    { id: 'vtx3', type: 'credit', amount: 50000, merchant: 'Approvisionnement', date: new Date(Date.now() - 86400000 * 5).toISOString() }
 ];
 
 export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
@@ -103,9 +105,29 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
     setTransactions([]);
     toast({ title: "Carte supprimée", description: "Votre carte virtuelle a été supprimée.", variant: "destructive" });
   };
+  
+  const rechargeCard = (amount: number) => {
+    if (card && amount > 0) {
+        setCard(prevCard => prevCard ? { ...prevCard, balance: prevCard.balance + amount } : null);
+        
+        const newTransaction: CardTransaction = {
+            id: `vtx${Date.now()}`,
+            type: 'credit',
+            amount,
+            merchant: 'Approvisionnement',
+            date: new Date().toISOString()
+        };
+        setTransactions(prev => [newTransaction, ...prev]);
+
+        toast({
+            title: "Rechargement réussi",
+            description: `Votre carte a été rechargée de ${amount.toLocaleString()} Fcfa.`
+        });
+    }
+  }
 
   return (
-    <VirtualCardContext.Provider value={{ card, transactions, createCard, toggleFreeze, deleteCard }}>
+    <VirtualCardContext.Provider value={{ card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard }}>
       {children}
     </VirtualCardContext.Provider>
   );

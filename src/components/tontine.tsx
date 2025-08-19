@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Users, PlusCircle, UserPlus, Eye } from "lucide-react";
+import { Users, PlusCircle, UserPlus, Eye, ArrowLeft } from "lucide-react";
 import { useTontine } from "@/hooks/use-tontine";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import CreateTontineForm from "./create-tontine-form";
@@ -12,17 +12,26 @@ import { useState } from "react";
 import TontineDetails from "./tontine-details";
 import type { Tontine as TontineType } from "@/hooks/use-tontine";
 
-export default function Tontine() {
+type TontineProps = {
+    onBack: () => void;
+};
+
+export default function Tontine({ onBack }: TontineProps) {
   const { tontines } = useTontine();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTontine, setSelectedTontine] = useState<TontineType | null>(null);
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-            <h2 className="text-2xl font-bold text-primary">Mes Tontines / Tirelires</h2>
-            <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-4">
+            <Button onClick={onBack} variant="ghost" size="icon" className="self-start">
+                <ArrowLeft />
+            </Button>
+            <div>
+                <h2 className="text-2xl font-bold text-primary">Mes Tontines / Tirelires</h2>
+                <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
+            </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
