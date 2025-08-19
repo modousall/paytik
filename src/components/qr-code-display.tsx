@@ -71,9 +71,9 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
                     unoptimized
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white p-2 rounded-md shadow-md">
-                        <span className="font-bold text-lg text-primary">PAYTIK</span>
-                    </div>
+                  <div className="bg-white p-2 rounded-md shadow-md">
+                    <span className="font-bold text-lg text-primary">PAYTIK</span>
+                  </div>
                 </div>
             </div>
         </div>

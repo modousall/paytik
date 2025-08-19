@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { paymentSecurityAssistant } from '@/ai/flows/payment-security-assistant';
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import SecurityAssistantDialog from './security-assistant-dialog';
-import { Loader2, Users } from 'lucide-react';
+import { Loader2, Users, ClipboardPaste } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
 import SplitBill from './split-bill';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -90,6 +90,16 @@ export default function PaymentForm() {
       setPaymentDetails(null);
   };
 
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      form.setValue('recipientAlias', text, { shouldValidate: true });
+      toast({ title: "Collé !", description: "L'alias a été collé depuis le presse-papiers." });
+    } catch (err) {
+      toast({ title: "Erreur", description: "Impossible de lire le presse-papiers.", variant: "destructive" });
+    }
+  };
+
   return (
     <>
       <div className="flex justify-between items-center mb-4">
@@ -117,7 +127,12 @@ export default function PaymentForm() {
               <FormItem>
                 <FormLabel>Alias du destinataire</FormLabel>
                 <FormControl>
-                  <Input placeholder="ex: +221771234567 ou nom du contact" {...field} />
+                  <div className="flex gap-2">
+                    <Input placeholder="ex: +221771234567 ou nom du contact" {...field} />
+                    <Button type="button" variant="outline" size="icon" onClick={handlePaste} aria-label="Coller l'alias">
+                      <ClipboardPaste />
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
