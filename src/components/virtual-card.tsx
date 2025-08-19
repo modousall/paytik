@@ -96,37 +96,11 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
   };
 
   const handleRecharge = (amount: number) => {
-    if (amount > mainBalance) {
-        toast({ title: "Solde principal insuffisant", variant: "destructive" });
-        return;
-    }
-    debit(amount);
     rechargeCard(amount);
-    addTransaction({
-        type: 'sent',
-        counterparty: 'Carte Virtuelle',
-        reason: 'Approvisionnement',
-        date: new Date().toISOString(),
-        amount: amount,
-        status: 'Terminé',
-    });
   }
 
   const handleWithdraw = (amount: number) => {
-    if (!card || amount > card.balance) {
-        toast({ title: "Solde de la carte insuffisant", variant: "destructive" });
-        return;
-    }
     withdrawFromCard(amount);
-    credit(amount);
-    addTransaction({
-        type: 'received',
-        counterparty: 'Carte Virtuelle',
-        reason: 'Retrait',
-        date: new Date().toISOString(),
-        amount: amount,
-        status: 'Terminé',
-    });
   }
 
   if (!card) {
@@ -244,7 +218,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
                     <div className="flex gap-2">
                         <Dialog>
                            <DialogTrigger asChild>
-                               <Button variant="outline"><ArrowLeft className="mr-2"/>Retirer</Button>
+                               <Button variant="outline"><ArrowUp className="mr-2"/>Retirer</Button>
                            </DialogTrigger>
                            <WithdrawDialog onWithdraw={handleWithdraw}/>
                         </Dialog>

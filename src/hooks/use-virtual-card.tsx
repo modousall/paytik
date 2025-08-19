@@ -3,6 +3,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from './use-toast';
+import { useBalance } from './use-balance';
+import { useTransactions } from './use-transactions';
+
+const VIRTUAL_CARD_BALANCE_LIMIT = 2000000;
 
 type CardDetails = {
   number: string;
@@ -53,6 +57,8 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   const [card, setCard] = useState<CardDetails | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
   const { toast } = useToast();
+  const { balance: mainBalance, debit: debitMain, credit: creditMain } = useBalance();
+  const { addTransaction } = useTransactions();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -119,6 +125,16 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   
   const rechargeCard = (amount: number) => {
     if (card && amount > 0) {
+        if(amount > mainBalance) {
+             toast({ title: "Solde principal insuffisant", variant: "destructive" });
+             return;
+        }
+        if (card.balance + amount > VIRTUAL_CARD_BALANCE_LIMIT) {
+            toast({ title: "Plafond de la carte atteint", description: `Le solde de la carte ne peut excéder ${VIRTUAL_CARD_BALANCE_LIMIT.toLocaleString()} Fcfa.`, variant: "destructive" });
+            return;
+        }
+
+        debitMain(amount);
         setCard(prevCard => prevCard ? { ...prevCard, balance: prevCard.balance + amount } : null);
         
         const newTransaction: CardTransaction = {
@@ -130,6 +146,15 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
         };
         setTransactions(prev => [newTransaction, ...prev]);
 
+        addTransaction({
+            type: 'sent',
+            counterparty: 'Carte Virtuelle',
+            reason: 'Approvisionnement',
+            date: new Date().toISOString(),
+            amount: amount,
+            status: 'Terminé',
+        });
+
         toast({
             title: "Rechargement réussi",
             description: `Votre carte a été rechargée de ${amount.toLocaleString()} Fcfa.`
@@ -140,6 +165,7 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   const withdrawFromCard = (amount: number) => {
     if (card && amount > 0 && card.balance >= amount) {
         setCard(prevCard => prevCard ? { ...prevCard, balance: prevCard.balance - amount } : null);
+        creditMain(amount);
         
         const newTransaction: CardTransaction = {
             id: `vtx${Date.now()}`,
@@ -149,10 +175,22 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
             date: new Date().toISOString()
         };
         setTransactions(prev => [newTransaction, ...prev]);
+
+        addTransaction({
+            type: 'received',
+            counterparty: 'Carte Virtuelle',
+            reason: 'Retrait',
+            date: new Date().toISOString(),
+            amount: amount,
+            status: 'Terminé',
+        });
+
         toast({
             title: "Retrait réussi",
             description: `${amount.toLocaleString()} Fcfa ont été transférés sur votre solde principal.`
         });
+    } else if (card && amount > card.balance) {
+        toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
     }
   }
 
