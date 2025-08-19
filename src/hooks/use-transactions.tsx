@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -9,12 +10,13 @@ export type Transaction = {
   reason: string;
   date: string;
   amount: number;
-  status: "Terminé" | "En attente" | "Échoué";
+  status: "Terminé" | "En attente" | "Échoué" | "Retourné";
 };
 
 type TransactionsContextType = {
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  reverseTransaction: (transactionId: string) => void;
 };
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -86,7 +88,36 @@ export const TransactionsProvider = ({ children }: TransactionsProviderProps) =>
     setTransactions(prevTransactions => [newTransaction, ...prevTransactions]);
   };
 
-  const value = { transactions, addTransaction };
+  const reverseTransaction = (transactionId: string) => {
+    setTransactions(prevTransactions => {
+        const txToReverse = prevTransactions.find(tx => tx.id === transactionId);
+        if (!txToReverse) return prevTransactions;
+
+        // Create the reversal transaction
+        const reversalTransaction: Omit<Transaction, 'id'> = {
+            type: txToReverse.type === 'sent' ? 'received' : 'sent',
+            counterparty: txToReverse.counterparty,
+            reason: `Retour: ${txToReverse.reason}`,
+            date: new Date().toISOString(),
+            amount: txToReverse.amount,
+            status: "Terminé",
+        };
+
+        const newTransaction = {
+            ...reversalTransaction,
+            id: `RTN${Math.floor(Math.random() * 900000) + 100000}`
+        };
+
+        // Update the status of the original transaction
+        const updatedTransactions = prevTransactions.map(tx => 
+            tx.id === transactionId ? { ...tx, status: 'Retourné' as const } : tx
+        );
+
+        return [newTransaction, ...updatedTransactions];
+    });
+  };
+
+  const value = { transactions, addTransaction, reverseTransaction };
 
   return (
     <TransactionsContext.Provider value={value}>
