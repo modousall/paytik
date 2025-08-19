@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid, Handshake } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
@@ -30,7 +30,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'contacts' | 'alias' | 'services';
+type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'services' | 'contacts' | 'alias';
 
 const Header = ({ userInfo }: { userInfo: UserInfo }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
@@ -150,7 +150,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         {renderContent()}
       </main>
       <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
-          <div className="container mx-auto grid grid-cols-5 gap-1">
+          <div className="container mx-auto grid grid-cols-6 gap-1">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Home />
                 <span className="text-xs">Accueil</span>
@@ -158,6 +158,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             <Button onClick={() => onTabClick('envoyer')} variant={activeTab === 'envoyer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <ArrowUp />
                 <span className="text-xs">Envoyer</span>
+            </Button>
+            <Button onClick={() => onTabClick('tontine')} variant={activeTab === 'tontine' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+                <Handshake />
+                <span className="text-xs">Tontine</span>
             </Button>
             <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <LayoutGrid />

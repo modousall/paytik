@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Droplets, Zap, Wifi, Smartphone, Tv, Gamepad2, ShoppingCart, Plus } from "lucide-react";
+import { Droplets, Zap, Wifi, Smartphone, Tv, ShoppingCart, Plus } from "lucide-react";
 
 const services = [
     { name: "Eau", icon: <Droplets className="h-8 w-8 text-primary" />, provider: "SDE" },
@@ -11,7 +11,6 @@ const services = [
     { name: "Internet", icon: <Wifi className="h-8 w-8 text-primary" />, provider: "Orange" },
     { name: "Crédit Téléphonique", icon: <Smartphone className="h-8 w-8 text-primary" />, provider: "Multi-opérateur" },
     { name: "Abonnement TV", icon: <Tv className="h-8 w-8 text-primary" />, provider: "Canal+" },
-    { name: "Jeux", icon: <Gamepad2 className="h-8 w-8 text-primary" />, provider: "Divertis" },
     { name: "Marchands", icon: <ShoppingCart className="h-8 w-8 text-primary" />, provider: "Partenaires" },
     { name: "Autre", icon: <Plus className="h-8 w-8 text-primary" />, provider: "Divers" },
 ];
@@ -21,7 +20,7 @@ export default function Services() {
     return (
         <div>
             <div className="mb-6">
-                <h2 className="text-2xl font-bold text-primary">Services Marchands</h2>
+                <h2 className="text-2xl font-bold text-primary">Paiement de services</h2>
                 <p className="text-muted-foreground">Payez vos factures et services rapidement et en toute sécurité.</p>
             </div>
 
