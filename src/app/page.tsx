@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import OnboardingDemo from '@/components/onboarding-demo';
 import AliasCreation from '@/components/alias-creation';
 import Dashboard from '@/components/dashboard';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type AppStep = 'demo' | 'alias' | 'dashboard' | 'success';
 
