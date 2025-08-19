@@ -1,4 +1,3 @@
-
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -23,7 +22,11 @@ const initialContacts: Contact[] = [
     {id: '3', name: 'Papa', alias: '+221774445566'},
 ];
 
-export const ContactsProvider = ({ children }: { children: ReactNode }) => {
+type ContactsProviderProps = {
+    children: ReactNode;
+};
+
+export const ContactsProvider = ({ children }: ContactsProviderProps) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -54,7 +57,7 @@ export const ContactsProvider = ({ children }: { children: ReactNode }) => {
 
   const removeContact = (id: string) => {
     setContacts(prevContacts => prevContacts.filter(c => c.id !== id));
-  }
+  };
 
   const value = { contacts, addContact, removeContact };
 
