@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useTransactions } from '@/hooks/use-transactions';
@@ -65,11 +66,6 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                 {showAll ? 'Historique des transactions' : 'Transactions Récentes'}
               </CardTitle>
             </div>
-            {!showAll && 
-              <Button variant="ghost" size="icon">
-                  <MoreHorizontal />
-              </Button>
-            }
         </CardHeader>
         <CardContent>
             <div className="space-y-4">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -60,7 +61,7 @@ export const ContactsProvider = ({ children }: ContactsProviderProps) => {
     setContacts(prevContacts => prevContacts.filter(c => c.id !== id));
   };
 
-  const value = { contacts, addTransaction: addContact, removeContact };
+  const value = { contacts, addContact, removeContact };
 
   return (
     <ContactsContext.Provider value={value}>

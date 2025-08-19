@@ -68,35 +68,6 @@ const BalanceDisplay = () => (
     </Card>
 );
 
-const Accueil = ({onSendClick, alias, userInfo}: {onSendClick: () => void, alias: string, userInfo: UserInfo}) => (
-    <div>
-        <BalanceDisplay />
-        <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="flex flex-col items-center gap-2">
-                <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
-                <span className="text-sm font-medium">Envoyer</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-                 <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <QrCodeDisplay alias={alias} userInfo={userInfo}/>
-                    </SheetContent>
-                </Sheet>
-                <span className="text-sm font-medium">Recevoir</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-                <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
-                <span className="text-sm font-medium">Services</span>
-            </div>
-        </div>
-        <TransactionHistory showAll={false} onShowAll={() => { /* This will be handled by parent */ }} />
-    </div>
-);
-
-
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
@@ -112,7 +83,33 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     
         switch (activeTab) {
           case 'accueil':
-            return <Accueil onSendClick={() => setActiveTab('envoyer')} alias={alias} userInfo={userInfo} />;
+             return (
+                <div>
+                    <BalanceDisplay />
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                        <div className="flex flex-col items-center gap-2">
+                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={() => onTabClick('envoyer')}><ArrowUp/></Button>
+                            <span className="text-sm font-medium">Envoyer</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
+                                </SheetTrigger>
+                                <SheetContent>
+                                    <QrCodeDisplay alias={alias} userInfo={userInfo} />
+                                </SheetContent>
+                            </Sheet>
+                            <span className="text-sm font-medium">Recevoir</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
+                            <span className="text-sm font-medium">Services</span>
+                        </div>
+                    </div>
+                    <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                </div>
+            );
           case 'envoyer':
             return <PaymentForm />;
           case 'tontine':
@@ -122,7 +119,33 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
           case 'alias':
             return <ManageAlias alias={alias} onLogout={onLogout} />;
           default:
-            return <Accueil onSendClick={() => setActiveTab('envoyer')} alias={alias} userInfo={userInfo} />;
+             return (
+                <div>
+                    <BalanceDisplay />
+                    <div className="grid grid-cols-3 gap-4 mb-8">
+                        <div className="flex flex-col items-center gap-2">
+                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={() => onTabClick('envoyer')}><ArrowUp/></Button>
+                            <span className="text-sm font-medium">Envoyer</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
+                                </SheetTrigger>
+                                <SheetContent>
+                                    <QrCodeDisplay alias={alias} userInfo={userInfo} />
+                                </SheetContent>
+                            </Sheet>
+                            <span className="text-sm font-medium">Recevoir</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
+                            <span className="text-sm font-medium">Services</span>
+                        </div>
+                    </div>
+                    <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+                </div>
+            );
         }
       };
       
@@ -183,9 +206,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <Users />
                 <span className="text-xs">Contacts</span>
             </Button>
-            <Button onClick={onLogout} variant="ghost" className="flex-col h-auto py-2 text-destructive hover:text-destructive">
-                <LogOut />
-                <span className="text-xs">Quitter</span>
+            <Button onClick={() => setActiveTab('alias')} variant={activeTab === 'alias' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+                <KeyRound />
+                <span className="text-xs">Alias</span>
             </Button>
           </div>
       </footer>
