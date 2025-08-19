@@ -150,7 +150,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         {renderContent()}
       </main>
       <footer className="bg-background p-2 border-t mt-auto sticky bottom-0">
-          <div className="container mx-auto grid grid-cols-6 gap-1">
+          <div className="container mx-auto grid grid-cols-5 gap-1">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Home />
                 <span className="text-xs">Accueil</span>
@@ -166,10 +166,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <LayoutGrid />
                 <span className="text-xs">Services</span>
-            </Button>
-            <Button onClick={() => onTabClick('contacts')} variant={activeTab === 'contacts' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
-                <Users />
-                <span className="text-xs">Contacts</span>
             </Button>
             <Button onClick={() => setActiveTab('alias')} variant={activeTab === 'alias' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <KeyRound />
