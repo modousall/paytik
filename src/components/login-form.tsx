@@ -21,9 +21,9 @@ export default function LoginForm({ onLoginSuccess, onBack }: LoginFormProps) {
       e.preventDefault();
       // Simulate checking if alias exists in localStorage
       const storedAlias = localStorage.getItem('paytik_alias');
-      const storedName = localStorage.getItem('paytik_username');
+      const storedName = localStorage.getItem('paytik_username') || "l'utilisateur";
   
-      if (storedAlias && storedName && alias === storedAlias) {
+      if (storedAlias && alias === storedAlias) {
         toast({
           title: `Bienvenue, ${storedName} !`,
           description: "Connexion réussie.",
