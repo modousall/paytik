@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -120,11 +121,6 @@ export default function PaymentForm() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-primary">Envoyer de l'argent</h2>
-      </div>
-
-      <p className="text-muted-foreground mb-6">Saisissez les détails du paiement pour envoyer de l'argent à un alias ou à un marchand.</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField

@@ -2,10 +2,9 @@
 "use client";
 
 import { useState } from 'react';
-import { Home, ArrowUp, Handshake, User as UserIcon } from "lucide-react";
+import { Home, ArrowUp, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TransactionHistory from './transaction-history';
-import PaymentForm from './payment-form';
 import Profile from './profile';
 import Tontine from './tontine';
 import Services from './services';
@@ -20,6 +19,7 @@ import PICASH from './picash';
 import BNPL from './bnpl';
 import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
+import PayerTransferer from './payer-transferer';
 
 type UserInfo = {
     name: string;
@@ -32,21 +32,18 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'payer' | 'services' | 'profil';
+type NavItem = 'accueil' | 'payer' | 'profil';
 
 const servicesMap: { [key: string]: Service } = {
     "ma-carte": { name: "Ma Carte", icon: <></>, action: "ma-carte", description: "" },
     "coffres": { name: "Coffres", icon: <></>, action: "coffres", description: "" },
     "tontine": { name: "Tontine", icon: <></>, action: "tontine", description: "" },
-    "factures": { name: "Factures", icon: <></>, action: "factures", description: "" },
-    "marchands": { name: "Marchands", icon: <></>, action: "marchands", description: "" },
 }
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
-    const [activeMerchantService, setActiveMerchantService] = useState<string | null>(null);
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -55,24 +52,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
         setActiveService(null);
-        setActiveMerchantService(null);
         setActiveTab(tab);
-      }
+    }
     
-      const handleServiceClick = (service: Service) => {
-        setActiveTab('services'); 
-        setActiveService(service);
-      }
-
-      const backToServices = () => {
-        setActiveService(null);
-        setActiveMerchantService(null);
-      }
-
-      const handleMerchantServiceClick = (service: string) => {
-        setActiveMerchantService(service);
-      }
-
       const handleCardNavigation = (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => {
         if (destination === 'transactions') {
             setShowAllTransactions(true);
@@ -80,8 +62,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         } else {
             const service = servicesMap[destination];
             if (service) {
-                setActiveTab('services');
+                // This logic needs to be revisited if services tab is removed.
+                // For now, let's assume we can show a specific service view.
                 setActiveService(service);
+                setActiveTab('accueil'); // Or a dedicated tab if we had one
             }
         }
       };
@@ -89,6 +73,18 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
       const renderContent = () => {
         if (showAllTransactions) {
             return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
+        }
+        if (activeService) {
+             switch (activeService.action) {
+                case 'tontine':
+                    return <Tontine onBack={() => setActiveService(null)}/>;
+                case 'ma-carte':
+                    return <VirtualCard onBack={() => setActiveService(null)}/>;
+                case 'coffres':
+                     return <Vaults onBack={() => setActiveService(null)} />;
+                default:
+                    setActiveService(null); // Fallback to reset state
+             }
         }
         switch(activeTab){
             case 'accueil':
@@ -105,29 +101,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     </div>
                 )
             case 'payer':
-                return <PaymentForm />;
-            case 'services':
-                 if (!activeService) return <Services onServiceClick={handleServiceClick}/>;
-                 
-                 if (activeService.action === 'marchands') {
-                    if (activeMerchantService === 'pico') return <PICO onBack={() => setActiveMerchantService(null)} />;
-                    if (activeMerchantService === 'picash') return <PICASH onBack={() => setActiveMerchantService(null)} />;
-                    if (activeMerchantService === 'bnpl') return <BNPL onBack={() => setActiveMerchantService(null)} />;
-                    return <MerchantServices onBack={backToServices} onServiceClick={handleMerchantServiceClick} />;
-                 }
-
-                 switch (activeService.action) {
-                    case 'tontine':
-                        return <Tontine onBack={backToServices}/>;
-                    case 'ma-carte':
-                        return <VirtualCard onBack={backToServices}/>;
-                    case 'factures':
-                        return <BillPaymentForm onBack={backToServices} />;
-                    case 'coffres':
-                         return <Vaults onBack={backToServices} />;
-                    default:
-                        return <Services onServiceClick={handleServiceClick}/>;
-                 }
+                return <PayerTransferer/>;
             case 'profil':
                 return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} />;
             default:
@@ -143,7 +117,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
-
         }
       }
 
@@ -153,18 +126,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             {renderContent()}
         </main>
       <footer className="fixed bottom-0 inset-x-0 z-40 flex justify-center p-4">
-          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-4 gap-1 p-2 max-w-sm w-full">
-            <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
+          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-3 gap-1 p-2 max-w-sm w-full">
+            <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions && !activeService ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <Home />
                 <span className="text-xs">Accueil</span>
             </Button>
             <Button onClick={() => onTabClick('payer')} variant={activeTab === 'payer' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <ArrowUp />
                 <span className="text-xs">Payer</span>
-            </Button>
-            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
-                <Handshake />
-                <span className="text-xs">Services</span>
             </Button>
             <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <UserIcon />
