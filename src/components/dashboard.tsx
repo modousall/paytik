@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark } from "lucide-react";
+import { ArrowUp, ArrowDown, Users, KeyRound, LogOut, Search, Bell, QrCode, Home, Settings, Landmark, LayoutGrid } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
 import PaymentForm from './payment-form';
@@ -17,6 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Tontine from './tontine';
+import Services from './services';
 
 type UserInfo = {
     name: string;
@@ -29,7 +30,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'contacts' | 'alias';
+type NavItem = 'accueil' | 'envoyer' | 'tontine' | 'contacts' | 'alias' | 'services';
 
 const Header = ({ userInfo }: { userInfo: UserInfo }) => (
     <header className="bg-background p-4 sm:p-6 border-b">
@@ -68,7 +69,7 @@ const BalanceDisplay = () => (
     </Card>
 );
 
-const HomeActions = ({ onSendClick, onReceiveClick }: { onSendClick: () => void; onReceiveClick: () => void;}) => (
+const HomeActions = ({ onSendClick, onReceiveClick, onServicesClick }: { onSendClick: () => void; onReceiveClick: () => void; onServicesClick: () => void; }) => (
     <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="flex flex-col items-center gap-2">
             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
@@ -86,7 +87,7 @@ const HomeActions = ({ onSendClick, onReceiveClick }: { onSendClick: () => void;
             <span className="text-sm font-medium">Recevoir</span>
         </div>
         <div className="flex flex-col items-center gap-2">
-            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" disabled><Settings/></Button>
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onServicesClick}><LayoutGrid/></Button>
             <span className="text-sm font-medium">Services</span>
         </div>
     </div>
@@ -121,6 +122,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                                 const sheetTrigger = document.querySelector('[aria-controls="radix-"]') as HTMLButtonElement | null;
                                 if (sheetTrigger) sheetTrigger.click();
                             }}
+                            onServicesClick={() => onTabClick('services')}
                         />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
@@ -133,6 +135,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 return <Contacts />;
             case 'alias':
                 return <ManageAlias alias={alias} onLogout={onLogout} />;
+            case 'services':
+                return <Services />;
             default:
                 return null;
 
@@ -155,9 +159,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <ArrowUp />
                 <span className="text-xs">Envoyer</span>
             </Button>
-            <Button onClick={() => onTabClick('tontine')} variant={activeTab === 'tontine' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
-                <Landmark />
-                <span className="text-xs">Tontine</span>
+            <Button onClick={() => onTabClick('services')} variant={activeTab === 'services' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
+                <LayoutGrid />
+                <span className="text-xs">Services</span>
             </Button>
             <Button onClick={() => onTabClick('contacts')} variant={activeTab === 'contacts' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2">
                 <Users />
