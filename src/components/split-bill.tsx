@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -40,13 +40,13 @@ export default function SplitBill() {
   const participants = form.watch('participants');
   const totalAmount = form.watch('totalAmount');
 
-  useState(() => {
+  useEffect(() => {
     if (totalAmount > 0 && participants.length > 0) {
       setAmountPerPerson(totalAmount / participants.length);
     } else {
       setAmountPerPerson(0);
     }
-  });
+  }, [totalAmount, participants]);
 
 
   const onSubmit = (values: SplitBillFormValues) => {
@@ -117,7 +117,7 @@ export default function SplitBill() {
                                 checked={field.value?.includes(contact.id)}
                                 onCheckedChange={(checked) => {
                                   return checked
-                                    ? field.onChange([...field.value, contact.id])
+                                    ? field.onChange([...(field.value || []), contact.id])
                                     : field.onChange(
                                         field.value?.filter(
                                           (value) => value !== contact.id

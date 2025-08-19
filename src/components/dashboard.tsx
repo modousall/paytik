@@ -73,7 +73,7 @@ const BalanceDisplay = () => (
     </Card>
 );
 
-const HomeActions = ({ onSendClick, onReceiveClick, onSplitBillClick }: { onSendClick: () => void; onReceiveClick: () => void; onSplitBillClick: () => void; }) => (
+const HomeActions = ({ onSendClick, onReceiveClick }: { onSendClick: () => void; onReceiveClick: () => void; }) => (
     <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="flex flex-col items-center gap-2">
             <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm" onClick={onSendClick}><ArrowUp/></Button>
@@ -92,7 +92,7 @@ const HomeActions = ({ onSendClick, onReceiveClick, onSplitBillClick }: { onSend
         </Sheet>
          <Dialog>
             <DialogTrigger asChild>
-                <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={onSplitBillClick}>
+                <div className="flex flex-col items-center gap-2 cursor-pointer">
                     <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><Users/></Button>
                     <span className="text-sm font-medium">Partager</span>
                 </div>
@@ -140,7 +140,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             onReceiveClick={() => { /* Sheet handles open */ }}
-                            onSplitBillClick={() => { /* Dialog handles open */ }}
                         />
                         <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
@@ -161,7 +160,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                          <HomeActions 
                             onSendClick={() => onTabClick('payer')} 
                             onReceiveClick={() => {}}
-                            onSplitBillClick={() => {}}
                         />
                         <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
                     </div>
