@@ -36,7 +36,7 @@ export default function PaymentForm() {
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
       recipientAlias: "",
-      amount: undefined,
+      amount: '' as any,
       reason: "",
     },
   });

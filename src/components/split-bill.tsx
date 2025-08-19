@@ -31,7 +31,7 @@ export default function SplitBill() {
   const form = useForm<SplitBillFormValues>({
     resolver: zodResolver(splitBillSchema),
     defaultValues: {
-      totalAmount: undefined,
+      totalAmount: '' as any,
       participants: [],
       reason: "",
     },
