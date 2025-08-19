@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -5,6 +6,7 @@ import { TransactionsProvider } from '@/hooks/use-transactions';
 import { ContactsProvider } from '@/hooks/use-contacts';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { TontineProvider } from '@/hooks/use-tontine';
+import { VaultsProvider } from '@/hooks/use-vaults';
 
 export const metadata: Metadata = {
   title: 'PAYTIK Simplifié',
@@ -28,8 +30,10 @@ export default function RootLayout({
           <ContactsProvider>
             <VirtualCardProvider>
               <TontineProvider>
-                {children}
-                <Toaster />
+                <VaultsProvider>
+                  {children}
+                  <Toaster />
+                </VaultsProvider>
               </TontineProvider>
             </VirtualCardProvider>
           </ContactsProvider>

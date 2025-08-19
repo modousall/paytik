@@ -16,6 +16,7 @@ import HomeActions from './home-actions';
 import BillPaymentForm from './bill-payment-form';
 import type { Service } from './services';
 import MerchantServices from './merchant-services';
+import Vaults from './vaults';
 
 type UserInfo = {
     name: string;
@@ -86,13 +87,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     case 'marchands':
                         return <MerchantServices onBack={backToServices} />;
                     case 'coffres':
-                         return (
-                            <div className="text-center py-10">
-                                <h2 className="text-2xl font-bold">Coffres / Tirelires</h2>
-                                <p className="text-muted-foreground">Bientôt disponible.</p>
-                                <Button onClick={backToServices} className="mt-4">Retour</Button>
-                            </div>
-                        );
+                         return <Vaults onBack={backToServices} />;
                     default:
                         return <Services onServiceClick={handleServiceClick}/>;
                  }
