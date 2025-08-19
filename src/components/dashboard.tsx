@@ -17,6 +17,9 @@ import BillPaymentForm from './bill-payment-form';
 import type { Service } from './services';
 import MerchantServices from './merchant-services';
 import Vaults from './vaults';
+import PICO from './pico';
+import PICASH from './picash';
+import BNPL from './bnpl';
 
 type UserInfo = {
     name: string;
@@ -35,6 +38,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
+    const [activeMerchantService, setActiveMerchantService] = useState<string | null>(null);
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -43,6 +47,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const onTabClick = (tab: NavItem) => {
         setShowAllTransactions(false);
         setActiveService(null);
+        setActiveMerchantService(null);
         setActiveTab(tab);
       }
     
@@ -53,6 +58,11 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
       const backToServices = () => {
         setActiveService(null);
+        setActiveMerchantService(null);
+      }
+
+      const handleMerchantServiceClick = (service: string) => {
+        setActiveMerchantService(service);
       }
 
       const renderContent = () => {
@@ -77,6 +87,13 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             case 'services':
                  if (!activeService) return <Services onServiceClick={handleServiceClick}/>;
                  
+                 if (activeService.action === 'marchands') {
+                    if (activeMerchantService === 'pico') return <PICO onBack={() => setActiveMerchantService(null)} />;
+                    if (activeMerchantService === 'picash') return <PICASH onBack={() => setActiveMerchantService(null)} />;
+                    if (activeMerchantService === 'bnpl') return <BNPL onBack={() => setActiveMerchantService(null)} />;
+                    return <MerchantServices onBack={backToServices} onServiceClick={handleMerchantServiceClick} />;
+                 }
+
                  switch (activeService.action) {
                     case 'tontine':
                         return <Tontine onBack={backToServices}/>;
@@ -84,8 +101,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         return <VirtualCard onBack={backToServices}/>;
                     case 'factures':
                         return <BillPaymentForm onBack={backToServices} />;
-                    case 'marchands':
-                        return <MerchantServices onBack={backToServices} />;
                     case 'coffres':
                          return <Vaults onBack={backToServices} />;
                     default:
