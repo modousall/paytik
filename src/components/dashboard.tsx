@@ -28,7 +28,7 @@ const Header = ({ alias, onLogout }: { alias: string, onLogout: () => void; }) =
                 <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="person face" />
                 <AvatarFallback>U</AvatarFallback>
             </Avatar>
-            <div className="font-bold text-lg text-primary">SPI</div>
+            <div className="font-bold text-lg text-primary">PAYTIK</div>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon"><Search /></Button>
