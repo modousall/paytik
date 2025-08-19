@@ -46,7 +46,7 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
     const { addVault } = useVaults();
     const form = useForm<VaultFormValues>({
         resolver: zodResolver(vaultFormSchema),
-        defaultValues: { name: "", targetAmount: undefined },
+        defaultValues: { name: "", targetAmount: '' as any },
     });
     
     const onSubmit = (values: VaultFormValues) => {
