@@ -108,7 +108,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         return <Services onServiceClick={handleServiceClick}/>;
                  }
             case 'profil':
-                return <Profile alias={alias} onLogout={onLogout} />;
+                return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} />;
             default:
                  return (
                     <div className="space-y-8">
