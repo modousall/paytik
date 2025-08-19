@@ -99,9 +99,12 @@ export default function SplitBill() {
             name="participants"
             render={() => (
               <FormItem>
-                <FormLabel>Sélectionner les participants</FormLabel>
-                <ScrollArea className="h-48 rounded-md border p-4">
-                  {contacts.map((contact) => (
+                <div className="mb-4">
+                  <FormLabel className="text-base">Sélectionner les participants</FormLabel>
+                </div>
+                <ScrollArea className="h-48 rounded-md border">
+                  <div className="p-4">
+                  {contacts.length > 0 ? contacts.map((contact) => (
                     <FormField
                       key={contact.id}
                       control={form.control}
@@ -110,7 +113,7 @@ export default function SplitBill() {
                         return (
                           <FormItem
                             key={contact.id}
-                            className="flex flex-row items-center space-x-3 space-y-0 mb-3"
+                            className="flex flex-row items-center space-x-3 space-y-0 p-2 rounded-md hover:bg-secondary"
                           >
                             <FormControl>
                               <Checkbox
@@ -126,14 +129,17 @@ export default function SplitBill() {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
-                              {contact.name} ({contact.alias})
+                            <FormLabel className="font-normal flex-grow cursor-pointer">
+                              {contact.name} <span className="text-muted-foreground">({contact.alias})</span>
                             </FormLabel>
                           </FormItem>
                         )
                       }}
                     />
-                  ))}
+                  )) : (
+                    <p className="text-sm text-muted-foreground text-center">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
+                  )}
+                  </div>
                 </ScrollArea>
                 <FormMessage />
               </FormItem>
@@ -159,7 +165,7 @@ export default function SplitBill() {
             </Card>
           )}
 
-          <Button type="submit" className="w-full bg-accent text-accent-foreground" disabled={amountPerPerson <= 0}>
+          <Button type="submit" className="w-full bg-accent text-accent-foreground py-6 text-lg hover:bg-accent/90" disabled={amountPerPerson <= 0}>
             Envoyer les demandes de paiement
           </Button>
         </form>
