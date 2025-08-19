@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useContacts, Contact } from '@/hooks/use-contacts';
+import { useContacts } from '@/hooks/use-contacts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +40,7 @@ export default function Contacts() {
   });
 
   const onSubmit = (values: ContactFormValues) => {
-    addContact({ id: Date.now().toString(), ...values });
+    addContact(values);
     toast({ title: "Contact ajouté", description: `${values.name} a été ajouté à votre liste de contacts.` });
     form.reset();
   };

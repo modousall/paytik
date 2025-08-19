@@ -11,7 +11,7 @@ export type Contact = {
 
 type ContactsContextType = {
   contacts: Contact[];
-  addContact: (contact: Contact) => void;
+  addContact: (contact: Omit<Contact, 'id'>) => void;
   removeContact: (id: string) => void;
 };
 
@@ -48,8 +48,8 @@ export const ContactsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [contacts, isInitialized]);
 
-  const addContact = (contact: Contact) => {
-    setContacts(prevContacts => [...prevContacts, contact]);
+  const addContact = (contact: Omit<Contact, 'id'>) => {
+    setContacts(prevContacts => [...prevContacts, { ...contact, id: Date.now().toString() }]);
   };
 
   const removeContact = (id: string) => {
