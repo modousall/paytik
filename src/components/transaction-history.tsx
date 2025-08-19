@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -145,10 +145,27 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
 
 export default function TransactionHistory({ showAll, onShowAll }: TransactionHistoryProps) {
     const { transactions } = useTransactions();
-    const transactionsToShow = showAll ? transactions : transactions.slice(0, 5);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState<string>('all');
+
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(tx => {
+            const searchMatch = searchTerm.toLowerCase() === '' ||
+                                tx.counterparty.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                tx.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                tx.status.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            const filterMatch = activeFilter === 'all' || tx.type === activeFilter;
+
+            return searchMatch && filterMatch;
+        });
+    }, [transactions, searchTerm, activeFilter]);
+
+
+    const transactionsToShow = showAll ? filteredTransactions : filteredTransactions.slice(0, 5);
 
     return (
-        <Card className="shadow-none border-none">
+        <Card className="shadow-none border-none bg-transparent">
             <CardHeader className="flex flex-row items-center justify-between px-2">
                 <div className="flex items-center gap-2">
                     {showAll && (
@@ -164,7 +181,12 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     <div className="flex items-center gap-2">
                         <div className="relative">
                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                           <Input placeholder="Rechercher..." className="pl-8 w-40" />
+                           <Input 
+                                placeholder="Rechercher..." 
+                                className="pl-8 w-40" 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
                         <Button variant="outline" size="icon"><Filter /></Button>
                     </div>
@@ -200,7 +222,9 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg">
                         <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h4 className="mt-4 text-lg font-semibold">Aucune transaction</h4>
-                        <p className="mt-1 text-sm text-muted-foreground">Vos transactions apparaîtront ici.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {searchTerm ? `Aucun résultat pour "${searchTerm}"` : "Vos transactions apparaîtront ici."}
+                        </p>
                     </div>
                 )}
                 {!showAll && transactions.length > 5 && (

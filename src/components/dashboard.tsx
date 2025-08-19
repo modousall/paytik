@@ -131,8 +131,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         <main className="flex-grow container mx-auto p-4 sm:p-6 pb-24">
             {renderContent()}
         </main>
-      <footer className="fixed bottom-4 inset-x-0 z-40 flex justify-center">
-          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-4 gap-1 p-2">
+      <footer className="fixed bottom-0 inset-x-0 z-40 flex justify-center p-4">
+          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-4 gap-1 p-2 max-w-sm w-full">
             <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
                 <Home />
                 <span className="text-xs">Accueil</span>
