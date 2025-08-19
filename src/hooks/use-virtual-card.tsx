@@ -39,10 +39,14 @@ const generateCardDetails = (): CardDetails => ({
     balance: 50000, // Initial balance
 });
 
-const initialTransactions: CardTransaction[] = [
-    { id: 'vtx1', type: 'debit', amount: 15000, merchant: 'Amazon', date: new Date().toISOString() },
-    { id: 'vtx2', type: 'debit', amount: 4500, merchant: 'Netflix', date: new Date(Date.now() - 86400000 * 2).toISOString() },
-];
+const initialCreditTransaction = (balance: number): CardTransaction => ({
+    id: 'vtx0',
+    type: 'credit',
+    amount: balance,
+    merchant: 'Crédit Initial',
+    date: new Date().toISOString(),
+});
+
 
 export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   const [card, setCard] = useState<CardDetails | null>(null);
@@ -51,22 +55,33 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    let storedCard: CardDetails | null = null;
+    let storedTransactions: CardTransaction[] | null = null;
     try {
-        const storedCard = localStorage.getItem('paytik_virtual_card');
-        const storedTransactions = localStorage.getItem('paytik_virtual_card_txs');
-        if (storedCard) {
-            setCard(JSON.parse(storedCard));
+        const cardData = localStorage.getItem('paytik_virtual_card');
+        if (cardData) {
+            storedCard = JSON.parse(cardData);
         }
-        if (storedTransactions) {
-            setTransactions(JSON.parse(storedTransactions));
-        } else if (storedCard) { // if card exists but no txs, load initial txs
-            setTransactions(initialTransactions);
+        const txData = localStorage.getItem('paytik_virtual_card_txs');
+        if(txData) {
+            storedTransactions = JSON.parse(txData);
         }
     } catch (error) {
         console.error("Failed to parse virtual card from localStorage", error);
-        setCard(null); // Reset to a safe state
-        setTransactions([]);
+        storedCard = null;
+        storedTransactions = null;
     }
+
+    if (storedCard) {
+        setCard(storedCard);
+        setTransactions(storedTransactions || [initialCreditTransaction(storedCard.balance)]);
+    } else {
+        // If no card is stored, create one by default.
+        const newCard = generateCardDetails();
+        setCard(newCard);
+        setTransactions([initialCreditTransaction(newCard.balance)]);
+    }
+
     setIsInitialized(true);
   }, []);
 
@@ -87,7 +102,7 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
     if (!card) {
       const newCard = generateCardDetails();
       setCard(newCard);
-      setTransactions(initialTransactions);
+      setTransactions([initialCreditTransaction(newCard.balance)]);
       toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée." });
     }
   };
