@@ -184,7 +184,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                            <Input 
                                 placeholder="Rechercher..." 
-                                className="pl-8 w-40" 
+                                className="pl-8 w-32 sm:w-40" 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
