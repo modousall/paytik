@@ -17,6 +17,7 @@ import BillPaymentForm from './bill-payment-form';
 import type { Service, BillService } from './services';
 import BillSelection from './bill-selection';
 import MerchantServices from './merchant-services';
+import PayMerchant from './pay-merchant';
 
 type UserInfo = {
     name: string;
@@ -36,6 +37,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
     const [activeBill, setActiveBill] = useState<BillService | null>(null);
+    const [showPayMerchant, setShowPayMerchant] = useState(false);
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -45,6 +47,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setShowAllTransactions(false);
         setActiveService(null);
         setActiveBill(null);
+        setShowPayMerchant(false);
         setActiveTab(tab);
       }
     
@@ -57,9 +60,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
           setActiveBill(bill);
       }
 
+      const handlePayMerchantClick = () => {
+        setShowPayMerchant(true);
+      }
+
       const backToServices = () => {
         setActiveService(null);
         setActiveBill(null);
+        setShowPayMerchant(false);
       }
 
       const renderContent = () => {
@@ -95,7 +103,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                         }
                         return <BillSelection onSelect={handleBillSelect} onBack={backToServices} />;
                     case 'marchands':
-                        return <MerchantServices onBack={backToServices} />;
+                        if (showPayMerchant) {
+                            return <PayMerchant onBack={backToServices} />;
+                        }
+                        return <MerchantServices onBack={backToServices} onPayMerchant={handlePayMerchantClick} />;
                     case 'coffres':
                          // Placeholder for Coffres component
                          return (
