@@ -8,7 +8,11 @@ import { CreditCard, Wallet, PiggyBank, Users } from 'lucide-react';
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 
-export default function BalanceCards() {
+type BalanceCardsProps = {
+    onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => void;
+}
+
+export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
@@ -19,21 +23,21 @@ export default function BalanceCards() {
 
     const cards = [
         {
-            id: 'main',
+            id: 'transactions' as const,
             title: 'Solde Principal',
             balance: balance,
             icon: <Wallet className="h-6 w-6 text-white" />,
             color: 'from-primary to-blue-400'
         },
         ...(card ? [{
-            id: 'virtual' as const,
+            id: 'ma-carte' as const,
             title: 'Carte Virtuelle',
             balance: card.balance,
             icon: <CreditCard className="h-6 w-6 text-white" />,
             color: 'from-sky-500 to-cyan-400'
         }] : []),
         ...(totalVaultsBalance > 0 ? [{
-            id: 'vaults' as const,
+            id: 'coffres' as const,
             title: 'Mes Coffres',
             balance: totalVaultsBalance,
             icon: <PiggyBank className="h-6 w-6 text-white" />,
@@ -53,7 +57,8 @@ export default function BalanceCards() {
             {cards.map((c) => (
                 <Card
                     key={c.id}
-                    className={`text-white shadow-lg p-4 flex flex-col justify-between bg-gradient-to-br ${c.color} border-none`}
+                    className={`text-white shadow-lg p-4 flex flex-col justify-between bg-gradient-to-br ${c.color} border-none cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out`}
+                    onClick={() => onNavigate(c.id)}
                 >
                     <div className="flex justify-between items-start">
                         <p className="font-semibold">{c.title}</p>

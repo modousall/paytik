@@ -34,6 +34,14 @@ type DashboardProps = {
 
 type NavItem = 'accueil' | 'payer' | 'services' | 'profil';
 
+const servicesMap: { [key: string]: Service } = {
+    "ma-carte": { name: "Ma Carte", icon: <></>, action: "ma-carte", description: "" },
+    "coffres": { name: "Coffres", icon: <></>, action: "coffres", description: "" },
+    "tontine": { name: "Tontine", icon: <></>, action: "tontine", description: "" },
+    "factures": { name: "Factures", icon: <></>, action: "factures", description: "" },
+    "marchands": { name: "Marchands", icon: <></>, action: "marchands", description: "" },
+}
+
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [activeTab, setActiveTab] = useState<NavItem>('accueil');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
@@ -65,6 +73,18 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setActiveMerchantService(service);
       }
 
+      const handleCardNavigation = (destination: string) => {
+        if (destination === 'transactions') {
+            setShowAllTransactions(true);
+        } else {
+            const service = servicesMap[destination];
+            if (service) {
+                setActiveTab('services');
+                setActiveService(service);
+            }
+        }
+      };
+
       const renderContent = () => {
         if (showAllTransactions) {
             return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
@@ -79,7 +99,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                             alias={alias}
                             userInfo={userInfo}
                         />
-                        <BalanceCards />
+                        <BalanceCards onNavigate={handleCardNavigation} />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
@@ -118,7 +138,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                             alias={alias}
                             userInfo={userInfo}
                         />
-                        <BalanceCards />
+                        <BalanceCards onNavigate={handleCardNavigation} />
                         <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
