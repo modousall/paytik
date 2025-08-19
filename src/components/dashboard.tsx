@@ -3,23 +3,17 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, History, QrCode, User, SlidersHorizontal, LogOut, Users } from "lucide-react";
-import PaymentForm from './payment-form';
+import { ArrowUp, ArrowDown, MoreHorizontal, LogOut, User, Search, Bell, QrCode } from "lucide-react";
 import TransactionHistory from './transaction-history';
 import QrCodeDisplay from './qr-code-display';
-import ManageAlias from './manage-alias';
-import Contacts from './contacts'; 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
-
-type DashboardTab = 'pay' | 'history' | 'qr' | 'manage' | 'contacts';
 
 type DashboardProps = {
   alias: string;
@@ -27,81 +21,84 @@ type DashboardProps = {
 };
 
 const Header = ({ alias, onLogout }: { alias: string, onLogout: () => void; }) => (
-    <header className="bg-card p-4 sm:p-6 border-b">
+    <header className="bg-background p-4 sm:p-6">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-primary">PAYTIK</h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <span className="hidden sm:inline">{alias}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profil</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Se déconnecter</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+            <Avatar>
+                <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="person face" />
+                <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+            <div className="font-bold text-lg text-primary">SPI</div>
+        </div>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon"><Search /></Button>
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon"><QrCode /></Button>
+              </SheetTrigger>
+              <SheetContent>
+                  <QrCodeDisplay alias={alias} />
+              </SheetContent>
+            </Sheet>
+
+            <Button variant="ghost" size="icon"><Bell /></Button>
+        </div>
       </div>
     </header>
 );
 
-export default function Dashboard({ alias, onLogout }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<DashboardTab>('pay');
+const BalanceDisplay = () => (
+    <Card className="bg-card shadow-lg w-full max-w-sm mx-auto mb-6">
+        <CardContent className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">Solde</p>
+            <p className="text-4xl font-bold tracking-tight">22 017 800 <span className="text-lg font-normal">Fcfa</span></p>
+        </CardContent>
+    </Card>
+);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'pay':
-        return <PaymentForm />;
-      case 'history':
-        return <TransactionHistory />;
-      case 'qr':
-        return <QrCodeDisplay alias={alias} />;
-      case 'manage':
-        return <ManageAlias alias={alias} onLogout={onLogout} />;
-      case 'contacts':
-        return <Contacts />;
-      default:
-        return <PaymentForm />;
-    }
-  }
+const ActionButtons = () => (
+    <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="flex flex-col items-center gap-2">
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowUp/></Button>
+            <span className="text-sm font-medium">Envoyer</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><ArrowDown/></Button>
+            <span className="text-sm font-medium">Recevoir</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+            <Button variant="outline" size="lg" className="h-16 w-16 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm"><MoreHorizontal/></Button>
+            <span className="text-sm font-medium">Plus</span>
+        </div>
+    </div>
+);
+
+
+export default function Dashboard({ alias, onLogout }: DashboardProps) {
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-secondary/50">
       <Header alias={alias} onLogout={onLogout} />
-      <div className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <aside className="lg:col-span-1">
-            <Card className="shadow-sm">
-                <CardHeader>
-                    <CardTitle>Menu</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                    <Button variant={activeTab === 'pay' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('pay')}><ArrowUpRight className="mr-2 h-5 w-5"/> Payer</Button>
-                    <Button variant={activeTab === 'history' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('history')}><History className="mr-2 h-5 w-5"/> Historique</Button>
-                    <Button variant={activeTab === 'contacts' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('contacts')}><Users className="mr-2 h-5 w-5"/> Contacts</Button>
-                    <Button variant={activeTab === 'qr' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('qr')}><QrCode className="mr-2 h-5 w-5"/> Mon QR</Button>
-                    <Button variant={activeTab === 'manage' ? 'secondary' : 'ghost'} className="justify-start text-base py-6" onClick={() => setActiveTab('manage')}><SlidersHorizontal className="mr-2 h-5 w-5"/> Gérer l'alias</Button>
-                </CardContent>
-            </Card>
-          </aside>
-          <main className="lg:col-span-3">
-            <Card className="shadow-sm min-h-[500px]">
-                <CardContent className="p-6">
-                    {renderContent()}
-                </CardContent>
-            </Card>
-          </main>
-        </div>
-      </div>
+      <main className="flex-grow container mx-auto p-4">
+        <Tabs defaultValue="compte" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="compte">Compte</TabsTrigger>
+                <TabsTrigger value="abonnements" disabled>Abonnements</TabsTrigger>
+                <TabsTrigger value="economies" disabled>Economies</TabsTrigger>
+            </TabsList>
+            <TabsContent value="compte">
+                <BalanceDisplay />
+                <ActionButtons />
+                <TransactionHistory />
+            </TabsContent>
+        </Tabs>
+      </main>
+      <footer className="bg-background p-2 border-t mt-auto">
+          <Button onClick={onLogout} variant="ghost" className="w-full justify-start">
+            <LogOut className="mr-2"/> Se déconnecter
+          </Button>
+      </footer>
     </div>
   );
 }
