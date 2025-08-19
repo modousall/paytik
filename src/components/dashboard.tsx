@@ -49,7 +49,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
 
       const renderContent = () => {
         if (showAllTransactions) {
-            return <TransactionHistory showAll={true} onShowAll={() => handleShowAllTransactions(false)} />;
+            return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
         }
         switch(activeTab){
             case 'accueil':
@@ -61,7 +61,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                             alias={alias}
                             userInfo={userInfo}
                         />
-                        <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
+                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
             case 'payer':
@@ -81,7 +81,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                             alias={alias}
                             userInfo={userInfo}
                         />
-                        <TransactionHistory showAll={false} onShowAll={() => handleShowAllTransactions(true)} />
+                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
                     </div>
                 )
 
