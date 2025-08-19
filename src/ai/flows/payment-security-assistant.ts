@@ -8,8 +8,8 @@
  * - PaymentSecurityAssistantInput - The input type for the paymentSecurityAssistant function.
  * - PaymentSecurityAssistantOutput - The return type for the paymentSecurityAssistant function.
  */
-
-import {ai} from '@/ai/genkit';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const PaymentSecurityAssistantInputSchema = z.object({
@@ -29,6 +29,11 @@ const PaymentSecurityAssistantOutputSchema = z.object({
 export type PaymentSecurityAssistantOutput = z.infer<typeof PaymentSecurityAssistantOutputSchema>;
 
 export async function paymentSecurityAssistant(input: PaymentSecurityAssistantInput): Promise<PaymentSecurityAssistantOutput> {
+  const ai = genkit({
+    plugins: [googleAI()],
+    model: 'googleai/gemini-1.5-flash-latest',
+  });
+  
   const prompt = ai.definePrompt({
     name: 'paymentSecurityAssistantPrompt',
     input: {schema: PaymentSecurityAssistantInputSchema},

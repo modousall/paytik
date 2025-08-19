@@ -7,8 +7,8 @@
  * - AliasSuggestionInput - The input type for the aliasSuggestion function.
  * - AliasSuggestionOutput - The return type for the aliasSuggestion function.
  */
-
-import {ai} from '@/ai/genkit';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const AliasSuggestionInputSchema = z.object({
@@ -25,6 +25,11 @@ export type AliasSuggestionOutput = z.infer<typeof AliasSuggestionOutputSchema>;
 
 
 export async function aliasSuggestion(input: AliasSuggestionInput): Promise<AliasSuggestionOutput> {
+  const ai = genkit({
+    plugins: [googleAI()],
+    model: 'googleai/gemini-1.5-flash-latest',
+  });
+
   const prompt = ai.definePrompt({
     name: 'aliasSuggestionPrompt',
     input: {schema: AliasSuggestionInputSchema},
