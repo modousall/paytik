@@ -21,7 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog"
+  } from "@/components/ui/alert-dialog";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères." }),
@@ -40,7 +40,7 @@ export default function Contacts() {
   });
 
   const onSubmit = (values: ContactFormValues) => {
-    addContact(values);
+    addContact({name: values.name, alias: values.alias});
     toast({ title: "Contact ajouté", description: `${values.name} a été ajouté à votre liste de contacts.` });
     form.reset();
   };
