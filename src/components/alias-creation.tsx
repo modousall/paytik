@@ -1,128 +1,129 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from "@/hooks/use-toast";
-import { Smartphone, Mail } from 'lucide-react';
+import { Smartphone, QrCode, Loader2, Sparkles } from 'lucide-react';
+import { aliasSuggestion } from '@/ai/flows/alias-suggestion-flow';
 
 type AliasCreationProps = {
   onAliasCreated: (alias: string) => void;
 };
 
 export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
-  const [step, setStep] = useState(1);
-  const [aliasType, setAliasType] = useState<'phone' | 'email'>('phone');
   const [aliasValue, setAliasValue] = useState('');
-  const [otp, setOtp] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function getSuggestions() {
+      setIsLoading(true);
+      try {
+        const result = await aliasSuggestion({
+            existingAliases: ["testuser", "johndoe"],
+            name: 'Utilisateur Anonyme',
+            email: 'user@example.com'
+        });
+        setSuggestions(result.suggestions);
+      } catch (error) {
+        console.error("Failed to get alias suggestions:", error);
+        // Fallback suggestions
+        setSuggestions(["MonAlias789", "UserPay", "PayMeNow"]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    getSuggestions();
+  }, []);
+
 
   const handleAliasSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (aliasValue.length < 9) {
+    if (aliasValue.length < 3) {
       toast({
         title: "Alias Invalide",
-        description: "Veuillez entrer un numéro de téléphone valide.",
-        variant: "destructive",
-      });
-      return;
-    }
-    // Simulate API call to send OTP
-    if (aliasValue === '+221771234567') { // Simulate used alias
-      toast({
-        title: "Alias déjà utilisé",
-        description: "Cet alias est déjà pris. Vous pouvez le réclamer ou en choisir un autre.",
+        description: "L'alias doit contenir au moins 3 caractères.",
         variant: "destructive",
       });
       return;
     }
     
-    console.log("Envoi de l'OTP à", aliasValue);
-    setStep(2);
+    toast({
+      title: "Succès!",
+      description: `Votre alias "${aliasValue}" a été créé.`,
+    });
+    onAliasCreated(aliasValue);
   };
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp === '123456') { // Simulate correct OTP
-      toast({
-        title: "Succès!",
-        description: "Votre alias a été vérifié.",
-      });
-      onAliasCreated(aliasValue);
-    } else {
-      toast({
-        title: "OTP Invalide",
-        description: "Le code que vous avez entré est incorrect. Veuillez réessayer.",
-        variant: "destructive",
-      });
-    }
-  };
+  const handleSuggestionClick = (suggestion: string) => {
+    setAliasValue(suggestion);
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-primary text-2xl">Créez votre alias PAYTIK</CardTitle>
-          <CardDescription>Ce sera votre identifiant unique pour envoyer et recevoir de l'argent.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {step === 1 && (
-            <form onSubmit={handleAliasSubmit} className="space-y-6">
-              <RadioGroup defaultValue="phone" onValueChange={(value) => setAliasType(value as 'phone' | 'email')}>
-                <Label>Type d'alias</Label>
-                <div className="flex items-center space-x-4 pt-2">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="phone" id="phone" />
-                        <Label htmlFor="phone" className="flex items-center gap-2 cursor-pointer"><Smartphone size={16}/> Téléphone</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="email" id="email" disabled />
-                        <Label htmlFor="email" className="flex items-center gap-2 text-muted-foreground"><Mail size={16}/> Adresse de paiement (bientôt)</Label>
-                    </div>
-                </div>
-              </RadioGroup>
-              
-              <div>
-                <Label htmlFor="alias">{aliasType === 'phone' ? 'Numéro de téléphone' : 'Adresse de paiement'}</Label>
-                <Input
-                  id="alias"
-                  type={aliasType === 'phone' ? 'tel' : 'text'}
-                  placeholder={aliasType === 'phone' ? '+221771234567' : 'Généré automatiquement'}
-                  value={aliasValue}
-                  onChange={(e) => setAliasValue(e.target.value)}
-                  disabled={aliasType !== 'phone'}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Continuer</Button>
-            </form>
-          )}
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-primary">Créer un alias</h1>
+            <p className="text-muted-foreground mt-2">Il vous suffira de communiquer votre alias pour vous faire envoyer de l'argent sur votre compte.</p>
+        </div>
 
-          {step === 2 && (
-            <form onSubmit={handleOtpSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="otp">Code de vérification</Label>
-                <p className="text-sm text-muted-foreground mb-2">Entrez le code à 6 chiffres envoyé à {aliasValue}.</p>
-                <Input
-                  id="otp"
-                  type="text"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="tracking-[1em] text-center"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Vérifier l'alias</Button>
-              <Button variant="link" onClick={() => setStep(1)} className="w-full text-primary">Changer d'alias</Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+        <div className="space-y-4">
+            <Card className="cursor-not-allowed opacity-50">
+                <CardContent className="p-4 flex items-center gap-4">
+                    <QrCode className="h-6 w-6 text-primary" />
+                    <div>
+                        <h3 className="font-semibold">Choisir l'adresse de paiement</h3>
+                        <p className="text-sm text-muted-foreground">Cet alias est créé par PI-SPI (bientôt disponible)</p>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Smartphone size={20}/> Choisir le numéro de téléphone</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleAliasSubmit} className="space-y-6">
+                        <div>
+                            <Label htmlFor="alias" className="sr-only">Alias</Label>
+                            <Input
+                            id="alias"
+                            type="text"
+                            placeholder="Entrez votre alias"
+                            value={aliasValue}
+                            onChange={(e) => setAliasValue(e.target.value)}
+                            required
+                            />
+                        </div>
+
+                        {isLoading ? (
+                            <div className="flex justify-center items-center p-4">
+                                <Loader2 className="animate-spin h-6 w-6 text-primary" />
+                                <span className="ml-2">Recherche de suggestions...</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Sparkles size={16} className="text-accent"/> Suggestions d'alias</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {suggestions.map((s) => (
+                                        <Button key={s} type="button" variant="outline" size="sm" onClick={() => handleSuggestionClick(s)}>{s}</Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 py-6 text-lg">
+                            Créer mon alias
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
+
+      </div>
     </div>
   );
 }
