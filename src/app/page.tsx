@@ -11,6 +11,13 @@ import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard';
+import { AvatarProvider } from '@/hooks/use-avatar';
+import { BalanceProvider } from '@/hooks/use-balance';
+import { ContactsProvider } from '@/hooks/use-contacts';
+import { TontineProvider } from '@/hooks/use-tontine';
+import { TransactionsProvider } from '@/hooks/use-transactions';
+import { VaultsProvider } from '@/hooks/use-vaults';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 
 type UserInfo = {
   name: string;
@@ -164,7 +171,23 @@ export default function AuthenticationGate() {
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'dashboard':
         if(alias && userInfo) {
-            return <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+            return (
+              <AvatarProvider alias={alias}>
+                <BalanceProvider alias={alias}>
+                  <TransactionsProvider alias={alias}>
+                    <ContactsProvider alias={alias}>
+                      <VirtualCardProvider alias={alias}>
+                        <VaultsProvider alias={alias}>
+                          <TontineProvider alias={alias}>
+                              <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+                          </TontineProvider>
+                        </VaultsProvider>
+                      </VirtualCardProvider>
+                    </ContactsProvider>
+                  </TransactionsProvider>
+                </BalanceProvider>
+              </AvatarProvider>
+            )
         }
         // Fallback if state is dashboard but data is missing
         setStep('demo');
