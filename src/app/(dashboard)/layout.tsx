@@ -115,7 +115,7 @@ const SidebarContentComponent = ({ userInfo, onLogoutClick }: { userInfo: UserIn
             </SidebarContent>
 
             <SidebarFooter>
-                <Button variant="ghost" onClick={onLogoutClick}>
+                <Button variant="ghost" onClick={onLogoutClick} className="w-full justify-start">
                     <LogOut className="mr-2" />
                     <span className="group-data-[collapsible=icon]:hidden">
                         Se déconnecter

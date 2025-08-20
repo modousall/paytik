@@ -1,9 +1,11 @@
+
 "use client"
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
+import NextLink from "next/link"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -373,7 +375,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("mt-auto flex flex-col gap-2 p-2", className)}
       {...props}
     />
   )
@@ -535,7 +537,8 @@ const sidebarMenuButtonVariants = cva(
 
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<"button"> & {
+  React.ComponentProps<"button"> &
+  React.ComponentProps<typeof NextLink> & {
     asChild?: boolean
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
@@ -549,16 +552,19 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      href,
       ...props
     },
     ref
   ) => {
-    const Comp = asChild ? Slot : "button"
+    // This is a workaround for the fact that the `ref` type is not compatible with NextLink.
+    const buttonRef = React.useRef<HTMLButtonElement | null>(null)
+    const Comp = asChild ? Slot : 'button'
     const { isMobile, state } = useSidebar()
 
     const button = (
       <Comp
-        ref={ref}
+        ref={ref || buttonRef}
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
@@ -567,27 +573,24 @@ const SidebarMenuButton = React.forwardRef<
       />
     )
 
-    if (!tooltip) {
-      return button
-    }
+    const linkButton = <NextLink href={href ?? ''} legacyBehavior passHref>{button}</NextLink>
 
-    if (typeof tooltip === "string") {
-      tooltip = {
-        children: tooltip,
-      }
-    }
+    const buttonWithTooltip = (
+        <Tooltip>
+          <TooltipTrigger asChild>{href ? linkButton : button}</TooltipTrigger>
+          <TooltipContent
+            side="right"
+            align="center"
+            hidden={state !== "collapsed" || isMobile}
+            {...(typeof tooltip === 'string' ? {children: tooltip} : tooltip)}
+          />
+        </Tooltip>
+      )
 
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
-        <TooltipContent
-          side="right"
-          align="center"
-          hidden={state !== "collapsed" || isMobile}
-          {...tooltip}
-        />
-      </Tooltip>
-    )
+    if (tooltip) return buttonWithTooltip;
+    if (href) return linkButton;
+
+    return button
   }
 )
 SidebarMenuButton.displayName = "SidebarMenuButton"
