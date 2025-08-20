@@ -190,6 +190,10 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                     {user.isSuspended ? "Suspendu" : "Actif"}
                                 </Badge>
                            </div>
+                           <div className="flex justify-between">
+                                <span className="text-muted-foreground">Solde Principal</span>
+                                <span className="font-semibold">{user.balance.toLocaleString()} Fcfa</span>
+                           </div>
                         </CardContent>
                     </Card>
 
@@ -216,66 +220,68 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                 {/* Right Column: Services & Transactions */}
                 <div className="lg:col-span-2 space-y-6">
                      <UserServiceProvider alias={user.alias}>
-                        <Card>
-                            <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
-                            <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                               <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full border-2 ${transactionFilter === 'main' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('main')}>
-                                    <Wallet className="mx-auto h-8 w-8 mb-2 text-primary"/>
-                                    <p className="text-sm font-medium">Compte Principal</p>
-                                    <Badge variant='default'>{user.balance.toLocaleString()} Fcfa</Badge>
-                               </button>
+                        {user.role !== 'merchant' && (
+                            <Card>
+                                <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                                <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full border-2 ${transactionFilter === 'main' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('main')}>
+                                        <Wallet className="mx-auto h-8 w-8 mb-2 text-primary"/>
+                                        <p className="text-sm font-medium">Compte Principal</p>
+                                        <Badge variant='default'>{user.balance.toLocaleString()} Fcfa</Badge>
+                                </button>
 
-                               <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'card' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('card')}>
-                                            <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                            <p className="text-sm font-medium">Carte Virtuelle</p>
-                                            <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Gérer' : 'Inactive'}</Badge>
-                                        </button>
-                                    </DialogTrigger>
-                                    {user.virtualCard && 
-                                        <DialogContent className="max-w-2xl">
-                                             <DialogHeader>
-                                                <DialogTitle>Gestion de la Carte Virtuelle</DialogTitle>
-                                             </DialogHeader>
-                                             <VirtualCard onBack={()=>{}}/>
-                                        </DialogContent>
-                                    }
-                                </Dialog>
                                 <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'vaults' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('vaults')}>
-                                            <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                            <p className="text-sm font-medium">Coffres-forts</p>
-                                            <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? `${totalVaultsBalance.toLocaleString()} Fcfa` : 'Inactifs'}</Badge>
-                                        </button>
-                                    </DialogTrigger>
-                                     <DialogContent className="max-w-3xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Gestion des Coffres</DialogTitle>
-                                        </DialogHeader>
-                                        <Vaults onBack={()=>{}}/>
-                                    </DialogContent>
-                                </Dialog>
-                               <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'tontine' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('tontine')}>
-                                            <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                            <p className="text-sm font-medium">Tontines</p>
-                                            <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length > 0 ? 'Gérer' : 'Inactives'}</Badge>
-                                        </button>
-                                    </DialogTrigger>
-                                     <DialogContent className="max-w-4xl">
-                                        <DialogHeader>
-                                            <DialogTitle>Gestion des Tontines</DialogTitle>
-                                        </DialogHeader>
-                                        <Tontine onBack={()=>{}}/>
-                                    </DialogContent>
-                                </Dialog>
-                            </CardContent>
-                        </Card>
+                                        <DialogTrigger asChild>
+                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'card' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('card')}>
+                                                <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                                <p className="text-sm font-medium">Carte Virtuelle</p>
+                                                <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Gérer' : 'Inactive'}</Badge>
+                                            </button>
+                                        </DialogTrigger>
+                                        {user.virtualCard && 
+                                            <DialogContent className="max-w-2xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>Gestion de la Carte Virtuelle</DialogTitle>
+                                                </DialogHeader>
+                                                <VirtualCard onBack={()=>{}}/>
+                                            </DialogContent>
+                                        }
+                                    </Dialog>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'vaults' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('vaults')}>
+                                                <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                                <p className="text-sm font-medium">Coffres-forts</p>
+                                                <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? `${totalVaultsBalance.toLocaleString()} Fcfa` : 'Inactifs'}</Badge>
+                                            </button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-3xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Gestion des Coffres</DialogTitle>
+                                            </DialogHeader>
+                                            <Vaults onBack={()=>{}}/>
+                                        </DialogContent>
+                                    </Dialog>
+                                <Dialog>
+                                        <DialogTrigger asChild>
+                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'tontine' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('tontine')}>
+                                                <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                                <p className="text-sm font-medium">Tontines</p>
+                                                <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length > 0 ? 'Gérer' : 'Inactives'}</Badge>
+                                            </button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-4xl">
+                                            <DialogHeader>
+                                                <DialogTitle>Gestion des Tontines</DialogTitle>
+                                            </DialogHeader>
+                                            <Tontine onBack={()=>{}}/>
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardContent>
+                            </Card>
+                        )}
                     
-                        <StaticTransactionsProvider transactions={filteredTransactions}>
+                        <StaticTransactionsProvider transactions={user.role === 'merchant' ? user.transactions : filteredTransactions}>
                             <TransactionHistory showAll={true} onShowAll={() => {}} />
                         </StaticTransactionsProvider>
                     </UserServiceProvider>
