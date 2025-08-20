@@ -12,8 +12,10 @@ import type { BnplRequest, BnplAssessmentOutput } from '@/lib/types';
 type BnplContextType = {
   allRequests: BnplRequest[];
   myRequests: BnplRequest[];
+  currentCreditBalance: number;
   submitRequest: (merchantAlias: string, amount: number) => Promise<BnplAssessmentOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
+  repayCredit: (amount: number) => void;
 };
 
 const BnplContext = createContext<BnplContextType | undefined>(undefined);
@@ -29,7 +31,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   const [allRequests, setAllRequests] = useState<BnplRequest[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
-  const { balance, debit } = useBalance();
+  const { balance, debit, credit } = useBalance();
 
   useEffect(() => {
     try {
@@ -57,6 +59,13 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   const myRequests = useMemo(() => {
       return allRequests.filter(req => req.alias === alias);
   }, [allRequests, alias]);
+  
+  const currentCreditBalance = useMemo(() => {
+    return myRequests
+        .filter(req => req.status === 'approved')
+        .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
+  }, [myRequests]);
+
 
   const submitRequest = async (merchantAlias: string, amount: number): Promise<BnplAssessmentOutput> => {
       const transactionHistory = transactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
@@ -77,20 +86,28 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
           reason: assessmentResult.reason,
           repaymentPlan: assessmentResult.repaymentPlan,
           requestDate: new Date().toISOString(),
+          repaidAmount: 0,
       };
       
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
+          // The debit for the purchase happens here
           debit(amount);
           addTransaction({
               type: 'sent',
               counterparty: merchantAlias,
-              reason: `Achat BNPL (Paiement Échelonné)`,
+              reason: `Achat BNPL (Crédit Immédiat)`,
               amount,
               date: new Date().toISOString(),
               status: 'Terminé'
           });
+
+          // But the user now owes this money, so we credit it back to a "loan" account (conceptually)
+          // For simplicity in this prototype, we'll credit the main balance back
+          // and the debt is tracked in the BNPL request itself.
+          // In a real system, this would go to a separate BNPL ledger.
+          credit(amount);
       }
 
       return assessmentResult;
@@ -111,35 +128,9 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         const merchantKey = `paytik_user_${requestToUpdate.merchantAlias}`;
         
         try {
-            // Debit the user
-            const userBalanceKey = `paytik_balance_${requestToUpdate.alias}`;
-            const userBalanceStr = localStorage.getItem(userBalanceKey);
-            const userBalance = userBalanceStr ? JSON.parse(userBalanceStr) : 0;
-            
-            if(userBalance < requestToUpdate.amount) {
-                 toast({ title: "Solde insuffisant", description: `L'utilisateur ${requestToUpdate.alias} n'a pas les fonds nécessaires.`, variant: "destructive" });
-                 // Revert status
-                 setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
-                 return;
-            }
-            
-            const newUserBalance = userBalance - requestToUpdate.amount;
-            localStorage.setItem(userBalanceKey, JSON.stringify(newUserBalance));
-
-            // Add transaction for user
-            const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
-            const userTxStr = localStorage.getItem(userTxKey);
-            const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
-            const userNewTx = {
-                id: `TXN${Date.now()}`,
-                type: 'sent',
-                counterparty: requestToUpdate.merchantAlias,
-                reason: `Achat BNPL approuvé`,
-                amount: requestToUpdate.amount,
-                date: new Date().toISOString(),
-                status: 'Terminé'
-            };
-            localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
+            // No debit/credit here as the loan is an off-balance sheet item for the user in this model.
+            // The merchant gets credited directly from the company's funds.
+            // This is a simplification.
 
             // Credit the merchant
             const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
@@ -155,15 +146,15 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
              const merchantNewTx = {
                 id: `TXN${Date.now()+1}`,
                 type: 'received',
-                counterparty: requestToUpdate.alias,
-                reason: `Paiement BNPL reçu`,
+                counterparty: `Paiement BNPL de ${requestToUpdate.alias}`,
+                reason: `Paiement pour Achat BNPL`,
                 amount: requestToUpdate.amount,
                 date: new Date().toISOString(),
                 status: 'Terminé'
             };
             localStorage.setItem(merchantTxKey, JSON.stringify([merchantNewTx, ...merchantTxs]));
 
-            toast({ title: "Demande approuvée", description: `La transaction pour ${requestToUpdate.alias} a été effectuée.` });
+            toast({ title: "Demande approuvée", description: `Le marchand ${requestToUpdate.merchantAlias} a été crédité.` });
 
         } catch (error) {
             console.error("Failed to process manual BNPL approval:", error);
@@ -177,7 +168,47 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       }
   }
 
-  const value = { allRequests, myRequests, submitRequest, updateRequestStatus };
+  const repayCredit = (repaymentAmount: number) => {
+    if(repaymentAmount <= 0 || repaymentAmount > currentCreditBalance) {
+        toast({ title: "Montant invalide", variant: "destructive"});
+        return;
+    }
+    if (repaymentAmount > balance) {
+        toast({ title: "Solde principal insuffisant", variant: "destructive"});
+        return;
+    }
+
+    debit(repaymentAmount);
+
+    let remainingRepayment = repaymentAmount;
+    const updatedRequests = allRequests.map(req => {
+        if(req.alias === alias && req.status === 'approved' && remainingRepayment > 0) {
+            const due = req.amount - (req.repaidAmount || 0);
+            const payment = Math.min(remainingRepayment, due);
+            
+            if (payment > 0) {
+                req.repaidAmount = (req.repaidAmount || 0) + payment;
+                remainingRepayment -= payment;
+            }
+        }
+        return req;
+    });
+
+    setAllRequests(updatedRequests);
+    
+    addTransaction({
+        type: 'sent',
+        counterparty: 'PAYTIK Crédit',
+        reason: 'Remboursement BNPL',
+        amount: repaymentAmount,
+        date: new Date().toISOString(),
+        status: 'Terminé'
+    });
+    
+    toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${repaymentAmount.toLocaleString()} Fcfa.` });
+  }
+
+  const value = { allRequests, myRequests, submitRequest, updateRequestStatus, currentCreditBalance, repayCredit };
 
   return (
     <BnplContext.Provider value={value}>

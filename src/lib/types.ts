@@ -39,4 +39,5 @@ export type BnplRequest = {
     reason: string;
     repaymentPlan?: string;
     requestDate: string;
+    repaidAmount?: number;
 };
