@@ -68,7 +68,7 @@ export default function Home() {
             setStep('dashboard'); // Go directly to dashboard
         } else {
             // User data is missing, force login
-            setStep('login');
+             setStep('login');
         }
     }
   }, []);

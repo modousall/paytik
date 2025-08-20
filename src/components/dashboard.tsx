@@ -58,12 +58,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         }
     };
     
-    const handleServiceNavigation = (service: ActiveService) => {
-        setActiveService(service);
-        setView('dashboard');
-        setActiveAction('none');
-    };
-
     const renderContent = () => {
         if(view === 'profile'){
             return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} onBack={() => onNavigateTo('dashboard')} />;
