@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket } from "lucide-react";
+import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
@@ -48,6 +48,50 @@ const SettingItem = ({ icon, text, onClick, isDestructive = false, asChild = fal
             <span className="flex-grow">{text}</span>
             {children ? children : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
         </Component>
+    )
+}
+
+const InviteFriendDialog = ({ alias }: { alias: string}) => {
+    const { toast } = useToast();
+    const referralCode = `PAYTIK-${alias.substring(0, 4).toUpperCase()}${new Date().getFullYear()}`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(referralCode);
+        toast({ title: "Copié !", description: "Votre code de parrainage a été copié." });
+    };
+    
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Rejoignez PAYTIK !',
+                text: `Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`,
+                url: window.location.href,
+            }).catch((error) => console.log('Erreur de partage', error));
+        } else {
+             toast({ title: "Partage simulé", description: "Le message de parrainage a été copié dans votre presse-papiers." });
+             navigator.clipboard.writeText(`Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`);
+        }
+    }
+    
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Invitez un ami et soyez récompensé</DialogTitle>
+                <DialogDescription>
+                    Partagez votre code unique. Votre ami recevra un bonus de bienvenue et vous recevrez une récompense après sa première transaction !
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4 text-center">
+                <p className="text-sm text-muted-foreground">Votre code de parrainage</p>
+                <div className="bg-muted p-3 rounded-lg w-fit mx-auto">
+                    <p className="text-2xl font-bold tracking-widest">{referralCode}</p>
+                </div>
+                 <div className="flex justify-center gap-2 pt-4">
+                    <Button variant="outline" onClick={handleCopy}><Copy className="mr-2"/> Copier</Button>
+                    <Button onClick={handleShare}><Share2 className="mr-2"/> Partager</Button>
+                </div>
+            </div>
+        </DialogContent>
     )
 }
 
@@ -135,8 +179,8 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     }
 
     const mainSettings = [
-        { icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK" },
-        { icon: <Sparkles className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", asChild: true },
+        { icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK", asChild: true },
+        { icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", asChild: true },
     ];
     
     const supportSettings = [
@@ -170,7 +214,12 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
             </div>
 
             <Card>
-                <SettingItem {...mainSettings[0]} />
+                 <Dialog>
+                    <DialogTrigger asChild>
+                        <SettingItem {...mainSettings[0]} />
+                    </DialogTrigger>
+                    <InviteFriendDialog alias={alias}/>
+                </Dialog>
                 <hr className="ml-14"/>
                 <Dialog>
                     <DialogTrigger asChild>
