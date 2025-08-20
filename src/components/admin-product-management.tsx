@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useProductManagement, type ProductItem } from '@/hooks/use-product-management';
+import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -16,19 +17,19 @@ import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
 import { Switch } from './ui/switch';
 import { toast } from '@/hooks/use-toast';
-import { Separator } from './ui/separator';
 
 const productSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Le nom est requis."),
-  fee: z.coerce.number().min(0, "Les frais ne peuvent être négatifs."),
-  commission: z.coerce.number().min(0, "La commission ne peut être négative."),
-  isActive: z.boolean(),
+  fee: z.coerce.number().min(0, "Les frais ne peuvent être négatifs.").default(0),
+  commission: z.coerce.number().min(0, "La commission ne peut être négative.").default(0),
+  isActive: z.boolean().default(true),
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 
+type ProductWithBalance = ProductItem & { balance: number };
 
-const SettlementDialog = ({ product, onSettle }: { product: ProductItem, onSettle: (id: string, amount: number) => void}) => {
+const SettlementDialog = ({ product, onSettle }: { product: ProductWithBalance, onSettle: (id: string, amount: number) => void}) => {
     const [settlementAmount, setSettlementAmount] = useState(product.balance);
 
     const handleSettle = () => {
@@ -80,8 +81,8 @@ const ProductDialog = ({
         defaultValues: { 
             id: product?.id, 
             name: product?.name || "", 
-            fee: product?.fee || 0,
-            commission: product?.commission || 0,
+            fee: product?.fee ?? 0,
+            commission: product?.commission ?? 0,
             isActive: product?.isActive === undefined ? true : product.isActive,
         },
     });
@@ -136,7 +137,7 @@ const ProductTable = ({
     onSettle
 }: { 
     title: string, 
-    products: ProductItem[], 
+    products: ProductWithBalance[], 
     onAdd: (data: ProductFormValues) => void, 
     onUpdate: (data: ProductFormValues) => void,
     onDelete: (id: string) => void,
@@ -230,6 +231,41 @@ export default function AdminProductManagement() {
       billers, addBiller, removeBiller, updateBiller, settleBiller,
       mobileMoneyOperators, addMobileMoneyOperator, removeMobileMoneyOperator, updateMobileMoneyOperator, settleMobileMoneyOperator
   } = useProductManagement();
+  
+  const { usersWithTransactions } = useUserManagement();
+
+  const productsWithBalance = useMemo(() => {
+    const allProducts = [...billers, ...mobileMoneyOperators];
+    const allTransactions = usersWithTransactions.flatMap(u => u.transactions);
+    
+    return allProducts.map(product => {
+        // Find all transactions that credit this partner (bill payments, recharges)
+        const creditTransactions = allTransactions.filter(tx => 
+            (tx.type === 'sent' && tx.reason.includes(product.name)) || 
+            (tx.type === 'received' && tx.counterparty === product.name)
+        );
+        const balance = creditTransactions.reduce((acc, tx) => acc + tx.amount, 0);
+        
+        // Find all settlement transactions for this partner
+        const settlementTransactions = allTransactions.filter(tx => 
+            tx.type === 'versement' && tx.reason.includes(product.name)
+        );
+        const totalSettled = settlementTransactions.reduce((acc, tx) => acc + tx.amount, 0);
+
+        return {
+            ...product,
+            balance: balance - totalSettled,
+        };
+    });
+  }, [billers, mobileMoneyOperators, usersWithTransactions]);
+
+  const billersWithBalance = useMemo(() => {
+      return productsWithBalance.filter(p => billers.some(b => b.id === p.id));
+  }, [productsWithBalance, billers]);
+  
+  const operatorsWithBalance = useMemo(() => {
+    return productsWithBalance.filter(p => mobileMoneyOperators.some(op => op.id === p.id));
+  }, [productsWithBalance, mobileMoneyOperators]);
 
 
   return (
@@ -243,7 +279,7 @@ export default function AdminProductManagement() {
       
       <ProductTable 
         title="Facturiers"
-        products={billers}
+        products={billersWithBalance}
         onAdd={(data) => addBiller(data)}
         onUpdate={(data) => updateBiller(data.id!, data)}
         onDelete={(id) => removeBiller(id)}
@@ -251,7 +287,7 @@ export default function AdminProductManagement() {
       />
        <ProductTable 
         title="Opérateurs Mobile Money"
-        products={mobileMoneyOperators}
+        products={operatorsWithBalance}
         onAdd={(data) => addMobileMoneyOperator(data)}
         onUpdate={(data) => updateMobileMoneyOperator(data.id!, data)}
         onDelete={(id) => removeMobileMoneyOperator(id)}

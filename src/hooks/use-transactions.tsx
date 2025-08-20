@@ -35,7 +35,7 @@ const initialTransactions: Transaction[] = [
       id: "TXN927481",
       type: "sent",
       counterparty: "BoutiqueEnLigne Merch",
-      reason: "Achat T-shirt",
+      reason: "Facture SENELEC - Électricité - 123456",
       date: "2024-07-24T18:05:00Z",
       amount: 12500,
       status: "Retourné",
@@ -51,6 +51,7 @@ const initialTransactions: Transaction[] = [
     }
 ];
 
+// This context can now be used for any user, including the 'superadmin' account for logging settlements
 type TransactionsProviderProps = {
     children: ReactNode;
     alias: string;

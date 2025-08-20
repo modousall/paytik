@@ -13,6 +13,7 @@ import { Input } from "./ui/input";
 import AdminUserDetail from "./admin-user-detail";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import AdminCreateUserForm from "./admin-create-user-form";
+import { TransactionsProvider } from "@/hooks/use-transactions";
 
 const roleVariantMap: {[key: string]: 'default' | 'secondary' | 'destructive' | 'outline'} = {
     superadmin: 'destructive',
@@ -54,8 +55,11 @@ export default function AdminUserManagement() {
         return <AdminUserDetail user={selectedUser} onBack={handleBackToList} onUpdate={refreshUsers} />
     }
 
+    // Special provider for the superadmin account for logging settlement transactions
+    const adminAlias = "+221775478575";
+
     return (
-        <>
+        <TransactionsProvider alias={adminAlias}>
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-center">
@@ -136,6 +140,6 @@ export default function AdminUserManagement() {
                     )}
                 </CardContent>
             </Card>
-        </>
+        </TransactionsProvider>
     )
 }

@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from './use-toast';
+import { useTransactions } from './use-transactions';
 
 export type ProductItem = {
     id: string;
@@ -10,18 +11,17 @@ export type ProductItem = {
     fee: number;
     commission: number;
     isActive: boolean;
-    balance: number; // Represents money collected for this partner, to be settled.
 };
 
 type ProductContextType = {
     billers: ProductItem[];
-    addBiller: (biller: Omit<ProductItem, 'id' | 'balance'>) => void;
+    addBiller: (biller: Omit<ProductItem, 'id'>) => void;
     updateBiller: (id: string, data: Partial<Omit<ProductItem, 'id'>>) => void;
     removeBiller: (id: string) => void;
     settleBiller: (id: string, amount: number) => void;
     
     mobileMoneyOperators: ProductItem[];
-    addMobileMoneyOperator: (operator: Omit<ProductItem, 'id' | 'balance'>) => void;
+    addMobileMoneyOperator: (operator: Omit<ProductItem, 'id'>) => void;
     updateMobileMoneyOperator: (id: string, data: Partial<Omit<ProductItem, 'id'>>) => void;
     removeMobileMoneyOperator: (id: string) => void;
     settleMobileMoneyOperator: (id: string, amount: number) => void;
@@ -30,18 +30,18 @@ type ProductContextType = {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 const initialBillers: ProductItem[] = [
-    { id: "SENELEC", name: "SENELEC - Électricité", fee: 150, commission: 50, isActive: true, balance: 125000 },
-    { id: "SDE", name: "SDE - Eau", fee: 150, commission: 50, isActive: true, balance: 89500 },
-    { id: "Orange", name: "Orange - Internet / Mobile", fee: 0, commission: 10, isActive: true, balance: 210000 },
-    { id: "Free", name: "Free - Internet / Mobile", fee: 0, commission: 12, isActive: true, balance: 150000 },
-    { id: "Canal+", name: "Canal+ - TV", fee: 200, commission: 75, isActive: false, balance: 45000 },
+    { id: "SENELEC", name: "SENELEC - Électricité", fee: 150, commission: 50, isActive: true },
+    { id: "SDE", name: "SDE - Eau", fee: 150, commission: 50, isActive: true },
+    { id: "Orange", name: "Orange - Internet / Mobile", fee: 0, commission: 10, isActive: true },
+    { id: "Free", name: "Free - Internet / Mobile", fee: 0, commission: 12, isActive: true },
+    { id: "Canal+", name: "Canal+ - TV", fee: 200, commission: 75, isActive: false },
 ];
 
 const initialMobileMoneyOperators: ProductItem[] = [
-    { id: "Wave", name: "Wave", fee: 0, commission: 15, isActive: true, balance: 350000 },
-    { id: "Orange Money", name: "Orange Money", fee: 0, commission: 20, isActive: true, balance: 450000 },
-    { id: "Free Money", name: "Free Money", fee: 0, commission: 18, isActive: true, balance: 200000 },
-    { id: "Wizall", name: "Wizall Money", fee: 100, commission: 30, isActive: false, balance: 50000 },
+    { id: "Wave", name: "Wave", fee: 0, commission: 15, isActive: true },
+    { id: "Orange Money", name: "Orange Money", fee: 0, commission: 20, isActive: true },
+    { id: "Free Money", name: "Free Money", fee: 0, commission: 18, isActive: true },
+    { id: "Wizall", name: "Wizall Money", fee: 100, commission: 30, isActive: false },
 ];
 
 const billersStorageKey = 'paytik_product_billers';
@@ -51,6 +51,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [billers, setBillers] = useState<ProductItem[]>([]);
   const [mobileMoneyOperators, setMobileMoneyOperators] = useState<ProductItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const { addTransaction } = useTransactions();
 
   useEffect(() => {
     try {
@@ -81,15 +82,15 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
 
   // --- Generic Handlers ---
-  const handleAdd = (setter: React.Dispatch<React.SetStateAction<ProductItem[]>>, item: Omit<ProductItem, 'id' | 'balance'>) => {
-    const newItem = { ...item, id: `${item.name.toLowerCase().replace(/ /g, '-')}-${Date.now()}`, balance: 0 };
+  const handleAdd = (setter: React.Dispatch<React.SetStateAction<ProductItem[]>>, item: Omit<ProductItem, 'id'>) => {
+    const newItem = { ...item, id: `${item.name.toLowerCase().replace(/ /g, '-')}-${Date.now()}` };
     setter(prev => [...prev, newItem]);
     toast({ title: "Produit ajouté", description: `"${item.name}" a été ajouté.` });
   }
 
   const handleUpdate = (setter: React.Dispatch<React.SetStateAction<ProductItem[]>>, id: string, data: Partial<Omit<ProductItem, 'id'>>) => {
       setter(prev => prev.map(item => item.id === id ? { ...item, ...data } : item));
-      toast({ title: "Produit mis à jour", description: `"${data.name}" a été mis à jour.` });
+      toast({ title: "Produit mis à jour", description: `"${data.name || 'Le produit'}" a été mis à jour.` });
   }
 
   const handleRemove = (setter: React.Dispatch<React.SetStateAction<ProductItem[]>>, id: string) => {
@@ -97,18 +98,22 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     toast({ title: "Produit supprimé." });
   };
   
-  const handleSettle = (setter: React.Dispatch<React.SetStateAction<ProductItem[]>>, id: string, amount: number) => {
-      setter(prev => prev.map(item => {
-          if (item.id === id) {
-              if (amount > item.balance) {
-                  toast({ title: "Erreur de règlement", description: "Le montant du règlement ne peut pas dépasser le solde dû.", variant: "destructive"});
-                  return item;
-              }
-              toast({ title: "Règlement effectué", description: `${amount.toLocaleString()} Fcfa réglés pour ${item.name}.` });
-              return { ...item, balance: item.balance - amount };
-          }
-          return item;
-      }));
+  const handleSettle = (products: ProductItem[], id: string, amount: number) => {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      
+      // We don't change the state here, we just add a settlement transaction.
+      // The balance will be recalculated automatically by the component.
+      addTransaction({
+        type: 'versement',
+        counterparty: `Règlement Partenaire`,
+        reason: `Règlement pour ${product.name}`,
+        date: new Date().toISOString(),
+        amount: amount,
+        status: 'Terminé',
+      });
+      
+      toast({ title: "Règlement enregistré", description: `Un versement de ${amount.toLocaleString()} Fcfa a été enregistré pour ${product.name}. Le solde sera mis à jour.` });
   }
 
   const value = { 
@@ -116,13 +121,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       addBiller: (biller) => handleAdd(setBillers, biller),
       updateBiller: (id, data) => handleUpdate(setBillers, id, data),
       removeBiller: (id) => handleRemove(setBillers, id),
-      settleBiller: (id, amount) => handleSettle(setBillers, id, amount),
+      settleBiller: (id, amount) => handleSettle(billers, id, amount),
       
       mobileMoneyOperators,
       addMobileMoneyOperator: (operator) => handleAdd(setMobileMoneyOperators, operator),
       updateMobileMoneyOperator: (id, data) => handleUpdate(setMobileMoneyOperators, id, data),
       removeMobileMoneyOperator: (id) => handleRemove(setMobileMoneyOperators, id),
-      settleMobileMoneyOperator: (id, amount) => handleSettle(setMobileMoneyOperators, id, amount),
+      settleMobileMoneyOperator: (id, amount) => handleSettle(mobileMoneyOperators, id, amount),
   };
 
   return (
@@ -139,5 +144,3 @@ export const useProductManagement = () => {
   }
   return context;
 };
-
-    
