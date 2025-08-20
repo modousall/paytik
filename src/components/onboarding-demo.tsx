@@ -73,7 +73,9 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
       <div className="flex flex-col items-center justify-center flex-grow text-center">
 
         <div className="my-8">
-            <Image src="/paytik-logo.png" alt="PAYTIK Logo" width={180} height={40} data-ai-hint="logo" />
+            <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              PAYTIK
+            </h1>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">Votre solution de paiement simplifiée et sécurisée.</p>
         </div>
 
