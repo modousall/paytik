@@ -3,12 +3,14 @@
 
 import React from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut } from "lucide-react";
+import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Card } from "./ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Card, CardContent } from "./ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
 import ChangePinForm from './change-pin-form';
 import ConnectedDevices from './connected-devices';
+import { Input } from './ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 
 type SettingsProps = {
@@ -49,6 +51,74 @@ const SettingItem = ({ icon, text, onClick, isDestructive = false, asChild = fal
     )
 }
 
+const PromoCodeDialog = () => {
+    const { toast } = useToast();
+    const [code, setCode] = React.useState('');
+
+    const applyCode = () => {
+        if(!code) return;
+        toast({
+            title: "Code appliqué !",
+            description: "Votre bonus de bienvenue a été crédité sur votre compte."
+        });
+    }
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Utiliser un code promotionnel</DialogTitle>
+                <DialogDescription>
+                    Saisissez votre code promo ci-dessous pour l'appliquer à votre compte.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2 py-4">
+                <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="ex: PAYTIK2024" />
+                <DialogClose asChild>
+                    <Button type="submit" onClick={applyCode} disabled={!code}>Appliquer</Button>
+                </DialogClose>
+            </div>
+        </DialogContent>
+    )
+}
+
+const LimitsDialog = () => {
+    const limits = [
+        { name: "Plafond du solde total", value: "5 000 000 Fcfa" },
+        { name: "Plafond par transaction", value: "2 000 000 Fcfa" },
+        { name: "Plafond de transactions journalier", value: "5 000 000 Fcfa" },
+        { name: "Plafond carte virtuelle", value: "2 000 000 Fcfa" },
+    ]
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Vos Plafonds de Compte</DialogTitle>
+                <DialogDescription>
+                   Ces limites sont définies pour votre sécurité. Contactez le support pour toute question.
+                </DialogDescription>
+            </DialogHeader>
+            <Card>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Type de Plafond</TableHead>
+                                <TableHead className="text-right">Limite</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {limits.map(limit => (
+                                <TableRow key={limit.name}>
+                                    <TableCell>{limit.name}</TableCell>
+                                    <TableCell className="text-right font-medium">{limit.value}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </DialogContent>
+    )
+}
+
 export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     const { toast } = useToast();
     
@@ -66,12 +136,12 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
 
     const mainSettings = [
         { icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK" },
-        { icon: <Sparkles className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel" },
+        { icon: <Sparkles className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", asChild: true },
     ];
     
     const supportSettings = [
         { icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
-        { icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond" },
+        { icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond", asChild: true },
         { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité" },
     ];
     
@@ -100,22 +170,28 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
             </div>
 
             <Card>
-                {mainSettings.map((item, index) => (
-                    <React.Fragment key={item.text}>
-                     <SettingItem {...item} />
-                     {index < mainSettings.length - 1 && <hr className="ml-14"/>}
-                    </React.Fragment>
-                ))}
+                <SettingItem {...mainSettings[0]} />
+                <hr className="ml-14"/>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <SettingItem {...mainSettings[1]} />
+                    </DialogTrigger>
+                    <PromoCodeDialog />
+                </Dialog>
             </Card>
 
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Support</h3>
              <Card>
-                {supportSettings.map((item, index) => (
-                    <React.Fragment key={item.text}>
-                     <SettingItem {...item} />
-                     {index < supportSettings.length - 1 && <hr className="ml-14"/>}
-                    </React.Fragment>
-                ))}
+                <SettingItem {...supportSettings[0]} />
+                <hr className="ml-14"/>
+                <Dialog>
+                     <DialogTrigger asChild>
+                        <SettingItem {...supportSettings[1]} />
+                    </DialogTrigger>
+                    <LimitsDialog />
+                </Dialog>
+                <hr className="ml-14"/>
+                <SettingItem {...supportSettings[2]} />
             </Card>
             
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Sécurité</h3>
