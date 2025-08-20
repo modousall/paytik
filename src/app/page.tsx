@@ -17,7 +17,7 @@ import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { ContactsProvider } from '@/hooks/use-contacts';
 import { TontineProvider } from '@/hooks/use-tontine';
-import { TransactionsProvider } from '@/hooks/use-transactions';
+import { TransactionsProvider, useTransactions } from '@/hooks/use-transactions';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
@@ -52,12 +52,12 @@ const ensureSuperAdminExists = () => {
 
 // A wrapper for all providers needed for a logged-in user experience
 const UserSessionProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
+    const { addTransaction } = useTransactions();
     return (
-        <ProductProvider>
+        <ProductProvider addSettlementTransaction={addTransaction}>
             <FeatureFlagProvider alias={alias}>
                 <AvatarProvider alias={alias}>
                     <BalanceProvider alias={alias}>
-                    <TransactionsProvider alias={alias}>
                         <ContactsProvider alias={alias}>
                         <VirtualCardProvider alias={alias}>
                             <VaultsProvider alias={alias}>
@@ -67,11 +67,21 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
                             </VaultsProvider>
                         </VirtualCardProvider>
                         </ContactsProvider>
-                    </TransactionsProvider>
                     </BalanceProvider>
                 </AvatarProvider>
             </FeatureFlagProvider>
       </ProductProvider>
+    )
+}
+
+// Higher-level provider that includes Transactions
+const AppProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
+    return (
+        <TransactionsProvider alias={alias}>
+            <UserSessionProviders alias={alias}>
+                {children}
+            </UserSessionProviders>
+        </TransactionsProvider>
     )
 }
 
@@ -257,10 +267,10 @@ export default function AuthenticationGate() {
     if (alias && userInfo) {
         // If a user is logged in, wrap the appropriate dashboard with all necessary providers
         return (
-            <UserSessionProviders alias={alias}>
+            <AppProviders alias={alias}>
                 {step === 'dashboard' && <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />}
                 {step === 'merchant_dashboard' && <MerchantDashboard userInfo={userInfo} alias={alias} onLogout={handleLogout} />}
-            </UserSessionProviders>
+            </AppProviders>
         )
     }
 

@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from './use-toast';
-import { useTransactions } from './use-transactions';
+import type { Transaction } from './use-transactions';
 
 export type ProductItem = {
     id: string;
@@ -47,11 +47,15 @@ const initialMobileMoneyOperators: ProductItem[] = [
 const billersStorageKey = 'paytik_product_billers';
 const operatorsStorageKey = 'paytik_product_operators';
 
-export const ProductProvider = ({ children }: { children: ReactNode }) => {
+type ProductProviderProps = { 
+    children: ReactNode;
+    addSettlementTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+}
+
+export const ProductProvider = ({ children, addSettlementTransaction }: ProductProviderProps) => {
   const [billers, setBillers] = useState<ProductItem[]>([]);
   const [mobileMoneyOperators, setMobileMoneyOperators] = useState<ProductItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { addTransaction } = useTransactions();
 
   useEffect(() => {
     try {
@@ -104,7 +108,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       
       // We don't change the state here, we just add a settlement transaction.
       // The balance will be recalculated automatically by the component.
-      addTransaction({
+      addSettlementTransaction({
         type: 'versement',
         counterparty: `Règlement Partenaire`,
         reason: `Règlement pour ${product.name}`,
