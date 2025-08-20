@@ -104,17 +104,24 @@ export default function PaymentForm() {
   const handleScannedCode = (decodedText: string) => {
     try {
         const data = JSON.parse(decodedText);
-        if(data.shid) {
+        if (data.shid) {
             form.setValue('recipientAlias', data.shid, { shouldValidate: true });
-            toast({ title: "Marchand détecté !", description: `Code marchand ${data.shid} inséré.` });
+            if (data.amount) {
+                form.setValue('amount', data.amount, { shouldValidate: true });
+            }
+            if (data.reason) {
+                form.setValue('reason', data.reason, { shouldValidate: true });
+            }
+            toast({ title: "Code marchand scanné !", description: "Les détails du paiement ont été pré-remplis." });
         } else {
+            // Handle non-JSON or other formats
             form.setValue('recipientAlias', decodedText, { shouldValidate: true });
-            toast({ title: "Code scanné", description: "Le code a été inséré dans le champ." });
+            toast({ title: "Code scanné", description: "Le code a été inséré." });
         }
     } catch(e) {
         // Not a JSON, treat as raw string
         form.setValue('recipientAlias', decodedText, { shouldValidate: true });
-        toast({ title: "Code scanné", description: "Le code a été inséré dans le champ." });
+        toast({ title: "Code scanné", description: "Le code a été inséré." });
     }
     setIsScannerOpen(false);
   }

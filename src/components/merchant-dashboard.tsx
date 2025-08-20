@@ -11,6 +11,12 @@ import TransactionHistory from "./transaction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useTransactions } from "@/hooks/use-transactions";
 import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "./ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
 
 type UserInfo = {
     name: string;
@@ -61,6 +67,91 @@ const handlePlaceholderClick = (featureName: string) => {
     });
 };
 
+const paymentRequestSchema = z.object({
+    amount: z.coerce.number().positive("Le montant doit être positif."),
+    reason: z.string().optional(),
+});
+type PaymentRequestValues = z.infer<typeof paymentRequestSchema>;
+
+const RequestPaymentDialog = ({ alias, userInfo }: { alias: string, userInfo: UserInfo }) => {
+    const [isRequestGenerated, setIsRequestGenerated] = useState(false);
+    const [requestData, setRequestData] = useState<PaymentRequestValues | null>(null);
+
+    const form = useForm<PaymentRequestValues>({
+        resolver: zodResolver(paymentRequestSchema),
+        defaultValues: { amount: undefined, reason: "" },
+    });
+
+    const onSubmit = (values: PaymentRequestValues) => {
+        setRequestData(values);
+        setIsRequestGenerated(true);
+    };
+
+    if (isRequestGenerated && requestData) {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Demande de {requestData.amount.toLocaleString()} Fcfa</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                    <p className="text-center text-muted-foreground mb-4">Le client doit scanner ce code pour payer le montant exact.</p>
+                    <div className="p-4 bg-white rounded-lg shadow-md w-fit mx-auto">
+                         <QrCodeDisplay
+                            alias={alias}
+                            userInfo={userInfo}
+                            simpleMode={true}
+                            amount={requestData.amount}
+                            reason={requestData.reason}
+                        />
+                    </div>
+                </div>
+                 <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsRequestGenerated(false)}>Retour</Button>
+                    <DialogClose asChild><Button>Terminé</Button></DialogClose>
+                </div>
+            </DialogContent>
+        )
+    }
+
+    return (
+        <DialogContent>
+             <DialogHeader>
+                <DialogTitle>Demander un paiement</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Montant (Fcfa)</FormLabel>
+                                <FormControl><Input type="number" placeholder="ex: 1500" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="reason"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Raison / Description (Optionnel)</FormLabel>
+                                <FormControl><Input placeholder="ex: Facture #42" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <div className="flex justify-end gap-2 pt-4">
+                        <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                        <Button type="submit">Générer le QR Code</Button>
+                    </div>
+                </form>
+            </Form>
+        </DialogContent>
+    )
+}
+
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [showAllTransactions, setShowAllTransactions] = useState(false);
   
@@ -86,16 +177,21 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                         <Card className="max-w-2xl mx-auto">
                             <CardHeader className="text-center">
                                 <CardTitle className="text-2xl">Recevoir un Paiement</CardTitle>
-                                <CardDescription>Le client scanne ce code pour vous payer.</CardDescription>
+                                <CardDescription>Le client scanne ce code pour vous payer un montant libre.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col items-center gap-6">
                                 <div className="p-4 bg-white rounded-lg shadow-md">
                                     <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
                                 </div>
                                 <div className="flex gap-4">
-                                     <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => handlePlaceholderClick("Demander un paiement")}>
-                                        <FileText/> Demander un paiement
-                                    </Button>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                                                <FileText/> Demander un paiement
+                                            </Button>
+                                        </DialogTrigger>
+                                        <RequestPaymentDialog alias={alias} userInfo={userInfo} />
+                                     </Dialog>
                                     <Button size="lg" variant="secondary" onClick={() => handlePlaceholderClick("Versements bancaires")}>
                                         <Landmark/> Versements
                                     </Button>

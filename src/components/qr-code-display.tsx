@@ -18,18 +18,21 @@ type UserInfo = {
 type QrCodeDisplayProps = {
   alias: string;
   userInfo: UserInfo;
-  simpleMode?: boolean; // New prop to control UI complexity
+  simpleMode?: boolean;
+  amount?: number;
+  reason?: string;
 };
 
-export default function QrCodeDisplay({ alias, userInfo, simpleMode = false }: QrCodeDisplayProps) {
+export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amount, reason }: QrCodeDisplayProps) {
   const { toast } = useToast();
-  // QR Code payload as per spec would be more complex. Here, we'll just encode the alias.
-  // Spec mentions: champ Merchant Channel (ID 11) du QR Code = valeur 731.
-  // This would be part of a structured data format like EMV QRCPS. For simplicity, we create a basic QR.
-  const qrData = JSON.stringify({
+  
+  const qrDataBase = {
       shid: alias,
-      merchantChannel: 731
-  });
+      merchantChannel: 731,
+  };
+  const qrDataWithAmount = (amount && amount > 0) ? { ...qrDataBase, amount, reason: reason || undefined } : qrDataBase;
+  const qrData = JSON.stringify(qrDataWithAmount);
+
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
   
   const handleCopyAlias = () => {
