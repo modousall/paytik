@@ -13,7 +13,6 @@ import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
 import PICASH from './picash';
-import AdBanner from './ad-banner';
 
 type UserInfo = {
     name: string;
@@ -100,7 +99,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     alias={alias}
                     userInfo={userInfo}
                 />
-                <AdBanner />
                 <BalanceCards onNavigate={handleCardNavigation} />
                 <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
             </div>
