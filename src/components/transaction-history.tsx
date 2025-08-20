@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark, PiggyBank, Wallet } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -54,6 +53,29 @@ const formatDate = (dateString: string) => {
 const TransactionIcon = ({ tx }: { tx: Transaction }) => {
     const initial = tx.counterparty.charAt(0).toUpperCase();
     const avatarUrl = `https://i.pravatar.cc/150?u=${tx.counterparty}${tx.id}`;
+
+    // Specific icons for internal service transfers
+    if (tx.reason.includes('Approvisionnement Carte') || tx.reason.includes('Retrait depuis Carte')) {
+        return (
+            <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-blue-100 text-blue-600"><CreditCard /></AvatarFallback>
+            </Avatar>
+        );
+    }
+    if (tx.reason.includes('Approvisionnement') && tx.counterparty.includes('Coffre')) {
+         return (
+            <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-amber-100 text-amber-600"><PiggyBank /></AvatarFallback>
+            </Avatar>
+        );
+    }
+     if (tx.reason.includes('Retrait') && tx.counterparty.includes('Coffre')) {
+         return (
+            <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-emerald-100 text-emerald-600"><Wallet /></AvatarFallback>
+            </Avatar>
+        );
+    }
 
     switch (tx.type) {
         case 'sent':
