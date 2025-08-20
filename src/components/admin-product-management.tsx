@@ -223,7 +223,9 @@ const ProductTable = ({
                     </TableBody>
                 </Table>
 
-                {isDialogOpen && <ProductDialog product={editingProduct} onSave={handleSave} onClose={closeDialog} />}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  {editingProduct !== null && <ProductDialog product={editingProduct} onSave={handleSave} onClose={closeDialog} />}
+                </Dialog>
             </CardContent>
         </Card>
     )
