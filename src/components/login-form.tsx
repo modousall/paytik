@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,23 @@ type LoginFormProps = {
     onBack: () => void;
 };
 
+// Super admin credentials for UI feedback
+const SUPER_ADMIN_ALIAS = '+221775478575';
+const SUPER_ADMIN_PIN = '1234';
+
 export default function LoginForm({ onLogin, onBack }: LoginFormProps) {
     const [alias, setAlias] = useState('');
     const [pin, setPin] = useState('');
+    const [isSuperAdminLogin, setIsSuperAdminLogin] = useState(false);
+
+    useEffect(() => {
+        // Check if the entered credentials match the super admin's
+        if (alias === SUPER_ADMIN_ALIAS && pin === SUPER_ADMIN_PIN) {
+            setIsSuperAdminLogin(true);
+        } else {
+            setIsSuperAdminLogin(false);
+        }
+    }, [alias, pin]);
   
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -26,8 +40,13 @@ export default function LoginForm({ onLogin, onBack }: LoginFormProps) {
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
           <Card className="w-full max-w-md">
               <CardHeader>
-                  <CardTitle>Se Connecter</CardTitle>
-                  <CardDescription>Entrez votre alias et votre code PIN pour accéder à votre compte.</CardDescription>
+                  <CardTitle>{isSuperAdminLogin ? "Connexion Super Admin" : "Se Connecter"}</CardTitle>
+                  <CardDescription>
+                      {isSuperAdminLogin
+                        ? "Accès sécurisé au backoffice de la plateforme PAYTIK."
+                        : "Entrez votre alias et votre code PIN pour accéder à votre compte."
+                      }
+                  </CardDescription>
               </CardHeader>
               <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
@@ -56,7 +75,7 @@ export default function LoginForm({ onLogin, onBack }: LoginFormProps) {
                           />
                       </div>
                       <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                         Se Connecter
+                         {isSuperAdminLogin ? "Accéder au Backoffice" : "Se Connecter"}
                       </Button>
                   </form>
               </CardContent>
