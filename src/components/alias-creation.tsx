@@ -82,8 +82,8 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
       }
     
     toast({
-      title: "Succès!",
-      description: `Votre alias "${phoneValue}" a été créé et vérifié.`,
+      title: "Numéro vérifié!",
+      description: `Votre alias sera "${phoneValue}".`,
     });
     onAliasCreated(phoneValue);
   };
@@ -147,7 +147,7 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
                                     />
                                 </div>
                                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                                    Vérifier et créer l'alias
+                                    Vérifier et continuer
                                 </Button>
                                 <Button variant="link" size="sm" onClick={() => setOtpSent(false)}>Changer de numéro</Button>
                             </form>

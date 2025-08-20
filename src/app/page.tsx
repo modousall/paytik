@@ -8,6 +8,7 @@ import Dashboard from '@/components/dashboard';
 import PermissionsRequest from '@/components/permissions-request';
 import LoginForm from '@/components/login-form';
 import KYCForm from '@/components/kyc-form';
+import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -16,7 +17,7 @@ type UserInfo = {
   email: string;
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'dashboard';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard';
 
 
 export default function Home() {
@@ -28,14 +29,13 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // This effect now only runs once to check if a session already exists.
-    // It avoids complex logic that was causing issues.
     const onboarded = localStorage.getItem('paytik_onboarded') === 'true';
     const userAlias = localStorage.getItem('paytik_alias');
     const userName = localStorage.getItem('paytik_username');
     const userEmail = localStorage.getItem('paytik_useremail');
+    const pinExists = !!localStorage.getItem('paytik_pincode');
 
-    if (onboarded && userAlias && userName && userEmail) {
+    if (onboarded && userAlias && userName && userEmail && pinExists) {
       setAlias(userAlias);
       setUserInfo({name: userName, email: userEmail});
       setStep('dashboard');
@@ -44,14 +44,19 @@ export default function Home() {
 
   const handleAliasCreated = (newAlias: string) => {
     setAlias(newAlias);
+    setStep('pin_creation');
+  };
+
+  const handlePinCreated = (pin: string) => {
     localStorage.setItem('paytik_onboarded', 'true');
-    localStorage.setItem('paytik_alias', newAlias);
-    if(userInfo){
+    if (alias) localStorage.setItem('paytik_alias', alias);
+    if (userInfo) {
         localStorage.setItem('paytik_username', userInfo.name);
         localStorage.setItem('paytik_useremail', userInfo.email);
     }
+    localStorage.setItem('paytik_pincode', pin);
     setStep('dashboard');
-  };
+  }
   
   const handleOnboardingStart = () => {
     setStep('permissions');
@@ -70,15 +75,13 @@ export default function Home() {
     setStep('alias');
   };
 
-  const handleLogin = (loginAlias: string) => {
-    // This is the definitive fix. We read directly from localStorage, the source of truth.
+  const handleLogin = (loginAlias: string, pin: string) => {
     const storedAlias = localStorage.getItem('paytik_alias');
+    const storedPin = localStorage.getItem('paytik_pincode');
     const storedName = localStorage.getItem('paytik_username');
     const storedEmail = localStorage.getItem('paytik_useremail');
   
-    // We check if the entered alias matches the stored one, AND that user info exists.
-    if (loginAlias === storedAlias && storedName && storedEmail) {
-      // If successful, we populate the state with ALL the stored information.
+    if (loginAlias === storedAlias && pin === storedPin && storedName && storedEmail) {
       setAlias(loginAlias);
       setUserInfo({ name: storedName, email: storedEmail });
       setStep('dashboard');
@@ -86,8 +89,13 @@ export default function Home() {
         title: `Bienvenue, ${storedName} !`,
         description: "Connexion réussie.",
       });
+    } else if (loginAlias === storedAlias && pin !== storedPin) {
+        toast({
+            title: "Code PIN incorrect",
+            description: "Le code PIN que vous avez saisi est incorrect. Veuillez réessayer.",
+            variant: "destructive",
+        });
     } else {
-      // If the alias doesn't match or user info is missing, we show an error.
       toast({
         title: "Alias non trouvé",
         description: "Cet alias n'existe pas. Veuillez vérifier l'alias ou créer un nouveau compte.",
@@ -97,12 +105,11 @@ export default function Home() {
   }
 
   const logout = () => {
-    localStorage.removeItem('paytik_onboarded');
-    localStorage.removeItem('paytik_alias');
-    localStorage.removeItem('paytik_username');
-    localStorage.removeItem('paytik_useremail');
+    // Keep user info for easier re-login, but clear session state
+    // In a real app, you'd invalidate a token on the server.
+    // For this demo, just clearing the state is enough.
     setAlias(null);
-    setUserInfo(null);
+    setUserInfo(null); // Keep localStorage so they can log back in
     setStep('demo');
   }
 
@@ -118,6 +125,8 @@ export default function Home() {
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'alias':
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo} />;
+      case 'pin_creation':
+        return <PinCreation onPinCreated={handlePinCreated} />;
       case 'dashboard':
         return <Dashboard alias={alias!} userInfo={userInfo!} onLogout={logout} />;
       default:
@@ -126,7 +135,7 @@ export default function Home() {
   };
   
   if (!isClient) {
-    return null; // Render nothing on the server to avoid hydration mismatch
+    return null;
   }
 
   return <main className="bg-background min-h-screen">{renderStep()}</main>;

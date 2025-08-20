@@ -36,10 +36,16 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
     // Simulate API call to delete alias
     setTimeout(() => {
         toast({
-            title: "Alias supprimé",
-            description: "Votre alias a été supprimé avec succès.",
+            title: "Compte supprimé",
+            description: "Votre compte a été supprimé avec succès.",
         });
-        onLogout(); // This will clear local storage and reset the app state
+        // Clear all user data from local storage
+        localStorage.removeItem('paytik_onboarded');
+        localStorage.removeItem('paytik_alias');
+        localStorage.removeItem('paytik_username');
+        localStorage.removeItem('paytik_useremail');
+        localStorage.removeItem('paytik_pincode');
+        onLogout(); // This will reset the app state and nav to demo
         setIsDeleting(false);
     }, 1500);
   };
@@ -75,7 +81,7 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
             Votre Alias Actif
           </CardTitle>
           <CardDescription>
-            C'est l'identifiant que les autres peuvent utiliser pour vous envoyer de l'argent. Il est lié à votre numéro de téléphone vérifié.
+            C'est l'identifiant que les autres peuvent utiliser pour vous envoyer de l'argent.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,19 +112,19 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
                     <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Cette action est irréversible. La suppression de votre alias et de votre compte réinitialisera l'application et vous devrez vous réinscrire pour continuer.
+                        Cette action est irréversible. La suppression de votre compte effacera toutes vos données de cet appareil et vous devrez vous réinscrire.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAlias} disabled={isDeleting}>
+                    <AlertDialogAction onClick={handleDeleteAlias} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
                         {isDeleting ? "Suppression..." : "Oui, supprimer le compte"}
                     </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
             <p className="text-xs text-muted-foreground">
-                La suppression de votre alias vous déconnectera. Vous pourrez en créer un nouveau par la suite.
+                La suppression de votre compte vous déconnectera.
             </p>
         </CardFooter>
       </Card>
