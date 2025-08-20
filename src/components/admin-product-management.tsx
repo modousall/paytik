@@ -17,6 +17,7 @@ import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
 import { Switch } from './ui/switch';
 import { toast } from '@/hooks/use-toast';
+import AdminProductDetail from './admin-product-detail';
 
 const productSchema = z.object({
   id: z.string().optional(),
@@ -27,7 +28,7 @@ const productSchema = z.object({
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 
-type ProductWithBalance = ProductItem & { balance: number };
+export type ProductWithBalance = ProductItem & { balance: number };
 
 const SettlementDialog = ({ product, onSettle }: { product: ProductWithBalance, onSettle: (id: string, amount: number) => void}) => {
     const [settlementAmount, setSettlementAmount] = useState(product.balance);
@@ -134,14 +135,16 @@ const ProductTable = ({
     onAdd,
     onUpdate,
     onDelete,
-    onSettle
+    onSettle,
+    onRowClick
 }: { 
     title: string, 
     products: ProductWithBalance[], 
     onAdd: (data: ProductFormValues) => void, 
     onUpdate: (data: ProductFormValues) => void,
     onDelete: (id: string) => void,
-    onSettle: (id: string, amount: number) => void
+    onSettle: (id: string, amount: number) => void,
+    onRowClick: (product: ProductWithBalance) => void
 }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Partial<ProductItem> | null>(null);
@@ -188,7 +191,7 @@ const ProductTable = ({
                     </TableHeader>
                     <TableBody>
                         {products.map(p => (
-                            <TableRow key={p.id}>
+                            <TableRow key={p.id} onClick={() => onRowClick(p)} className="cursor-pointer">
                                 <TableCell>
                                     <Badge variant={p.isActive ? 'default' : 'secondary'} className={p.isActive ? 'bg-green-100 text-green-800' : ''}>
                                         {p.isActive ? <Power size={14} className="mr-1"/> : <PowerOff size={14} className="mr-1"/>}
@@ -196,12 +199,12 @@ const ProductTable = ({
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">{p.name}</TableCell>
-                                <TableCell>{(p.fee || 0).toLocaleString()} Fcfa</TableCell>
-                                <TableCell>{(p.commission || 0).toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{(p.fee ?? 0).toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{(p.commission ?? 0).toLocaleString()} Fcfa</TableCell>
                                 <TableCell>
                                      <Dialog>
                                         <DialogTrigger asChild>
-                                            <Button variant="link" className="p-0 h-auto text-base" disabled={(p.balance || 0) <= 0}>
+                                            <Button variant="link" className="p-0 h-auto text-base" disabled={(p.balance || 0) <= 0} onClick={(e) => e.stopPropagation()}>
                                                 {(p.balance || 0).toLocaleString()} Fcfa
                                             </Button>
                                         </DialogTrigger>
@@ -209,8 +212,8 @@ const ProductTable = ({
                                      </Dialog>
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon" onClick={() => openDialog(p)}><Edit size={16}/></Button>
-                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => onDelete(p.id)}><Trash2 size={16}/></Button>
+                                    <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); openDialog(p);}}><Edit size={16}/></Button>
+                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={(e) => {e.stopPropagation(); onDelete(p.id);}}><Trash2 size={16}/></Button>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -233,6 +236,7 @@ export default function AdminProductManagement() {
   } = useProductManagement();
   
   const { usersWithTransactions } = useUserManagement();
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithBalance | null>(null);
 
   const productsWithBalance = useMemo(() => {
     const allProducts = [...billers, ...mobileMoneyOperators];
@@ -268,12 +272,22 @@ export default function AdminProductManagement() {
   }, [productsWithBalance, mobileMoneyOperators]);
 
 
+  if (selectedProduct) {
+      return (
+          <AdminProductDetail 
+            product={selectedProduct}
+            allTransactions={usersWithTransactions.flatMap(u => u.transactions)}
+            onBack={() => setSelectedProduct(null)}
+          />
+      )
+  }
+
   return (
     <div className="space-y-8">
       <Card>
         <CardHeader>
             <CardTitle>Produits et Tarification</CardTitle>
-            <CardDescription>Configurez les services, frais et commissions. Gérez les règlements avec les partenaires.</CardDescription>
+            <CardDescription>Configurez les services, frais et commissions. Cliquez sur un produit pour voir ses détails.</CardDescription>
         </CardHeader>
       </Card>
       
@@ -284,6 +298,7 @@ export default function AdminProductManagement() {
         onUpdate={(data) => updateBiller(data.id!, data)}
         onDelete={(id) => removeBiller(id)}
         onSettle={(id, amount) => settleBiller(id, amount)}
+        onRowClick={(product) => setSelectedProduct(product)}
       />
        <ProductTable 
         title="Opérateurs Mobile Money"
@@ -292,6 +307,7 @@ export default function AdminProductManagement() {
         onUpdate={(data) => updateMobileMoneyOperator(data.id!, data)}
         onDelete={(id) => removeMobileMoneyOperator(id)}
         onSettle={(id, amount) => settleMobileMoneyOperator(id, amount)}
+        onRowClick={(product) => setSelectedProduct(product)}
       />
     </div>
   );

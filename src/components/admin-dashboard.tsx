@@ -38,7 +38,7 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                  return <AdminRoleManagement />;
             default:
                 return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {adminFeatures.map(feature => (
                             <Card key={feature.title} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setView(feature.id)}>
                                 <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
