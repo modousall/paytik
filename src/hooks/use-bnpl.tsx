@@ -92,18 +92,84 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   };
 
   const updateRequestStatus = (id: string, status: 'approved' | 'rejected') => {
-      setRequests(prev => prev.map(req => {
-          if (req.id === id) {
-              if (req.status === 'review' && status === 'approved') {
-                // To do this properly, we'd need to find the user's balance and debit it.
-                // This is a simplified version for the prototype.
-                console.log(`Approving request ${id} for alias ${req.alias} for ${req.amount}`);
-                toast({ title: "Demande approuvée", description: `La demande de ${req.alias} a été approuvée.`})
-              }
-               return { ...req, status };
-          }
-          return req;
-      }));
+      const requestToUpdate = requests.find(r => r.id === id);
+      if (!requestToUpdate) {
+        console.error("BNPL request not found");
+        return;
+      }
+
+      setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+      
+      // If a request under review is approved, execute the transaction
+      if (requestToUpdate.status === 'review' && status === 'approved') {
+        const userKey = `paytik_user_${requestToUpdate.alias}`;
+        const merchantKey = `paytik_user_${requestToUpdate.merchantAlias}`;
+        
+        try {
+            // Debit the user
+            const userBalanceKey = `paytik_balance_${requestToUpdate.alias}`;
+            const userBalanceStr = localStorage.getItem(userBalanceKey);
+            const userBalance = userBalanceStr ? JSON.parse(userBalanceStr) : 0;
+            
+            if(userBalance < requestToUpdate.amount) {
+                 toast({ title: "Solde insuffisant", description: `L'utilisateur ${requestToUpdate.alias} n'a pas les fonds nécessaires.`, variant: "destructive" });
+                 // Revert status
+                 setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
+                 return;
+            }
+            
+            const newUserBalance = userBalance - requestToUpdate.amount;
+            localStorage.setItem(userBalanceKey, JSON.stringify(newUserBalance));
+
+            // Add transaction for user
+            const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
+            const userTxStr = localStorage.getItem(userTxKey);
+            const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
+            const userNewTx = {
+                id: `TXN${Date.now()}`,
+                type: 'sent',
+                counterparty: requestToUpdate.merchantAlias,
+                reason: `Achat BNPL approuvé`,
+                amount: requestToUpdate.amount,
+                date: new Date().toISOString(),
+                status: 'Terminé'
+            };
+            localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
+
+            // Credit the merchant
+            const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
+            const merchantBalanceStr = localStorage.getItem(merchantBalanceKey);
+            const merchantBalance = merchantBalanceStr ? JSON.parse(merchantBalanceStr) : 0;
+            const newMerchantBalance = merchantBalance + requestToUpdate.amount;
+            localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
+
+            // Add transaction for merchant
+            const merchantTxKey = `paytik_transactions_${requestToUpdate.merchantAlias}`;
+            const merchantTxStr = localStorage.getItem(merchantTxKey);
+            const merchantTxs = merchantTxStr ? JSON.parse(merchantTxStr) : [];
+             const merchantNewTx = {
+                id: `TXN${Date.now()+1}`,
+                type: 'received',
+                counterparty: requestToUpdate.alias,
+                reason: `Paiement BNPL reçu`,
+                amount: requestToUpdate.amount,
+                date: new Date().toISOString(),
+                status: 'Terminé'
+            };
+            localStorage.setItem(merchantTxKey, JSON.stringify([merchantNewTx, ...merchantTxs]));
+
+            toast({ title: "Demande approuvée", description: `La transaction pour ${requestToUpdate.alias} a été effectuée.` });
+
+        } catch (error) {
+            console.error("Failed to process manual BNPL approval:", error);
+            toast({ title: "Erreur de traitement", description: "Une erreur est survenue lors de l'approbation.", variant: "destructive" });
+            // Revert status on error
+            setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
+        }
+
+      } else {
+         toast({ title: `Demande ${status === 'approved' ? 'approuvée' : 'rejetée'}`, description: `La demande de ${requestToUpdate.alias} a été mise à jour.`})
+      }
   }
 
   const value = { requests, submitRequest, updateRequestStatus };
@@ -122,3 +188,4 @@ export const useBnpl = () => {
   }
   return context;
 };
+
