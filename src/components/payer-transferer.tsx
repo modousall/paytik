@@ -14,6 +14,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
 import MyBnplRequests from './my-bnpl-requests';
+import { cn } from '@/lib/utils';
+
 
 type PayerTransfererState = 'menu' | 'send' | 'bills' | 'merchants';
 type MerchantSubService = 'pico' | 'bnpl' | 'my-requests';
@@ -22,14 +24,36 @@ type PayerTransfererProps = {
     onBack: () => void;
 }
 
+const ActionCard = ({ title, description, icon, onClick, color }: { title: string, description: string, icon: JSX.Element, onClick: () => void, color: string }) => (
+    <Card 
+        onClick={onClick}
+        className={cn(
+            "text-white shadow-lg p-4 flex flex-col justify-between border-none cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out",
+            color
+        )}
+    >
+        <div className="flex justify-between items-start">
+             <div className="p-2 bg-white/20 rounded-lg">
+                {icon}
+            </div>
+        </div>
+        <div className="mt-4">
+            <p className="font-bold text-lg">{title}</p>
+            <p className="text-xs opacity-90">{description}</p>
+        </div>
+    </Card>
+);
+
 export default function PayerTransferer({ onBack }: PayerTransfererProps) {
     const [state, setState] = useState<PayerTransfererState>('menu');
     const [merchantService, setMerchantService] = useState<MerchantSubService | null>(null);
     const { flags } = useFeatureFlags();
 
     const menuItems = [
-        { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un contact ou un QR code.", icon: <ArrowUp /> },
-        { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt /> },
+        { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un contact ou un QR code.", icon: <ArrowUp className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-500 to-cyan-400" },
+        { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt className="h-6 w-6"/>, color: "bg-gradient-to-br from-green-500 to-emerald-400" },
+        { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users className="h-6 w-6"/>, color: "bg-gradient-to-br from-purple-500 to-violet-400" },
+        { id: 'merchants', title: "Services Marchands", description: "PICO, BNPL et plus.", icon: <ShoppingCart className="h-6 w-6"/>, color: "bg-gradient-to-br from-amber-500 to-yellow-400" },
     ];
     
     if (merchantService) {
@@ -80,39 +104,24 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                {menuItems.map(item => (
-                    <Card 
-                        key={item.id} 
-                        className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group"
-                        onClick={() => setState(item.id as PayerTransfererState)}
-                    >
-                        <div className='p-6 h-full flex flex-col'>
-                            <div className="p-3 bg-primary/10 rounded-full text-primary w-fit">{item.icon}</div>
-                            <div className="flex-grow mt-4">
-                                <CardTitle className='text-lg'>{item.title}</CardTitle>
-                                <CardDescription className="mt-1">{item.description}</CardDescription>
-                            </div>
-                            <div className="mt-4 flex justify-end">
-                                <ChevronRight className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-            
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <Dialog>
+            <div className='grid grid-cols-2 gap-4'>
+                <ActionCard 
+                    {...menuItems[0]}
+                    onClick={() => setState('send')}
+                />
+                <ActionCard 
+                    {...menuItems[1]}
+                    onClick={() => setState('bills')}
+                />
+                
+                <Dialog>
                     <DialogTrigger asChild>
-                        <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group">
-                             <div className='p-6 flex items-center gap-4'>
-                                <div className="p-3 bg-primary/10 rounded-full text-primary w-fit"><Users/></div>
-                                <div>
-                                    <CardTitle className='text-lg'>Partager une dépense</CardTitle>
-                                    <CardDescription>Divisez une facture avec vos contacts.</CardDescription>
-                                </div>
-                             </div>
-                        </Card>
+                        <div className="cursor-pointer">
+                            <ActionCard 
+                                {...menuItems[2]}
+                                onClick={() => {}} // onClick is handled by DialogTrigger
+                            />
+                        </div>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg">
                         <DialogHeader>
@@ -121,15 +130,11 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                         <SplitBill />
                     </DialogContent>
                 </Dialog>
-                <Card className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group" onClick={() => setState('merchants')}>
-                    <div className='p-6 flex items-center gap-4'>
-                        <div className="p-3 bg-primary/10 rounded-full text-primary w-fit"><ShoppingCart/></div>
-                        <div>
-                            <CardTitle className='text-lg'>Services Marchands</CardTitle>
-                            <CardDescription>PICO, BNPL et plus.</CardDescription>
-                        </div>
-                    </div>
-                </Card>
+
+                <ActionCard 
+                    {...menuItems[3]}
+                    onClick={() => setState('merchants')}
+                />
             </div>
         </div>
     )
