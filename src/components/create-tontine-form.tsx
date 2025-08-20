@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useContacts } from '@/hooks/use-contacts';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTontine } from '@/hooks/use-tontine';
 import type { TontineFrequency } from '@/hooks/use-tontine';
+import { cn } from '@/lib/utils';
 
 const createTontineSchema = z.object({
   name: z.string().min(3, { message: "Le nom doit contenir au moins 3 caractères." }),
@@ -27,6 +28,14 @@ type CreateTontineFormValues = z.infer<typeof createTontineSchema>;
 type CreateTontineFormProps = {
     onTontineCreated: () => void;
 }
+
+const ParticipantsLabel = () => {
+    const { error } = useFormField();
+    return (
+        <FormLabel className={cn("text-base", error && "text-destructive")}>Inviter des participants</FormLabel>
+    );
+};
+
 
 export default function CreateTontineForm({ onTontineCreated }: CreateTontineFormProps) {
   const { contacts } = useContacts();
@@ -64,43 +73,41 @@ export default function CreateTontineForm({ onTontineCreated }: CreateTontineFor
       </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom du groupe</FormLabel>
+                <FormControl>
+                  <Input placeholder="ex: Tontine des entrepreneurs" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
               control={form.control}
-              name="name"
+              name="frequency"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom du groupe</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ex: Tontine des entrepreneurs" {...field} />
-                  </FormControl>
+                  <FormItem>
+                  <FormLabel>Fréquence des cotisations</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                      <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez une fréquence" />
+                      </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                          <SelectItem value="daily">Journalière</SelectItem>
+                          <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                          <SelectItem value="monthly">Mensuelle</SelectItem>
+                      </SelectContent>
+                  </Select>
                   <FormMessage />
-                </FormItem>
+                  </FormItem>
               )}
-            />
-             <FormField
-                control={form.control}
-                name="frequency"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Fréquence des cotisations</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une fréquence" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="daily">Journalière</SelectItem>
-                            <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                            <SelectItem value="monthly">Mensuelle</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
-          </div>
+          />
 
           <FormField
             control={form.control}
@@ -122,7 +129,7 @@ export default function CreateTontineForm({ onTontineCreated }: CreateTontineFor
             render={() => (
               <FormItem>
                 <div className="mb-4">
-                  <FormLabel className="text-base">Inviter des participants</FormLabel>
+                  <ParticipantsLabel />
                 </div>
                 <ScrollArea className="h-48 rounded-md border">
                   <div className="p-4">
@@ -159,7 +166,7 @@ export default function CreateTontineForm({ onTontineCreated }: CreateTontineFor
                       }}
                     />
                   )) : (
-                    <p className="text-sm text-muted-foreground text-center">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
                   )}
                   </div>
                 </ScrollArea>
