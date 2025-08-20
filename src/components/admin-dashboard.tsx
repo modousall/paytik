@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
+import AdminTransactionAnalysis from "./admin-transaction-analysis";
 
 type AdminDashboardProps = {
     onExit: () => void;
@@ -28,8 +29,9 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
         switch(view) {
             case 'users':
                 return <AdminUserManagement />;
-            // Add other cases here for future features
             case 'transactions':
+                return <AdminTransactionAnalysis />;
+            // Add other cases here for future features
             case 'services':
             case 'roles':
             case 'products':

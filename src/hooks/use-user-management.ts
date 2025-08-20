@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import type { Transaction as UserTransaction } from './use-transactions';
 
 export type ManagedUser = {
   name: string;
@@ -12,11 +13,21 @@ export type ManagedUser = {
   isSuspended: boolean;
 };
 
+// Exporting Transaction type to be used in other components
+export type Transaction = UserTransaction;
+
+export type ManagedUserWithTransactions = ManagedUser & {
+    transactions: Transaction[];
+}
+
 export const useUserManagement = () => {
   const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [usersWithTransactions, setUsersWithTransactions] = useState<ManagedUserWithTransactions[]>([]);
 
   const loadUsers = useCallback(() => {
     const loadedUsers: ManagedUser[] = [];
+    const loadedUsersWithTx: ManagedUserWithTransactions[] = [];
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('paytik_user_')) {
@@ -24,20 +35,26 @@ export const useUserManagement = () => {
         const userDataString = localStorage.getItem(key);
         const balanceDataString = localStorage.getItem(`paytik_balance_${alias}`);
         const avatarDataString = localStorage.getItem(`paytik_avatar_${alias}`);
+        const transactionsDataString = localStorage.getItem(`paytik_transactions_${alias}`);
 
         if (userDataString) {
           try {
             const userData = JSON.parse(userDataString);
             const balance = balanceDataString ? JSON.parse(balanceDataString) : 0;
+            const transactions = transactionsDataString ? JSON.parse(transactionsDataString) : [];
             
-            loadedUsers.push({
+            const managedUser = {
               name: userData.name,
               email: userData.email,
               alias: alias,
               balance: balance,
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
-            });
+            };
+
+            loadedUsers.push(managedUser);
+            loadedUsersWithTx.push({ ...managedUser, transactions });
+
           } catch (e) {
             console.error(`Failed to parse data for user ${alias}`, e);
           }
@@ -45,15 +62,18 @@ export const useUserManagement = () => {
       }
     }
     setUsers(loadedUsers);
+    setUsersWithTransactions(loadedUsersWithTx);
+
   }, []);
 
   useEffect(() => {
     loadUsers();
     
     // Optional: listen to storage changes to auto-update
-    window.addEventListener('storage', loadUsers);
+    const handleStorageChange = () => loadUsers();
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-        window.removeEventListener('storage', loadUsers);
+        window.removeEventListener('storage', handleStorageChange);
     }
 
   }, [loadUsers]);
@@ -74,5 +94,5 @@ export const useUserManagement = () => {
     }
   };
 
-  return { users, toggleUserSuspension, refreshUsers: loadUsers };
+  return { users, usersWithTransactions, toggleUserSuspension, refreshUsers: loadUsers };
 };
