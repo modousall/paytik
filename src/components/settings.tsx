@@ -175,47 +175,36 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
     }
 
     const mainSettings = [
-        { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK" },
-        { id: 'promo', icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel" },
+        { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK", content: <InviteFriendDialog alias={alias}/> },
+        { id: 'promo', icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", content: <PromoCodeDialog/> },
     ];
     
     const supportSettings = [
         { id: 'support', icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
-        { id: 'limits', icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond" },
+        { id: 'limits', icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond", content: <LimitsDialog/> },
         { id: 'merchants', icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité", onClick: () => onNavigate('merchants') },
     ];
     
     const securitySettings = [
-        { id: 'devices', icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />, text: "Vos appareils connectés" },
-        { id: 'pin', icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, text: "Modifiez votre code secret" },
+        { id: 'devices', icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />, text: "Vos appareils connectés", content: (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Appareils Connectés</DialogTitle>
+                    <DialogDescription>Voici la liste des appareils où votre compte est actuellement actif.</DialogDescription>
+                </DialogHeader>
+                <ConnectedDevices />
+            </DialogContent>
+        )},
+        { id: 'pin', icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, text: "Modifiez votre code secret", content: (
+             <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Changer votre code secret</DialogTitle>
+                    <DialogDescription>Pour des raisons de sécurité, veuillez fournir votre ancien code PIN avant d'en définir un nouveau.</DialogDescription>
+                </DialogHeader>
+                <ChangePinForm alias={alias} />
+            </DialogContent>
+        )},
     ];
-
-    const renderDialog = (id: string) => {
-        switch(id) {
-            case 'invite': return <InviteFriendDialog alias={alias}/>;
-            case 'promo': return <PromoCodeDialog />;
-            case 'limits': return <LimitsDialog />;
-            case 'devices': return (
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Appareils Connectés</DialogTitle>
-                        <DialogDescription>Voici la liste des appareils où votre compte est actuellement actif.</DialogDescription>
-                    </DialogHeader>
-                    <ConnectedDevices />
-                </DialogContent>
-            );
-            case 'pin': return (
-                 <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Changer votre code secret</DialogTitle>
-                        <DialogDescription>Pour des raisons de sécurité, veuillez fournir votre ancien code PIN avant d'en définir un nouveau.</DialogDescription>
-                    </DialogHeader>
-                    <ChangePinForm alias={alias} />
-                </DialogContent>
-            );
-            default: return null;
-        }
-    }
 
 
     return (
@@ -232,12 +221,12 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
             <Card>
                 {mainSettings.map((item, index) => (
                     <React.Fragment key={item.id}>
-                        <Dialog>
-                             <DialogTrigger asChild>
-                                <SettingItem icon={item.icon} text={item.text} asChild />
-                            </DialogTrigger>
-                            {renderDialog(item.id)}
-                        </Dialog>
+                       <Dialog>
+                            <DialogTrigger asChild>
+                               <SettingItem icon={item.icon} text={item.text} asChild />
+                           </DialogTrigger>
+                           {item.content}
+                       </Dialog>
                         {index < mainSettings.length - 1 && <hr className="ml-14"/>}
                     </React.Fragment>
                 ))}
@@ -254,7 +243,7 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                                 <DialogTrigger asChild>
                                     <SettingItem icon={item.icon} text={item.text} asChild />
                                 </DialogTrigger>
-                                {renderDialog(item.id)}
+                                {item.content}
                              </Dialog>
                          )}
                         {index < supportSettings.length - 1 && <hr className="ml-14"/>}
@@ -270,7 +259,7 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                             <DialogTrigger asChild>
                                 <SettingItem icon={item.icon} text={item.text} asChild />
                             </DialogTrigger>
-                            {renderDialog(item.id)}
+                           {item.content}
                         </Dialog>
                         {index < securitySettings.length - 1 && <hr className="ml-14"/>}
                     </React.Fragment>
@@ -295,5 +284,3 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
         </div>
     );
 }
-
-    
