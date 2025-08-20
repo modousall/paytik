@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import type { ManagedUserWithDetails } from './use-user-management';
 
 export type Feature = 'virtualCards' | 'tontine' | 'bnpl';
-
 export type FeatureFlags = Record<Feature, boolean>;
 
-const defaultFlags: FeatureFlags = {
+export const defaultFlags: FeatureFlags = {
     virtualCards: true,
     tontine: true,
     bnpl: true,
@@ -15,50 +15,49 @@ const defaultFlags: FeatureFlags = {
 
 type FeatureFlagContextType = {
     flags: FeatureFlags;
-    toggleFlag: (flag: Feature) => void;
 };
 
 const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(undefined);
 
-const storageKey = 'paytik_feature_flags';
+type FeatureFlagProviderProps = {
+    children: ReactNode;
+    alias: string;
+    initialFlags?: FeatureFlags;
+};
 
-export const FeatureFlagProvider = ({ children }: { children: ReactNode }) => {
-    const [flags, setFlags] = useState<FeatureFlags>(defaultFlags);
-    const [isInitialized, setIsInitialized] = useState(false);
+export const FeatureFlagProvider = ({ children, alias, initialFlags }: FeatureFlagProviderProps) => {
+    const [flags, setFlags] = useState<FeatureFlags>(initialFlags || defaultFlags);
 
-    useEffect(() => {
+    // This provider now gets its state from the parent context (e.g., useUserManagement)
+    // or from the main app state. The logic to *change* flags is handled in useUserManagement.
+    // This hook is now primarily for *reading* the flags for the current user.
+
+    React.useEffect(() => {
+        // If initialFlags are provided (e.g. from AdminUserDetail), use them.
+        if (initialFlags) {
+            setFlags(initialFlags);
+            return;
+        }
+
+        // Otherwise, load from the specific user's data in localStorage for the main app.
+        const userKey = `paytik_user_${alias}`;
         try {
-            const storedFlags = localStorage.getItem(storageKey);
-            if (storedFlags) {
-                // Merge stored flags with defaults to ensure new flags are added
-                const parsedFlags = JSON.parse(storedFlags);
-                setFlags({ ...defaultFlags, ...parsedFlags });
+            const userDataString = localStorage.getItem(userKey);
+            if (userDataString) {
+                const userData = JSON.parse(userDataString);
+                setFlags(userData.featureFlags || defaultFlags);
             } else {
                 setFlags(defaultFlags);
-                localStorage.setItem(storageKey, JSON.stringify(defaultFlags));
             }
         } catch (error) {
-            console.error("Failed to read feature flags from localStorage", error);
+            console.error("Failed to read feature flags from localStorage for user", alias, error);
             setFlags(defaultFlags);
         }
-        setIsInitialized(true);
-    }, []);
+    }, [alias, initialFlags]);
 
-    useEffect(() => {
-        if (isInitialized) {
-            localStorage.setItem(storageKey, JSON.stringify(flags));
-        }
-    }, [flags, isInitialized]);
-
-    const toggleFlag = (flag: Feature) => {
-        setFlags(prevFlags => ({
-            ...prevFlags,
-            [flag]: !prevFlags[flag],
-        }));
-    };
 
     return (
-        <FeatureFlagContext.Provider value={{ flags, toggleFlag }}>
+        <FeatureFlagContext.Provider value={{ flags }}>
             {children}
         </FeatureFlagContext.Provider>
     );

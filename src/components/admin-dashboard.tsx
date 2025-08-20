@@ -7,21 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
-import AdminFeatureControl from "./admin-feature-control";
 import AdminProductManagement from "./admin-product-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'transactions' | 'services' | 'roles' | 'products';
+type AdminView = 'dashboard' | 'users' | 'transactions' | 'roles' | 'products';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
-    { id: "users", title: "Gestion des utilisateurs", description: "Consulter, modifier ou suspendre des comptes.", icon: <Users /> },
+    { id: "users", title: "Gestion des utilisateurs", description: "Consulter, modifier, suspendre et gérer les accès.", icon: <Users /> },
     { id: "transactions", title: "Analyse des transactions", description: "Visualiser les statistiques et les flux financiers.", icon: <BarChart3 /> },
-    { id: "services", title: "Contrôle des services", description: "Activer ou désactiver des fonctionnalités pour tous.", icon: <Settings /> },
-    { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
     { id: "products", title: "Produits et Tarification", description: "Configurer les produits et les frais de service.", icon: <Package /> },
+    { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
 
 export default function AdminDashboard({ onExit }: AdminDashboardProps) {
@@ -33,8 +31,6 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminUserManagement />;
             case 'transactions':
                 return <AdminTransactionAnalysis />;
-            case 'services':
-                 return <AdminFeatureControl />;
             case 'products':
                 return <AdminProductManagement />;
             case 'roles':

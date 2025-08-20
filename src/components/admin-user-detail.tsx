@@ -1,10 +1,10 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet } from "lucide-react";
-import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase } from "lucide-react";
+import type { ManagedUserWithDetails, Transaction, Feature } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -15,9 +15,6 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
 import { TransactionsContext } from '@/hooks/use-transactions';
-import VirtualCard from './virtual-card';
-import Vaults from './vaults';
-import Tontine from './tontine';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
@@ -25,6 +22,26 @@ import { BalanceProvider } from '@/hooks/use-balance';
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { ContactsProvider } from '@/hooks/use-contacts';
+import { Switch } from './ui/switch';
+import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
+
+const featureDetails: Record<Feature, { name: string; description: string; icon: JSX.Element }> = {
+    virtualCards: {
+        name: "Cartes Virtuelles",
+        description: "Permet de créer et gérer des cartes de paiement virtuelles.",
+        icon: <CreditCard className="text-primary" />
+    },
+    tontine: {
+        name: "Tontines / Cagnottes",
+        description: "Permet de créer et participer à des groupes d'épargne.",
+        icon: <TontineIcon className="text-primary" />
+    },
+    bnpl: {
+        name: "BNPL",
+        description: "Permet de faire des demandes de paiement échelonné.",
+        icon: <Clock className="text-primary" />
+    }
+};
 
 const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDetails, onClose: () => void, onUpdate: () => void }) => {
     const [newPin, setNewPin] = useState("");
@@ -79,46 +96,45 @@ const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDeta
     )
 }
 
-// A custom provider to inject specific transactions into the history component
-const StaticTransactionsProvider = ({ transactions, children }: { transactions: Transaction[], children: React.ReactNode }) => {
-    const value = {
-      transactions,
-      addTransaction: () => {}, // No-op in this context
-      reverseTransaction: () => {}, // No-op in this context
-    };
-    return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
-};
-
 // This is a special wrapper to use the real hooks but initialized for a specific user.
-const UserServiceProvider = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
+const UserServiceProvider = ({ alias, children, flags }: { alias: string, children: React.ReactNode, flags: ManagedUserWithDetails['featureFlags'] }) => {
     return (
-        <AvatarProvider alias={alias}>
-            <BalanceProvider alias={alias}>
-                <TransactionsProvider alias={alias}>
-                    <ContactsProvider alias={alias}>
-                        <VirtualCardProvider alias={alias}>
-                            <VaultsProvider alias={alias}>
-                                <TontineProvider alias={alias}>
-                                    {children}
-                                </TontineProvider>
-                            </VaultsProvider>
-                        </VirtualCardProvider>
-                    </ContactsProvider>
-                </TransactionsProvider>
-            </BalanceProvider>
-        </AvatarProvider>
+        <FeatureFlagProvider initialFlags={flags} alias={alias}>
+            <AvatarProvider alias={alias}>
+                <BalanceProvider alias={alias}>
+                    <TransactionsProvider alias={alias}>
+                        <ContactsProvider alias={alias}>
+                            <VirtualCardProvider alias={alias}>
+                                <VaultsProvider alias={alias}>
+                                    <TontineProvider alias={alias}>
+                                        {children}
+                                    </TontineProvider>
+                                </VaultsProvider>
+                            </VirtualCardProvider>
+                        </ContactsProvider>
+                    </TransactionsProvider>
+                </BalanceProvider>
+            </AvatarProvider>
+        </FeatureFlagProvider>
     )
 };
 
-type TransactionFilter = 'all' | 'main' | 'card' | 'vaults' | 'tontine';
-
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
-    const { toggleUserSuspension } = useUserManagement();
+    const { toggleUserSuspension, updateUserFlags } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
-    const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>('all');
+    
+    const todaysRevenue = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0];
+        return user.transactions
+            .filter(tx => tx.type === 'received' && tx.date.startsWith(today))
+            .reduce((sum, tx) => sum + tx.amount, 0);
+    }, [user.transactions]);
 
-    const totalVaultsBalance = user.vaults.reduce((sum, v) => sum + v.balance, 0);
+    const todaysTransactionsCount = useMemo(() => {
+         const today = new Date().toISOString().split('T')[0];
+        return user.transactions.filter(tx => tx.type === 'received' && tx.date.startsWith(today)).length;
+    }, [user.transactions]);
 
     const handleToggleSuspension = () => {
         toggleUserSuspension(user.alias, !user.isSuspended);
@@ -128,26 +144,16 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         });
         onBack(); // Go back to the list to see the updated status
     }
-    
-    const filteredTransactions = user.transactions.filter(tx => {
-        if (transactionFilter === 'all') return true;
-        if (transactionFilter === 'main') {
-            const reason = tx.reason?.toLowerCase() ?? '';
-            return ['sent', 'received', 'card_recharge'].includes(tx.type) && !reason.includes('coffre') && !reason.includes('tontine');
-        }
-        if (transactionFilter === 'card') {
-            const reason = tx.reason?.toLowerCase() ?? '';
-            return tx.type === 'sent' && (reason.includes('carte') || user.virtualCard?.transactions.some(vctx => vctx.id === tx.id));
-        }
-        if (transactionFilter === 'vaults') {
-            const reason = tx.reason?.toLowerCase() ?? '';
-            return reason.includes('coffre');
-        }
-        if (transactionFilter === 'tontine') {
-            return tx.type === 'tontine';
-        }
-        return false;
-    });
+
+    const handleFlagToggle = (flag: Feature) => {
+        const newFlags = { ...user.featureFlags, [flag]: !user.featureFlags[flag] };
+        updateUserFlags(user.alias, newFlags);
+        onUpdate(); // Refresh the parent view to get the updated user object
+        toast({
+            title: "Permissions mises à jour",
+            description: `Le service "${featureDetails[flag].name}" est maintenant ${newFlags[flag] ? 'activé' : 'désactivé'} pour ${user.name}.`
+        })
+    }
 
     return (
         <div className="space-y-6">
@@ -162,7 +168,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column: User Info & Actions */}
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center gap-4">
@@ -197,7 +202,29 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                         </CardContent>
                     </Card>
 
-                     <Card>
+                    {user.role === 'merchant' && (
+                        <Card>
+                             <CardHeader><CardTitle>Statistiques Marchand (Jour)</CardTitle></CardHeader>
+                             <CardContent className="space-y-4">
+                                 <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-green-100 rounded-lg"><TrendingUp className="h-6 w-6 text-green-700"/></div>
+                                     <div>
+                                         <p className="text-muted-foreground text-sm">Chiffre d'affaires</p>
+                                         <p className="font-bold text-lg">{todaysRevenue.toLocaleString()} Fcfa</p>
+                                     </div>
+                                 </div>
+                                  <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-blue-100 rounded-lg"><Briefcase className="h-6 w-6 text-blue-700"/></div>
+                                     <div>
+                                         <p className="text-muted-foreground text-sm">Transactions</p>
+                                         <p className="font-bold text-lg">{todaysTransactionsCount}</p>
+                                     </div>
+                                 </div>
+                             </CardContent>
+                        </Card>
+                    )}
+
+                    <Card>
                         <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
                              <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
@@ -214,76 +241,40 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                             </Button>
                         </CardContent>
                     </Card>
-                    
                 </div>
 
-                {/* Right Column: Services & Transactions */}
                 <div className="lg:col-span-2 space-y-6">
-                     <UserServiceProvider alias={user.alias}>
-                        {user.role !== 'merchant' && (
-                            <Card>
-                                <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
-                                <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-                                <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full border-2 ${transactionFilter === 'main' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('main')}>
-                                        <Wallet className="mx-auto h-8 w-8 mb-2 text-primary"/>
-                                        <p className="text-sm font-medium">Compte Principal</p>
-                                        <Badge variant='default'>{user.balance.toLocaleString()} Fcfa</Badge>
-                                </button>
-
-                                <Dialog>
-                                        <DialogTrigger asChild>
-                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'card' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('card')}>
-                                                <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                                <p className="text-sm font-medium">Carte Virtuelle</p>
-                                                <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Gérer' : 'Inactive'}</Badge>
-                                            </button>
-                                        </DialogTrigger>
-                                        {user.virtualCard && 
-                                            <DialogContent className="max-w-2xl">
-                                                <DialogHeader>
-                                                    <DialogTitle>Gestion de la Carte Virtuelle</DialogTitle>
-                                                </DialogHeader>
-                                                <VirtualCard onBack={()=>{}}/>
-                                            </DialogContent>
-                                        }
-                                    </Dialog>
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'vaults' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('vaults')}>
-                                                <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                                <p className="text-sm font-medium">Coffres-forts</p>
-                                                <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? `${totalVaultsBalance.toLocaleString()} Fcfa` : 'Inactifs'}</Badge>
-                                            </button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-3xl">
-                                            <DialogHeader>
-                                                <DialogTitle>Gestion des Coffres</DialogTitle>
-                                            </DialogHeader>
-                                            <Vaults onBack={()=>{}}/>
-                                        </DialogContent>
-                                    </Dialog>
-                                <Dialog>
-                                        <DialogTrigger asChild>
-                                            <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'tontine' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('tontine')}>
-                                                <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                                <p className="text-sm font-medium">Tontines</p>
-                                                <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length > 0 ? 'Gérer' : 'Inactives'}</Badge>
-                                            </button>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-w-4xl">
-                                            <DialogHeader>
-                                                <DialogTitle>Gestion des Tontines</DialogTitle>
-                                            </DialogHeader>
-                                            <Tontine onBack={()=>{}}/>
-                                        </DialogContent>
-                                    </Dialog>
-                                </CardContent>
-                            </Card>
-                        )}
-                    
-                        <StaticTransactionsProvider transactions={user.role === 'merchant' ? user.transactions : filteredTransactions}>
-                            <TransactionHistory showAll={true} onShowAll={() => {}} />
-                        </StaticTransactionsProvider>
+                    <UserServiceProvider alias={user.alias} flags={user.featureFlags}>
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Activation des Services</CardTitle>
+                                <CardDescription>Gérez les fonctionnalités accessibles pour cet utilisateur.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {(Object.keys(user.featureFlags) as Feature[]).map((key) => (
+                                        <div key={key} className="flex items-start justify-between rounded-lg border p-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className="p-3 bg-primary/10 rounded-full">{featureDetails[key].icon}</div>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor={`feature-${key}`} className="text-base font-medium">
+                                                        {featureDetails[key].name}
+                                                    </Label>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {featureDetails[key].description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Switch
+                                                id={`feature-${key}`}
+                                                checked={user.featureFlags[key]}
+                                                onCheckedChange={() => handleFlagToggle(key)}
+                                                disabled={user.role === 'superadmin'}
+                                            />
+                                        </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                        <TransactionHistory showAll={true} onShowAll={() => {}} />
                     </UserServiceProvider>
                 </div>
             </div>

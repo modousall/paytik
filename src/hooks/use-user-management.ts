@@ -6,6 +6,9 @@ import type { Transaction as UserTransaction } from './use-transactions';
 import type { Vault } from './use-vaults';
 import type { Tontine } from './use-tontine';
 import type { CardDetails, CardTransaction } from './use-virtual-card';
+import { defaultFlags, type FeatureFlags } from './use-feature-flags';
+
+export type Feature = keyof FeatureFlags;
 
 export type ManagedUser = {
   name: string;
@@ -15,6 +18,7 @@ export type ManagedUser = {
   avatar: string | null;
   isSuspended: boolean;
   role?: string;
+  featureFlags: FeatureFlags;
 };
 
 // Exporting Transaction type to be used in other components
@@ -85,7 +89,8 @@ export const useUserManagement = () => {
               balance: balance,
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
-              role: userData.role || 'user'
+              role: userData.role || 'user',
+              featureFlags: userData.featureFlags || defaultFlags, // Load feature flags or use defaults
             };
 
             loadedUsersWithTx.push({ ...managedUser, transactions });
@@ -113,34 +118,37 @@ export const useUserManagement = () => {
 
   }, [loadUsers]);
 
-  const toggleUserSuspension = (alias: string, suspend: boolean) => {
+  const updateUserProperty = (alias: string, update: (userData: any) => void) => {
     const userKey = `paytik_user_${alias}`;
     const userDataString = localStorage.getItem(userKey);
     if (userDataString) {
         try {
             const userData = JSON.parse(userDataString);
-            userData.isSuspended = suspend;
+            update(userData);
             localStorage.setItem(userKey, JSON.stringify(userData));
-            loadUsers();
+            loadUsers(); // Refresh state for all components
         } catch(e) {
-            console.error(`Failed to update suspension status for user ${alias}`, e);
+            console.error(`Failed to update data for user ${alias}`, e);
         }
     }
   };
 
+  const toggleUserSuspension = (alias: string, suspend: boolean) => {
+    updateUserProperty(alias, userData => {
+        userData.isSuspended = suspend;
+    });
+  };
+
   const resetUserPin = (alias: string, newPin: string) => {
-    const userKey = `paytik_user_${alias}`;
-    const userDataString = localStorage.getItem(userKey);
-    if (userDataString) {
-        try {
-            const userData = JSON.parse(userDataString);
-            userData.pincode = newPin;
-            localStorage.setItem(userKey, JSON.stringify(userData));
-            loadUsers(); // Force reload of all users to reflect change
-        } catch(e) {
-             console.error(`Failed to reset PIN for user ${alias}`, e);
-        }
-    }
+     updateUserProperty(alias, userData => {
+        userData.pincode = newPin;
+    });
+  };
+
+  const updateUserFlags = (alias: string, flags: FeatureFlags) => {
+     updateUserProperty(alias, userData => {
+        userData.featureFlags = flags;
+    });
   };
 
   const addUser = (payload: NewUserPayload): { success: boolean, message: string } => {
@@ -154,7 +162,8 @@ export const useUserManagement = () => {
         email: payload.email,
         pincode: payload.pincode,
         role: payload.role,
-        isSuspended: false
+        isSuspended: false,
+        featureFlags: defaultFlags, // Assign default flags to new internal users
     };
 
     localStorage.setItem(userKey, JSON.stringify(newUser));
@@ -169,5 +178,5 @@ export const useUserManagement = () => {
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
-  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, refreshUsers: loadUsers };
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserFlags, refreshUsers: loadUsers };
 };

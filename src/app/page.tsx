@@ -20,7 +20,7 @@ import { TontineProvider } from '@/hooks/use-tontine';
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
-import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
+import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
 import { ProductProvider } from '@/hooks/use-product-management';
 
 type UserInfo = {
@@ -29,7 +29,7 @@ type UserInfo = {
   role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support' | 'agent';
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin' | 'merchant_dashboard';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'merchant_dashboard';
 
 // Function to ensure the superadmin exists in localStorage
 const ensureSuperAdminExists = () => {
@@ -41,7 +41,8 @@ const ensureSuperAdminExists = () => {
             name: 'Modou Sall',
             email: 'modousall1@gmail.com',
             pincode: '1234',
-            role: 'superadmin'
+            role: 'superadmin',
+            featureFlags: defaultFlags,
         };
         localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
     }
@@ -101,6 +102,7 @@ export default function AuthenticationGate() {
           email: userInfo.email,
           pincode: '', // PIN will be set at next step
           role: 'user', // Default role for new users
+          featureFlags: defaultFlags, // Assign default flags to new users
       }));
       localStorage.setItem('paytik_active_alias_creation', newAlias);
       setAlias(newAlias);
@@ -235,13 +237,9 @@ export default function AuthenticationGate() {
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo as {name: string, email: string}} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
-      case 'admin':
-         // This case is no longer directly reachable, flow goes through dashboard
-        return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
        case 'merchant_dashboard':
          if(alias && userInfo) {
             return (
-              <FeatureFlagProvider>
                 <ProductProvider>
                     <AvatarProvider alias={alias}>
                         <BalanceProvider alias={alias}>
@@ -251,7 +249,6 @@ export default function AuthenticationGate() {
                         </BalanceProvider>
                     </AvatarProvider>
                 </ProductProvider>
-              </FeatureFlagProvider>
             );
         }
         setStep('demo'); // Fallback
@@ -259,25 +256,25 @@ export default function AuthenticationGate() {
       case 'dashboard':
         if(alias && userInfo) {
             return (
-              <FeatureFlagProvider>
-                <ProductProvider>
-                  <AvatarProvider alias={alias}>
-                    <BalanceProvider alias={alias}>
-                      <TransactionsProvider alias={alias}>
-                        <ContactsProvider alias={alias}>
-                          <VirtualCardProvider alias={alias}>
-                            <VaultsProvider alias={alias}>
-                              <TontineProvider alias={alias}>
-                                  <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
-                              </TontineProvider>
-                            </VaultsProvider>
-                          </VirtualCardProvider>
-                        </ContactsProvider>
-                      </TransactionsProvider>
-                    </BalanceProvider>
-                  </AvatarProvider>
-                </ProductProvider>
-              </FeatureFlagProvider>
+              <ProductProvider>
+                <FeatureFlagProvider alias={alias}>
+                    <AvatarProvider alias={alias}>
+                      <BalanceProvider alias={alias}>
+                        <TransactionsProvider alias={alias}>
+                          <ContactsProvider alias={alias}>
+                            <VirtualCardProvider alias={alias}>
+                              <VaultsProvider alias={alias}>
+                                <TontineProvider alias={alias}>
+                                    <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+                                </TontineProvider>
+                              </VaultsProvider>
+                            </VirtualCardProvider>
+                          </ContactsProvider>
+                        </TransactionsProvider>
+                      </BalanceProvider>
+                    </AvatarProvider>
+                </FeatureFlagProvider>
+              </ProductProvider>
             )
         }
         // Fallback if state is dashboard but data is missing
