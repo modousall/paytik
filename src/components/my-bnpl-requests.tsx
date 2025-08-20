@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
@@ -10,7 +10,9 @@ import { Button } from './ui/button';
 import { Check, X, Hourglass, ArrowLeft, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { BnplStatus } from '@/lib/types';
+import type { BnplRequest, BnplStatus } from '@/lib/types';
+import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import CreditRequestDetails from './credit-request-details';
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'd MMM yyyy, HH:mm', { locale: fr });
@@ -60,17 +62,24 @@ export default function MyBnplRequests({ onBack }: MyBnplRequestsProps) {
                         </TableHeader>
                         <TableBody>
                             {sortedRequests.map(req => (
-                                <TableRow key={req.id}>
-                                    <TableCell>{formatDate(req.requestDate)}</TableCell>
-                                    <TableCell className="font-medium">{req.merchantAlias}</TableCell>
-                                    <TableCell>{formatCurrency(req.amount)}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
-                                            {statusConfig[req.status].icon} {statusConfig[req.status].text}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
-                                </TableRow>
+                                 <Dialog key={req.id}>
+                                    <DialogTrigger asChild>
+                                        <TableRow className="cursor-pointer">
+                                            <TableCell>{formatDate(req.requestDate)}</TableCell>
+                                            <TableCell className="font-medium">{req.merchantAlias}</TableCell>
+                                            <TableCell>{formatCurrency(req.amount)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
+                                                    {statusConfig[req.status].icon} {statusConfig[req.status].text}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
+                                        </TableRow>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <CreditRequestDetails request={req} />
+                                    </DialogContent>
+                                </Dialog>
                             ))}
                         </TableBody>
                     </Table>
