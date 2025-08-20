@@ -15,32 +15,37 @@ const initialBalance = 22017800;
 
 type BalanceProviderProps = {
     children: ReactNode;
+    alias: string;
 };
 
-export const BalanceProvider = ({ children }: BalanceProviderProps) => {
+export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
   const [balance, setBalance] = useState<number>(initialBalance);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const storageKey = `paytik_balance_${alias}`;
+
   useEffect(() => {
     try {
-      const storedBalance = localStorage.getItem('paytik_balance');
-      if (storedBalance) {
+      const storedBalance = localStorage.getItem(storageKey);
+      if (storedBalance !== null) {
         setBalance(JSON.parse(storedBalance));
       } else {
+        // Set initial balance for a new user
         setBalance(initialBalance);
+        localStorage.setItem(storageKey, JSON.stringify(initialBalance));
       }
     } catch (error) {
         console.error("Failed to parse balance from localStorage", error);
         setBalance(initialBalance);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem('paytik_balance', JSON.stringify(balance));
+        localStorage.setItem(storageKey, JSON.stringify(balance));
     }
-  }, [balance, isInitialized]);
+  }, [balance, isInitialized, storageKey]);
 
   const credit = (amount: number) => {
     setBalance(prevBalance => prevBalance + amount);

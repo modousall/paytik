@@ -41,7 +41,7 @@ const generateCardDetails = (): CardDetails => ({
     expiry: `${String(Math.floor(1 + Math.random() * 12)).padStart(2, '0')}/${new Date().getFullYear() % 100 + 3}`,
     cvv: `${Math.floor(100 + Math.random() * 900)}`,
     isFrozen: false,
-    balance: 50000, // Initial balance
+    balance: 0, // New cards start with 0 balance
 });
 
 const initialCreditTransaction = (balance: number): CardTransaction => ({
@@ -53,7 +53,7 @@ const initialCreditTransaction = (balance: number): CardTransaction => ({
 });
 
 
-export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
+export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, alias: string }) => {
   const [card, setCard] = useState<CardDetails | null>(null);
   const [transactions, setTransactions] = useState<CardTransaction[]>([]);
   const { toast } = useToast();
@@ -61,15 +61,18 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   const { addTransaction } = useTransactions();
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const cardStorageKey = `paytik_virtual_card_${alias}`;
+  const txStorageKey = `paytik_virtual_card_txs_${alias}`;
+
   useEffect(() => {
     let storedCard: CardDetails | null = null;
     let storedTransactions: CardTransaction[] | null = null;
     try {
-        const cardData = localStorage.getItem('paytik_virtual_card');
+        const cardData = localStorage.getItem(cardStorageKey);
         if (cardData) {
             storedCard = JSON.parse(cardData);
         }
-        const txData = localStorage.getItem('paytik_virtual_card_txs');
+        const txData = localStorage.getItem(txStorageKey);
         if(txData) {
             storedTransactions = JSON.parse(txData);
         }
@@ -79,33 +82,30 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
         storedTransactions = null;
     }
 
-    if (storedCard) {
-        setCard(storedCard);
-        setTransactions(storedTransactions || [initialCreditTransaction(storedCard.balance)]);
-    }
-
+    setCard(storedCard);
+    setTransactions(storedTransactions || []);
     setIsInitialized(true);
-  }, []);
+  }, [cardStorageKey, txStorageKey]);
 
   useEffect(() => {
     if (isInitialized) {
         if(card) {
-            localStorage.setItem('paytik_virtual_card', JSON.stringify(card));
-            localStorage.setItem('paytik_virtual_card_txs', JSON.stringify(transactions));
+            localStorage.setItem(cardStorageKey, JSON.stringify(card));
+            localStorage.setItem(txStorageKey, JSON.stringify(transactions));
         } else {
-            localStorage.removeItem('paytik_virtual_card');
-            localStorage.removeItem('paytik_virtual_card_txs');
+            localStorage.removeItem(cardStorageKey);
+            localStorage.removeItem(txStorageKey);
         }
     }
-  }, [card, transactions, isInitialized]);
+  }, [card, transactions, isInitialized, cardStorageKey, txStorageKey]);
 
 
   const createCard = () => {
     if (!card) {
       const newCard = generateCardDetails();
       setCard(newCard);
-      setTransactions([initialCreditTransaction(newCard.balance)]);
-      toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée." });
+      setTransactions([]); // Start with no transactions
+      toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée. N'oubliez pas de l'approvisionner." });
     }
   };
 
@@ -118,9 +118,20 @@ export const VirtualCardProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteCard = () => {
+    if(card && card.balance > 0) {
+        creditMain(card.balance); // Refund remaining balance
+        addTransaction({
+            type: 'received',
+            counterparty: 'Carte Virtuelle',
+            reason: 'Remboursement Solde Final',
+            date: new Date().toISOString(),
+            amount: card.balance,
+            status: 'Terminé',
+        });
+    }
     setCard(null);
     setTransactions([]);
-    toast({ title: "Carte supprimée", description: "Votre carte virtuelle a été supprimée.", variant: "destructive" });
+    toast({ title: "Carte supprimée", description: "Votre carte virtuelle a été supprimée et le solde restant a été transféré à votre solde principal.", variant: "destructive" });
   };
   
   const rechargeCard = (amount: number) => {

@@ -45,39 +45,43 @@ const initialTontines: Tontine[] = [
 
 type TontineProviderProps = {
     children: ReactNode;
+    alias: string;
 };
 
-export const TontineProvider = ({ children }: TontineProviderProps) => {
+export const TontineProvider = ({ children, alias }: TontineProviderProps) => {
   const [tontines, setTontines] = useState<Tontine[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const storageKey = `paytik_tontines_${alias}`;
+
   useEffect(() => {
     try {
-      const storedTontines = localStorage.getItem('paytik_tontines');
+      const storedTontines = localStorage.getItem(storageKey);
       if (storedTontines) {
         setTontines(JSON.parse(storedTontines));
       } else {
-        setTontines(initialTontines);
+        // New user starts with no tontines
+        setTontines([]);
       }
     } catch (error) {
         console.error("Failed to parse tontines from localStorage", error);
-        setTontines(initialTontines);
+        setTontines([]);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem('paytik_tontines', JSON.stringify(tontines));
+        localStorage.setItem(storageKey, JSON.stringify(tontines));
     }
-  }, [tontines, isInitialized]);
+  }, [tontines, isInitialized, storageKey]);
 
   const addTontine = (tontine: Omit<Tontine, 'id' | 'progress' | 'isMyTurn'>) => {
     const newTontine: Tontine = { 
         ...tontine, 
         id: `tontine-${Date.now()}`,
-        progress: 0, // A new tontine starts with 0 progress
-        isMyTurn: false // Not the user's turn initially
+        progress: 0, 
+        isMyTurn: false 
     };
     setTontines(prevTontines => [...prevTontines, newTontine]);
   };

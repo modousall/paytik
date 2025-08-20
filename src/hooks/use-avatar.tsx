@@ -10,32 +10,39 @@ type AvatarContextType = {
 
 const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
 
-export const AvatarProvider = ({ children }: { children: ReactNode }) => {
+export const AvatarProvider = ({ children, alias }: { children: ReactNode, alias: string }) => {
   const [avatar, setAvatarState] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const storageKey = `paytik_avatar_${alias}`;
+
   useEffect(() => {
     try {
-      const storedAvatar = localStorage.getItem('paytik_avatar');
+      const storedAvatar = localStorage.getItem(storageKey);
       if (storedAvatar) {
         setAvatarState(storedAvatar);
+      } else {
+        setAvatarState(null); // Reset for new user
       }
     } catch (error) {
         console.error("Failed to read avatar from localStorage", error);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
-    if (isInitialized && avatar) {
-        localStorage.setItem('paytik_avatar', avatar);
+    if (isInitialized) {
+        if (avatar) {
+            localStorage.setItem(storageKey, avatar);
+        } else {
+            localStorage.removeItem(storageKey);
+        }
     }
-  }, [avatar, isInitialized]);
+  }, [avatar, isInitialized, storageKey]);
 
   const setAvatar = (avatarDataUrl: string) => {
     setAvatarState(avatarDataUrl);
-    // Also save to local storage immediately
-    localStorage.setItem('paytik_avatar', avatarDataUrl);
+    localStorage.setItem(storageKey, avatarDataUrl);
   };
 
   return (

@@ -53,32 +53,36 @@ const initialTransactions: Transaction[] = [
 
 type TransactionsProviderProps = {
     children: ReactNode;
+    alias: string;
 };
 
-export const TransactionsProvider = ({ children }: TransactionsProviderProps) => {
+export const TransactionsProvider = ({ children, alias }: TransactionsProviderProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   
+  const storageKey = `paytik_transactions_${alias}`;
+
   useEffect(() => {
     try {
-      const storedTransactions = localStorage.getItem('paytik_transactions');
+      const storedTransactions = localStorage.getItem(storageKey);
       if (storedTransactions) {
         setTransactions(JSON.parse(storedTransactions));
       } else {
-        setTransactions(initialTransactions);
+        // New user starts with no transactions
+        setTransactions([]);
       }
     } catch (error) {
         console.error("Failed to parse transactions from localStorage", error);
-        setTransactions(initialTransactions);
+        setTransactions([]);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if(isInitialized) {
-        localStorage.setItem('paytik_transactions', JSON.stringify(transactions));
+        localStorage.setItem(storageKey, JSON.stringify(transactions));
     }
-  }, [transactions, isInitialized]);
+  }, [transactions, isInitialized, storageKey]);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction = {
@@ -93,7 +97,6 @@ export const TransactionsProvider = ({ children }: TransactionsProviderProps) =>
         const txToReverse = prevTransactions.find(tx => tx.id === transactionId);
         if (!txToReverse) return prevTransactions;
 
-        // Create the reversal transaction
         const reversalTransaction: Omit<Transaction, 'id'> = {
             type: txToReverse.type === 'sent' ? 'received' : 'sent',
             counterparty: txToReverse.counterparty,
@@ -108,7 +111,6 @@ export const TransactionsProvider = ({ children }: TransactionsProviderProps) =>
             id: `RTN${Math.floor(Math.random() * 900000) + 100000}`
         };
 
-        // Update the status of the original transaction
         const updatedTransactions = prevTransactions.map(tx => 
             tx.id === transactionId ? { ...tx, status: 'Retourné' as const } : tx
         );

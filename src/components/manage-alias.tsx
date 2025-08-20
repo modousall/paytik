@@ -39,25 +39,38 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
             title: "Compte supprimé",
             description: "Votre compte a été supprimé avec succès.",
         });
-        // Clear all user data from local storage
-        localStorage.removeItem('paytik_onboarded');
-        localStorage.removeItem('paytik_alias');
-        localStorage.removeItem('paytik_username');
-        localStorage.removeItem('paytik_useremail');
-        localStorage.removeItem('paytik_pincode');
+        // Clear all data for this specific user from local storage
+        localStorage.removeItem(`paytik_user_${alias}`);
+        localStorage.removeItem(`paytik_onboarded_${alias}`);
+        localStorage.removeItem(`paytik_avatar_${alias}`);
+        localStorage.removeItem(`paytik_balance_${alias}`);
+        localStorage.removeItem(`paytik_transactions_${alias}`);
+        localStorage.removeItem(`paytik_contacts_${alias}`);
+        localStorage.removeItem(`paytik_virtual_card_${alias}`);
+        localStorage.removeItem(`paytik_virtual_card_txs_${alias}`);
+        localStorage.removeItem(`paytik_tontines_${alias}`);
+        localStorage.removeItem(`paytik_vaults_${alias}`);
+
+        // If this was the last logged in user, clear that too
+        if (localStorage.getItem('paytik_last_alias') === alias) {
+            localStorage.removeItem('paytik_last_alias');
+        }
+        
         onLogout(); // This will reset the app state and nav to demo
         setIsDeleting(false);
     }, 1500);
   };
   
   const handleSaveAlias = () => {
-      // Here you would normally make an API call to update the alias.
-      // For this demo, we'll just update localStorage.
-      localStorage.setItem('paytik_alias', currentAlias);
+      // In a real app, this is very complex. You'd need to migrate all data
+      // from the old alias key to the new one. For this prototype, we will
+      // disallow changing the alias.
       toast({
-          title: "Alias mis à jour !",
-          description: `Votre nouvel alias est ${currentAlias}.`,
+          title: "Fonctionnalité non disponible",
+          description: "La modification de l'alias n'est pas autorisée dans ce prototype.",
+          variant: "destructive",
       });
+      setCurrentAlias(alias); // Reset to original alias
       setIsEditing(false);
   }
 

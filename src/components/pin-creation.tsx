@@ -37,8 +37,8 @@ export default function PinCreation({ onPinCreated }: PinCreationProps) {
             return;
         }
         toast({
-            title: "Code PIN créé !",
-            description: "Votre compte est maintenant sécurisé.",
+            title: "Compte créé et sécurisé !",
+            description: "Votre compte est maintenant prêt à être utilisé.",
         });
         onPinCreated(pin);
     };

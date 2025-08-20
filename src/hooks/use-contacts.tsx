@@ -25,37 +25,44 @@ const initialContacts: Contact[] = [
 
 type ContactsProviderProps = {
     children: ReactNode;
+    alias: string;
 };
 
-export const ContactsProvider = ({ children }: ContactsProviderProps) => {
+export const ContactsProvider = ({ children, alias }: ContactsProviderProps) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const storageKey = `paytik_contacts_${alias}`;
+
   useEffect(() => {
     try {
-      const storedContacts = localStorage.getItem('paytik_contacts');
+      const storedContacts = localStorage.getItem(storageKey);
       if (storedContacts) {
         setContacts(JSON.parse(storedContacts));
       } else {
-        setContacts(initialContacts);
+        // Set initial contacts only for a specific demo user if needed, or start empty
+        if (alias === 'demouser') { // Example logic
+            setContacts(initialContacts);
+        } else {
+            setContacts([]);
+        }
       }
     } catch (error) {
         console.error("Failed to parse contacts from localStorage", error);
-        setContacts(initialContacts);
+        setContacts([]);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey, alias]);
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem('paytik_contacts', JSON.stringify(contacts));
+        localStorage.setItem(storageKey, JSON.stringify(contacts));
     }
-  }, [contacts, isInitialized]);
+  }, [contacts, isInitialized, storageKey]);
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
     const isDuplicate = contacts.some(c => c.name === contact.name || c.alias === contact.alias);
     if(isDuplicate) {
-        // In a real app, you would show a toast notification here
         console.warn("Attempted to add a duplicate contact.");
         return;
     }

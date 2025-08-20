@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import OnboardingDemo from '@/components/onboarding-demo';
 import AliasCreation from '@/components/alias-creation';
 import Dashboard from '@/components/dashboard';
@@ -11,6 +11,13 @@ import KYCForm from '@/components/kyc-form';
 import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 
+import { TransactionsProvider } from '@/hooks/use-transactions';
+import { ContactsProvider } from '@/hooks/use-contacts';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { TontineProvider } from '@/hooks/use-tontine';
+import { VaultsProvider } from '@/hooks/use-vaults';
+import { BalanceProvider } from '@/hooks/use-balance';
+import { AvatarProvider } from '@/hooks/use-avatar';
 
 type UserInfo = {
   name: string;
@@ -19,6 +26,28 @@ type UserInfo = {
 
 type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard';
 
+
+// This new component will wrap all providers and ensure they are initialized
+// with the correct user alias.
+const AppProviders = ({ alias, children }: { alias: string; children: ReactNode }) => {
+    return (
+        <AvatarProvider alias={alias}>
+            <BalanceProvider alias={alias}>
+              <TransactionsProvider alias={alias}>
+                <ContactsProvider alias={alias}>
+                  <VirtualCardProvider alias={alias}>
+                    <TontineProvider alias={alias}>
+                      <VaultsProvider alias={alias}>
+                        {children}
+                      </VaultsProvider>
+                    </TontineProvider>
+                  </VirtualCardProvider>
+                </ContactsProvider>
+              </TransactionsProvider>
+            </BalanceProvider>
+        </AvatarProvider>
+    )
+}
 
 export default function Home() {
   const [step, setStep] = useState<AppStep>('demo');
@@ -29,18 +58,12 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    const onboarded = localStorage.getItem('paytik_onboarded') === 'true';
-    const userAlias = localStorage.getItem('paytik_alias');
-    const userName = localStorage.getItem('paytik_username');
-    const userEmail = localStorage.getItem('paytik_useremail');
-    const pinExists = !!localStorage.getItem('paytik_pincode');
-
-    if (onboarded && userAlias && userName && userEmail && pinExists) {
-      setAlias(userAlias);
-      setUserInfo({name: userName, email: userEmail});
-      // Skip login for already onboarded users for demo purposes
-      // In a real app you'd always show the login form
-      setStep('dashboard'); 
+    // For demo purposes, we can check if there was a last logged in user
+    // In a real app, this logic would be different.
+    const lastAlias = localStorage.getItem('paytik_last_alias');
+    if (lastAlias) {
+        // If there was a last user, prompt for login
+        setStep('login');
     }
   }, []);
 
@@ -50,14 +73,19 @@ export default function Home() {
   };
 
   const handlePinCreated = (pin: string) => {
-    localStorage.setItem('paytik_onboarded', 'true');
-    if (alias) localStorage.setItem('paytik_alias', alias);
-    if (userInfo) {
-        localStorage.setItem('paytik_username', userInfo.name);
-        localStorage.setItem('paytik_useremail', userInfo.email);
+    if (alias && userInfo) {
+        // Store user data scoped by their alias
+        localStorage.setItem(`paytik_user_${alias}`, JSON.stringify({
+            name: userInfo.name,
+            email: userInfo.email,
+            pincode: pin
+        }));
+        // For convenience, we can also store that this user has fully onboarded
+        localStorage.setItem(`paytik_onboarded_${alias}`, 'true');
+        // Set this alias as the last one used
+        localStorage.setItem('paytik_last_alias', alias);
+        setStep('dashboard');
     }
-    localStorage.setItem('paytik_pincode', pin);
-    setStep('dashboard');
   }
   
   const handleOnboardingStart = () => {
@@ -78,34 +106,26 @@ export default function Home() {
   };
 
   const handleLogin = (loginAlias: string, pin: string) => {
-    const storedAlias = localStorage.getItem('paytik_alias');
-    const storedPin = localStorage.getItem('paytik_pincode');
-    const storedName = localStorage.getItem('paytik_username');
-    const storedEmail = localStorage.getItem('paytik_useremail');
+    const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
   
-    if (loginAlias === storedAlias && pin === storedPin) {
-      if (storedName && storedEmail) {
-        setAlias(loginAlias);
-        setUserInfo({ name: storedName, email: storedEmail });
-        setStep('dashboard');
-        toast({
-          title: `Bienvenue, ${storedName} !`,
-          description: "Connexion réussie.",
-        });
-      } else {
-        // This case should not happen in normal flow, but it's a good safeguard
-        toast({
-          title: "Erreur de compte",
-          description: "Les informations de votre compte sont incomplètes. Veuillez vous réinscrire.",
-          variant: "destructive",
-        });
-      }
-    } else if (loginAlias === storedAlias && pin !== storedPin) {
-        toast({
-            title: "Code PIN incorrect",
-            description: "Le code PIN que vous avez saisi est incorrect. Veuillez réessayer.",
-            variant: "destructive",
-        });
+    if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        if (userData.pincode === pin) {
+            setAlias(loginAlias);
+            setUserInfo({ name: userData.name, email: userData.email });
+            localStorage.setItem('paytik_last_alias', loginAlias);
+            setStep('dashboard');
+            toast({
+              title: `Bienvenue, ${userData.name} !`,
+              description: "Connexion réussie.",
+            });
+        } else {
+             toast({
+                title: "Code PIN incorrect",
+                description: "Le code PIN que vous avez saisi est incorrect. Veuillez réessayer.",
+                variant: "destructive",
+            });
+        }
     } else {
       toast({
         title: "Alias non trouvé",
@@ -116,14 +136,13 @@ export default function Home() {
   }
 
   const logout = () => {
-    // We don't clear localStorage here so the user can log back in.
-    // In a real app, you might want to clear it depending on security requirements.
+    // We don't clear localStorage for all users, just reset the state
     setAlias(null);
     setUserInfo(null); 
     setStep('demo');
   }
 
-  const renderStep = () => {
+  const renderContent = () => {
     switch (step) {
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
@@ -138,7 +157,15 @@ export default function Home() {
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'dashboard':
-        return <Dashboard alias={alias!} userInfo={userInfo!} onLogout={logout} />;
+        if (!alias || !userInfo) {
+             // Should not happen, but as a safeguard
+            return <LoginForm onLogin={handleLogin} onBack={() => setStep('demo')} />;
+        }
+        return (
+            <AppProviders alias={alias}>
+                <Dashboard alias={alias} userInfo={userInfo} onLogout={logout} />
+            </AppProviders>
+        );
       default:
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
@@ -148,5 +175,5 @@ export default function Home() {
     return null;
   }
 
-  return <main className="bg-background min-h-screen">{renderStep()}</main>;
+  return <main className="bg-background min-h-screen">{renderContent()}</main>;
 }

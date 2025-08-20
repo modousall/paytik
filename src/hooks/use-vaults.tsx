@@ -30,32 +30,36 @@ const initialVaults: Vault[] = [
 
 type VaultsProviderProps = {
     children: ReactNode;
+    alias: string;
 };
 
-export const VaultsProvider = ({ children }: VaultsProviderProps) => {
+export const VaultsProvider = ({ children, alias }: VaultsProviderProps) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const storageKey = `paytik_vaults_${alias}`;
+
   useEffect(() => {
     try {
-      const storedVaults = localStorage.getItem('paytik_vaults');
+      const storedVaults = localStorage.getItem(storageKey);
       if (storedVaults) {
         setVaults(JSON.parse(storedVaults));
       } else {
-        setVaults(initialVaults);
+        // New user starts with no vaults
+        setVaults([]);
       }
     } catch (error) {
         console.error("Failed to parse vaults from localStorage", error);
-        setVaults(initialVaults);
+        setVaults([]);
     }
     setIsInitialized(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem('paytik_vaults', JSON.stringify(vaults));
+        localStorage.setItem(storageKey, JSON.stringify(vaults));
     }
-  }, [vaults, isInitialized]);
+  }, [vaults, isInitialized, storageKey]);
 
   const addVault = (vault: Omit<Vault, 'id'>) => {
     const newVault: Vault = { 
