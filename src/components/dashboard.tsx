@@ -11,6 +11,7 @@ import Vaults from './vaults';
 import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
+import RechargerCompte from './recharger-compte';
 
 type UserInfo = {
     name: string;
@@ -24,7 +25,7 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile';
-type ActiveAction = 'none' | 'payer';
+type ActiveAction = 'none' | 'payer' | 'recharger';
 type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
@@ -86,12 +87,16 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if (activeAction === 'payer') {
             return <PayerTransferer onBack={() => setActiveAction('none')} />
         }
+        if (activeAction === 'recharger') {
+            return <RechargerCompte onBack={() => setActiveAction('none')} />
+        }
         
         return (
             <div className="space-y-8">
                 <DashboardHeader userInfo={userInfo} alias={alias} onProfileClick={() => onNavigateTo('profile')} />
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
+                    onRechargeClick={() => setActiveAction('recharger')}
                     alias={alias}
                     userInfo={userInfo}
                 />

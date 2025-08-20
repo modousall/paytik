@@ -11,7 +11,7 @@ type BalanceContextType = {
 
 const BalanceContext = createContext<BalanceContextType | undefined>(undefined);
 
-const initialBalance = 22017800;
+const initialBalance = 0;
 
 type BalanceProviderProps = {
     children: ReactNode;
@@ -25,12 +25,14 @@ export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
   const storageKey = `paytik_balance_${alias}`;
 
   useEffect(() => {
+    if (!alias) return;
+
     try {
       const storedBalance = localStorage.getItem(storageKey);
       if (storedBalance !== null) {
         setBalance(JSON.parse(storedBalance));
       } else {
-        // Set initial balance for a new user
+        // Set initial balance only for a new user
         setBalance(initialBalance);
         localStorage.setItem(storageKey, JSON.stringify(initialBalance));
       }
@@ -39,13 +41,13 @@ export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
         setBalance(initialBalance);
     }
     setIsInitialized(true);
-  }, [storageKey]);
+  }, [storageKey, alias]);
 
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && alias) {
         localStorage.setItem(storageKey, JSON.stringify(balance));
     }
-  }, [balance, isInitialized, storageKey]);
+  }, [balance, isInitialized, storageKey, alias]);
 
   const credit = (amount: number) => {
     setBalance(prevBalance => prevBalance + amount);
