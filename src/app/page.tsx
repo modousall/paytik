@@ -70,6 +70,16 @@ export default function AuthenticationGate() {
         const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
         if(userDataString) {
             const userData = JSON.parse(userDataString);
+            if(userData.isSuspended){
+                toast({
+                    title: "Compte Suspendu",
+                    description: "Votre compte a été suspendu. Veuillez contacter le support.",
+                    variant: "destructive",
+                });
+                localStorage.removeItem('paytik_last_alias');
+                setStep('demo');
+                return;
+            }
             setUserInfo({ name: userData.name, email: userData.email });
             setAlias(lastAlias);
             setStep('dashboard');
@@ -182,6 +192,16 @@ export default function AuthenticationGate() {
   
     if (userDataString) {
         const userData = JSON.parse(userDataString);
+
+        if (userData.isSuspended) {
+            toast({
+                title: "Compte Suspendu",
+                description: "Votre compte a été suspendu par un administrateur. Veuillez contacter le support.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
             setUserInfo({ name: userData.name, email: userData.email });

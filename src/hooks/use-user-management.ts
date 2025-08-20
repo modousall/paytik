@@ -100,5 +100,20 @@ export const useUserManagement = () => {
     }
   };
 
-  return { users, usersWithTransactions, toggleUserSuspension, refreshUsers: loadUsers };
+  const resetUserPin = (alias: string, newPin: string) => {
+    const userKey = `paytik_user_${alias}`;
+    const userDataString = localStorage.getItem(userKey);
+    if (userDataString) {
+        try {
+            const userData = JSON.parse(userDataString);
+            userData.pincode = newPin;
+            localStorage.setItem(userKey, JSON.stringify(userData));
+            loadUsers();
+        } catch(e) {
+             console.error(`Failed to reset PIN for user ${alias}`, e);
+        }
+    }
+  }
+
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, refreshUsers: loadUsers };
 };
