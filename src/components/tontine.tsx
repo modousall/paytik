@@ -54,13 +54,13 @@ export default function Tontine({ onBack }: TontineProps) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div className="flex items-center gap-4">
-            <Button onClick={onBack} variant="ghost" size="icon" className="self-start">
-                <ArrowLeft />
-            </Button>
-            <div>
-                <h2 className="text-2xl font-bold text-primary">Mes Tontines / Tirelires</h2>
-                <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
-            </div>
+          <Button onClick={onBack} variant="ghost" size="icon">
+            <ArrowLeft />
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold text-primary">Mes Tontines / Tirelires</h2>
+            <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
+          </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>

@@ -3,8 +3,8 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank } from "lucide-react";
-import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X } from "lucide-react";
+import type { ManagedUserWithDetails } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -14,16 +14,22 @@ import { useUserManagement } from "@/hooks/use-user-management";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
-import { TransactionsContext } from '@/hooks/use-transactions';
-import { VaultsProvider } from '@/hooks/use-vaults';
-import { TontineProvider } from '@/hooks/use-tontine';
-import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
+import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { TransactionsProvider } from '@/hooks/use-transactions';
-import { AvatarProvider } from '@/hooks/use-avatar';
 import { ContactsProvider } from '@/hooks/use-contacts';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { VaultsProvider } from '@/hooks/use-vaults';
+import { TontineProvider } from '@/hooks/use-tontine';
 import { Switch } from './ui/switch';
-import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
+import type { Feature } from '@/hooks/use-feature-flags';
+
+// Import product components
+import Vaults from './vaults';
+import Tontine from './tontine';
+import VirtualCard from './virtual-card';
+
 
 const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
     const [newPin, setNewPin] = useState("");
@@ -77,10 +83,9 @@ const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClo
     )
 }
 
-// This is a special wrapper to use the real hooks but initialized for a specific user.
-const UserServiceProvider = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
+const UserServiceProvider = ({ alias, initialFlags, children }: { alias: string, initialFlags?: any, children: React.ReactNode }) => {
     return (
-        <FeatureFlagProvider alias={alias}>
+        <FeatureFlagProvider alias={alias} initialFlags={initialFlags}>
             <AvatarProvider alias={alias}>
                 <BalanceProvider alias={alias}>
                     <TransactionsProvider alias={alias}>
@@ -100,8 +105,11 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
     )
 };
 
-const SummaryCard = ({ title, balance, icon, color }: { title: string, balance: number, icon: JSX.Element, color: string }) => (
-    <Card className={`text-white shadow-lg p-3 flex flex-col justify-between bg-gradient-to-br ${color} border-none`}>
+const SummaryCard = ({ title, balance, icon, color, onClick }: { title: string, balance: number, icon: JSX.Element, color: string, onClick?: () => void }) => (
+    <Card 
+      className={`text-white shadow-lg p-3 flex flex-col justify-between bg-gradient-to-br ${color} border-none ${onClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+      onClick={onClick}
+    >
         <div className="flex justify-between items-start">
             <p className="font-semibold text-sm">{title}</p>
             {icon}
@@ -113,10 +121,20 @@ const SummaryCard = ({ title, balance, icon, color }: { title: string, balance: 
     </Card>
 );
 
+const featureDetails: Record<Feature, { name: string; icon: JSX.Element; description: string }> = {
+    virtualCards: { name: 'Cartes Virtuelles', icon: <CreditCard />, description: "Activer la création et l'utilisation de cartes de paiement virtuelles." },
+    tontine: { name: 'Tontines', icon: <TontineIcon />, description: "Permettre la création et la participation à des groupes d'épargne." },
+    bnpl: { name: 'Payer Plus Tard (BNPL)', icon: <Clock />, description: "Donner accès aux options de paiement échelonné chez les marchands." },
+};
+
+type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine';
+
+
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
-    const { toggleUserSuspension } = useUserManagement();
+    const { toggleUserSuspension, updateUserFlags } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
+    const [activeServiceView, setActiveServiceView] = useState<ActiveServiceView>('transactions');
     
     const todaysRevenue = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -142,9 +160,37 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         });
         onUpdate(); 
     }
+    
+    const handleFlagChange = (flag: Feature, enabled: boolean) => {
+        const newFlags = { ...user.featureFlags, [flag]: enabled };
+        updateUserFlags(user.alias, newFlags);
+        toast({
+            title: `Service mis à jour`,
+            description: `Le service "${featureDetails[flag].name}" est maintenant ${enabled ? 'activé' : 'désactivé'} pour ${user.name}.`
+        });
+        onUpdate();
+    }
+    
+    const userFlags = user.featureFlags || defaultFlags;
+
+    const renderServiceView = () => {
+        switch (activeServiceView) {
+            case 'transactions':
+                return <TransactionHistory showAll={true} onShowAll={() => {}} />;
+            case 'ma-carte':
+                return <VirtualCard onBack={() => setActiveServiceView('transactions')} />;
+            case 'coffres':
+                return <Vaults onBack={() => setActiveServiceView('transactions')} />;
+            case 'tontine':
+                return <Tontine onBack={() => setActiveServiceView('transactions')} />;
+            default:
+                return <TransactionHistory showAll={true} onShowAll={() => {}} />;
+        }
+    }
+
 
     return (
-         <UserServiceProvider alias={user.alias}>
+         <UserServiceProvider alias={user.alias} initialFlags={user.featureFlags}>
             <div className="space-y-6">
                 <div className="flex items-center gap-4">
                     <Button onClick={onBack} variant="outline" size="icon">
@@ -212,20 +258,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                 </CardContent>
                             </Card>
                         )}
-
-                        {user.role === 'user' && (
-                             <Card>
-                                <CardHeader><CardTitle>Aperçu des soldes</CardTitle></CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-3">
-                                    <SummaryCard title="Solde Principal" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-primary to-blue-400" />
-                                    <SummaryCard title="Carte Virtuelle" balance={virtualCardBalance} icon={<CreditCard className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" />
-                                    <SummaryCard title="Mes Coffres" balance={totalVaultsBalance} icon={<PiggyBank className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" />
-                                    <SummaryCard title="Mes Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" />
-                                </CardContent>
-                            </Card>
-                        )}
                         
-
                         <Card>
                             <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
                             <CardContent className="grid grid-cols-2 gap-2">
@@ -243,14 +276,59 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                 </Button>
                             </CardContent>
                         </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Activation des Services</CardTitle>
+                                <CardDescription>Activez ou désactivez des services spécifiques pour cet utilisateur.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {(Object.keys(userFlags) as Feature[]).map((key) => (
+                                    <div key={key} className="flex items-center justify-between rounded-lg border p-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-primary/10 rounded-full">{featureDetails[key].icon}</div>
+                                             <Label htmlFor={`switch-${key}`} className="font-medium cursor-pointer">{featureDetails[key].name}</Label>
+                                        </div>
+                                        <Switch
+                                            id={`switch-${key}`}
+                                            checked={userFlags[key]}
+                                            onCheckedChange={(checked) => handleFlagChange(key, checked)}
+                                            disabled={user.role === 'superadmin'}
+                                        />
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <div className="lg:col-span-2 space-y-6">
+                        {user.role === 'user' && (
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <SummaryCard title="Solde Principal" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-primary to-blue-400" onClick={() => setActiveServiceView('transactions')} />
+                                <SummaryCard title="Carte Virtuelle" balance={virtualCardBalance} icon={<CreditCard className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" onClick={() => setActiveServiceView('ma-carte')} />
+                                <SummaryCard title="Mes Coffres" balance={totalVaultsBalance} icon={<PiggyBank className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" onClick={() => setActiveServiceView('coffres')} />
+                                <SummaryCard title="Mes Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" onClick={() => setActiveServiceView('tontine')}/>
+                            </div>
+                        )}
                         <Card>
-                                <CardHeader><CardTitle>Historique des transactions de l'utilisateur</CardTitle></CardHeader>
-                                <CardContent>
-                                    <TransactionHistory showAll={true} onShowAll={() => {}} />
-                                </CardContent>
+                            <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <CardTitle>
+                                        {activeServiceView === 'transactions' && "Historique des transactions"}
+                                        {activeServiceView === 'ma-carte' && "Gestion de la Carte Virtuelle"}
+                                        {activeServiceView === 'coffres' && "Gestion des Coffres"}
+                                        {activeServiceView === 'tontine' && "Gestion des Tontines"}
+                                    </CardTitle>
+                                    {activeServiceView !== 'transactions' && (
+                                        <Button variant="ghost" size="icon" onClick={() => setActiveServiceView('transactions')}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {renderServiceView()}
+                            </CardContent>
                         </Card>
                     </div>
                 </div>
