@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -63,6 +63,12 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
                     <AvatarFallback className="bg-red-100 text-red-600"><ArrowUp /></AvatarFallback>
                 </Avatar>
             );
+        case 'versement':
+             return (
+                <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-orange-100 text-orange-600"><Landmark /></AvatarFallback>
+                </Avatar>
+            );
         case 'received':
             return (
                  <Avatar className="h-10 w-10">
@@ -98,7 +104,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
         });
     }
 
-    const canBeReversed = transaction.type !== 'tontine' && transaction.status !== 'Retourné';
+    const canBeReversed = transaction.type !== 'tontine' && transaction.status !== 'Retourné' && transaction.type !== 'versement';
 
     return (
         <DialogContent>
@@ -112,7 +118,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                 <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Montant</span>
                     <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'sent' ? '-' : '+'}
+                        {transaction.type === 'sent' || transaction.type === 'versement' ? '-' : '+'}
                         {transaction.amount.toLocaleString()} Fcfa
                     </span>
                 </div>
@@ -224,6 +230,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                     <DropdownMenuRadioItem value="received">Reçues</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="card_recharge">Recharges Carte</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="tontine">Tontine</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="versement">Versements</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -246,7 +253,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                         </div>
                                         <div className="text-right">
                                             <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
-                                                {tx.type === 'sent' ? '-' : '+'}
+                                                {tx.type === 'sent' || tx.type === 'versement' ? '-' : '+'}
                                                 {tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
                                             </div>
                                             {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={`${tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''} text-xs`}>{tx.status}</Badge>}

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2 } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -152,6 +152,99 @@ const RequestPaymentDialog = ({ alias, userInfo }: { alias: string, userInfo: Us
     )
 }
 
+const PayoutDialog = () => {
+    const { balance, debit } = useBalance();
+    const { addTransaction } = useTransactions();
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const payoutSchema = z.object({
+        amount: z.coerce.number().positive("Le montant doit être positif.").max(balance, "Le solde est insuffisant."),
+        iban: z.string().min(14, "L'IBAN est invalide.").regex(/^SN/, "L'IBAN doit commencer par SN."),
+    });
+    type PayoutValues = z.infer<typeof payoutSchema>;
+
+     const form = useForm<PayoutValues>({
+        resolver: zodResolver(payoutSchema),
+        defaultValues: { amount: undefined, iban: "" },
+    });
+
+    const onSubmit = (values: PayoutValues) => {
+        debit(values.amount);
+        addTransaction({
+            type: 'versement',
+            counterparty: `Banque via IBAN ****${values.iban.slice(-4)}`,
+            reason: "Versement des fonds",
+            date: new Date().toISOString(),
+            amount: values.amount,
+            status: "En attente"
+        });
+        toast({
+            title: "Demande de versement initiée",
+            description: `Votre demande de versement de ${values.amount.toLocaleString()} Fcfa a été envoyée.`
+        });
+        setIsSubmitted(true);
+    };
+
+    if (isSubmitted) {
+        return (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Demande de versement enregistrée</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 text-center">
+                    <p>Votre demande a été prise en compte et sera traitée dans les plus brefs délais.</p>
+                </div>
+                 <div className="flex justify-end gap-2">
+                    <DialogClose asChild><Button>Fermer</Button></DialogClose>
+                </div>
+            </DialogContent>
+        )
+    }
+
+    return (
+         <DialogContent>
+             <DialogHeader>
+                <DialogTitle>Demander un versement bancaire</DialogTitle>
+                <DialogDescription>Transférez les fonds de votre compte marchand vers votre compte bancaire.</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField
+                        control={form.control}
+                        name="amount"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Montant (Fcfa)</FormLabel>
+                                <FormControl><Input type="number" placeholder="ex: 50000" {...field} /></FormControl>
+                                <FormMessage />
+                                <p className="text-xs text-muted-foreground">Solde disponible: {balance.toLocaleString()} Fcfa</p>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="iban"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>IBAN du compte bancaire</FormLabel>
+                                <FormControl><Input placeholder="SN00 XXXX XXXX XXXX XXXX XXX" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <div className="flex justify-end gap-2 pt-4">
+                        <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                        <Button type="submit" disabled={form.formState.isSubmitting}>
+                            {form.formState.isSubmitting && <Loader2 className="animate-spin mr-2"/>}
+                            Confirmer le versement
+                        </Button>
+                    </div>
+                </form>
+            </Form>
+        </DialogContent>
+    )
+}
+
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [showAllTransactions, setShowAllTransactions] = useState(false);
   
@@ -192,9 +285,14 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                         </DialogTrigger>
                                         <RequestPaymentDialog alias={alias} userInfo={userInfo} />
                                      </Dialog>
-                                    <Button size="lg" variant="secondary" onClick={() => handlePlaceholderClick("Versements bancaires")}>
-                                        <Landmark/> Versements
-                                    </Button>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" variant="secondary">
+                                                <Landmark/> Versements
+                                            </Button>
+                                        </DialogTrigger>
+                                        <PayoutDialog />
+                                     </Dialog>
                                 </div>
                             </CardContent>
                         </Card>
@@ -204,8 +302,8 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                         <KPIs />
                         <Card>
                             <CardHeader>
-                                <CardTitle>Historique des Encaissements</CardTitle>
-                                <CardDescription>Liste de toutes les transactions reçues.</CardDescription>
+                                <CardTitle>Historique des Transactions</CardTitle>
+                                <CardDescription>Liste de toutes les transactions sur votre compte marchand.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <TransactionHistory showAll={true} onShowAll={() => {}} />
