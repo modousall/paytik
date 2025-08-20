@@ -96,14 +96,17 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     setActiveService(null);
              }
         }
-        if (activeAction === 'payer') {
-            return <PayerTransferer onBack={() => setActiveAction('none')} />
-        }
-        if (activeAction === 'recharger') {
-            return <RechargerCompte onBack={() => setActiveAction('none')} />
-        }
-        if (activeAction === 'retirer') {
-            return <PICASH onBack={() => setActiveAction('none')} />
+        if (activeAction !== 'none') {
+             switch (activeAction) {
+                case 'payer':
+                    return <PayerTransferer onBack={() => setActiveAction('none')} />
+                case 'recharger':
+                    return <RechargerCompte onBack={() => setActiveAction('none')} />
+                case 'retirer':
+                    return <PICASH onBack={() => setActiveAction('none')} />
+                default:
+                    setActiveAction('none');
+            }
         }
         
         const isPrivilegedUser = ['admin', 'superadmin', 'support'].includes(userInfo.role);

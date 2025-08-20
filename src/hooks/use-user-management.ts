@@ -8,8 +8,6 @@ import type { Tontine } from './use-tontine';
 import type { CardDetails, CardTransaction } from './use-virtual-card';
 import { defaultFlags, type FeatureFlags } from './use-feature-flags';
 
-export type Feature = keyof FeatureFlags;
-
 export type ManagedUser = {
   name: string;
   email: string;
@@ -18,7 +16,7 @@ export type ManagedUser = {
   avatar: string | null;
   isSuspended: boolean;
   role?: string;
-  featureFlags: FeatureFlags;
+  featureFlags?: FeatureFlags;
 };
 
 // Exporting Transaction type to be used in other components
@@ -90,7 +88,7 @@ export const useUserManagement = () => {
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
               role: userData.role || 'user',
-              featureFlags: userData.featureFlags || defaultFlags, // Load feature flags or use defaults
+              featureFlags: userData.featureFlags, // Load feature flags
             };
 
             loadedUsersWithTx.push({ ...managedUser, transactions });
@@ -145,12 +143,6 @@ export const useUserManagement = () => {
     });
   };
 
-  const updateUserFlags = (alias: string, flags: FeatureFlags) => {
-     updateUserProperty(alias, userData => {
-        userData.featureFlags = flags;
-    });
-  };
-
   const addUser = (payload: NewUserPayload): { success: boolean, message: string } => {
     const userKey = `paytik_user_${payload.alias}`;
     if (localStorage.getItem(userKey)) {
@@ -178,5 +170,5 @@ export const useUserManagement = () => {
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
-  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserFlags, refreshUsers: loadUsers };
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, refreshUsers: loadUsers };
 };

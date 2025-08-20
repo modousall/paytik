@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
 import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase } from "lucide-react";
-import type { ManagedUserWithDetails, Transaction, Feature } from "@/hooks/use-user-management";
+import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
@@ -25,25 +25,7 @@ import { ContactsProvider } from '@/hooks/use-contacts';
 import { Switch } from './ui/switch';
 import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
 
-const featureDetails: Record<Feature, { name: string; description: string; icon: JSX.Element }> = {
-    virtualCards: {
-        name: "Cartes Virtuelles",
-        description: "Permet de créer et gérer des cartes de paiement virtuelles.",
-        icon: <CreditCard className="text-primary" />
-    },
-    tontine: {
-        name: "Tontines / Cagnottes",
-        description: "Permet de créer et participer à des groupes d'épargne.",
-        icon: <TontineIcon className="text-primary" />
-    },
-    bnpl: {
-        name: "BNPL",
-        description: "Permet de faire des demandes de paiement échelonné.",
-        icon: <Clock className="text-primary" />
-    }
-};
-
-const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDetails, onClose: () => void, onUpdate: () => void }) => {
+const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
     const [newPin, setNewPin] = useState("");
     const { resetUserPin } = useUserManagement();
     const { toast } = useToast();
@@ -62,7 +44,6 @@ const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDeta
             title: "Code PIN réinitialisé",
             description: `Le code PIN pour ${user.name} a été mis à jour.`
         });
-        onUpdate();
         onClose();
     }
     
@@ -97,9 +78,9 @@ const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDeta
 }
 
 // This is a special wrapper to use the real hooks but initialized for a specific user.
-const UserServiceProvider = ({ alias, children, flags }: { alias: string, children: React.ReactNode, flags: ManagedUserWithDetails['featureFlags'] }) => {
+const UserServiceProvider = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
     return (
-        <FeatureFlagProvider initialFlags={flags} alias={alias}>
+        <FeatureFlagProvider alias={alias}>
             <AvatarProvider alias={alias}>
                 <BalanceProvider alias={alias}>
                     <TransactionsProvider alias={alias}>
@@ -119,8 +100,8 @@ const UserServiceProvider = ({ alias, children, flags }: { alias: string, childr
     )
 };
 
-export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
-    const { toggleUserSuspension, updateUserFlags } = useUserManagement();
+export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWithDetails, onBack: () => void }) {
+    const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
     
@@ -144,18 +125,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         });
         onBack(); // Go back to the list to see the updated status
     }
-
-    const handleFlagToggle = (flag: Feature) => {
-        const newFlags = { ...user.featureFlags, [flag]: !user.featureFlags[flag] };
-        updateUserFlags(user.alias, newFlags);
-        onUpdate(); // Refresh the parent view to get the updated user object
-        toast({
-            title: "Permissions mises à jour",
-            description: `Le service "${featureDetails[flag].name}" est maintenant ${newFlags[flag] ? 'activé' : 'désactivé'} pour ${user.name}.`
-        })
-    }
-
-    const userFeatureFlags = user.featureFlags || defaultFlags;
 
     return (
         <div className="space-y-6">
@@ -235,7 +204,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                         <KeyRound className="mr-2"/> Réinitialiser PIN
                                     </Button>
                                 </DialogTrigger>
-                                {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)} onUpdate={onUpdate} />}
+                                {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)} />}
                             </Dialog>
                             <Button variant="destructive" onClick={handleToggleSuspension} disabled={user.role === 'superadmin'}>
                                 {user.isSuspended ? <UserCheck className="mr-2"/> : <UserX className="mr-2"/>}
@@ -246,37 +215,13 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                 </div>
 
                 <div className="lg:col-span-2 space-y-6">
-                    <UserServiceProvider alias={user.alias} flags={userFeatureFlags}>
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Activation des Services</CardTitle>
-                                <CardDescription>Gérez les fonctionnalités accessibles pour cet utilisateur.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {(Object.keys(userFeatureFlags) as Feature[]).map((key) => (
-                                        <div key={key} className="flex items-start justify-between rounded-lg border p-4">
-                                            <div className="flex items-start gap-4">
-                                                <div className="p-3 bg-primary/10 rounded-full">{featureDetails[key].icon}</div>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor={`feature-${key}`} className="text-base font-medium">
-                                                        {featureDetails[key].name}
-                                                    </Label>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {featureDetails[key].description}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Switch
-                                                id={`feature-${key}`}
-                                                checked={userFeatureFlags[key]}
-                                                onCheckedChange={() => handleFlagToggle(key)}
-                                                disabled={user.role === 'superadmin'}
-                                            />
-                                        </div>
-                                ))}
-                            </CardContent>
+                    <UserServiceProvider alias={user.alias}>
+                        <Card>
+                             <CardHeader><CardTitle>Historique des transactions de l'utilisateur</CardTitle></CardHeader>
+                             <CardContent>
+                                <TransactionHistory showAll={true} onShowAll={() => {}} />
+                             </CardContent>
                         </Card>
-                        <TransactionHistory showAll={true} onShowAll={() => {}} />
                     </UserServiceProvider>
                 </div>
             </div>
