@@ -1,6 +1,7 @@
 
 "use client";
 
+import React from 'react';
 import { Button } from "./ui/button";
 import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
