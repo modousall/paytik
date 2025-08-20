@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X, Edit, HandCoins } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X, Edit, HandCoins, Check } from "lucide-react";
 import type { ManagedUserWithDetails } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -24,7 +24,10 @@ import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useBnpl, BnplProvider } from '@/hooks/use-bnpl';
-
+import type { BnplRequest, BnplStatus } from '@/lib/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 // Import product components
 import Vaults from './vaults';
@@ -172,7 +175,52 @@ const SummaryCard = ({ title, balance, icon, color, onClick, isCurrency = true }
     </Card>
 );
 
-type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine';
+type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine' | 'credit-details';
+
+const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
+const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
+const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: JSX.Element }> = {
+    'review': { text: "En attente", badgeVariant: "outline", icon: <Clock className="h-4 w-4" /> },
+    'approved': { text: "Approuvée", badgeVariant: "default", icon: <Check className="h-4 w-4" /> },
+    'rejected': { text: "Rejetée", badgeVariant: "destructive", icon: <X className="h-4 w-4" /> },
+};
+
+
+const MerchantCreditDetails = ({ requests }: { requests: BnplRequest[] }) => (
+     <Card>
+        <CardHeader>
+            <CardTitle>Détail du Crédit en Cours</CardTitle>
+            <CardDescription>Liste des crédits accordés aux clients par ce marchand.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Montant</TableHead>
+                        <TableHead>Statut</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                {requests.map(req => (
+                    <TableRow key={req.id}>
+                        <TableCell>{formatDate(req.requestDate)}</TableCell>
+                        <TableCell>{req.alias}</TableCell>
+                        <TableCell>{formatCurrency(req.amount)}</TableCell>
+                        <TableCell>
+                             <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
+                                {statusConfig[req.status].icon} {statusConfig[req.status].text}
+                            </Badge>
+                        </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            {requests.length === 0 && <p className="text-center p-4 text-muted-foreground">Aucun crédit en cours pour ce marchand.</p>}
+        </CardContent>
+    </Card>
+)
 
 
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
@@ -181,6 +229,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
     const [activeServiceView, setActiveServiceView] = useState<ActiveServiceView>('transactions');
+    const transactionHistoryRef = useRef<HTMLDivElement>(null);
     
     const todaysRevenue = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -196,11 +245,14 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
     
     const { allRequests } = useBnpl();
     
-    const merchantCreditBalance = useMemo(() => {
-        // This is the total outstanding amount that customers owe to THIS merchant.
+    const merchantCreditToCustomers = useMemo(() => {
         return allRequests
             .filter(req => req.merchantAlias === user.alias && req.status === 'approved')
             .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
+    }, [allRequests, user.alias]);
+    
+    const merchantPendingCredits = useMemo(() => {
+        return allRequests.filter(req => req.merchantAlias === user.alias);
     }, [allRequests, user.alias]);
 
 
@@ -217,6 +269,11 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         onUpdate(); 
     }
     
+    const handleScrollToTransactions = () => {
+        setActiveServiceView('transactions');
+        transactionHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    
     const renderServiceView = () => {
         switch (activeServiceView) {
             case 'transactions':
@@ -227,6 +284,8 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                 return <Vaults onBack={() => setActiveServiceView('transactions')} />;
             case 'tontine':
                 return <Tontine onBack={() => setActiveServiceView('transactions')} />;
+            case 'credit-details':
+                return <MerchantCreditDetails requests={merchantPendingCredits} />
             default:
                 return <TransactionHistory showAll={true} onShowAll={() => {}} />;
         }
@@ -321,13 +380,13 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                         )}
                         {user.role === 'merchant' && (
                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                <SummaryCard title="Chiffre d'Affaires (jour)" balance={todaysRevenue} icon={<TrendingUp className="h-5 w-5 text-white" />} color="from-primary to-blue-400" />
-                                <SummaryCard title="Transactions (jour)" balance={todaysTransactionsCount} icon={<Briefcase className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" isCurrency={false} />
-                                <SummaryCard title="Solde Marchand" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" />
-                                <SummaryCard title="Crédit en Cours" balance={merchantCreditBalance} icon={<HandCoins className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" />
+                                <SummaryCard title="Chiffre d'Affaires (jour)" balance={todaysRevenue} icon={<TrendingUp className="h-5 w-5 text-white" />} color="from-primary to-blue-400" onClick={handleScrollToTransactions} />
+                                <SummaryCard title="Transactions (jour)" balance={todaysTransactionsCount} icon={<Briefcase className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" isCurrency={false} onClick={handleScrollToTransactions} />
+                                <SummaryCard title="Solde Marchand" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" onClick={handleScrollToTransactions} />
+                                <SummaryCard title="Crédit en Cours" balance={merchantCreditToCustomers} icon={<HandCoins className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" onClick={() => setActiveServiceView('credit-details')} />
                             </div>
                         )}
-                        <Card>
+                        <Card ref={transactionHistoryRef}>
                             <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle>
@@ -335,6 +394,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                         {activeServiceView === 'ma-carte' && "Gestion de la Carte Virtuelle"}
                                         {activeServiceView === 'coffres' && "Gestion des Coffres"}
                                         {activeServiceView === 'tontine' && "Gestion des Tontines"}
+                                        {activeServiceView === 'credit-details' && `Crédits Marchands pour ${user.name}`}
                                     </CardTitle>
                                     {activeServiceView !== 'transactions' && (
                                         <Button variant="ghost" size="icon" onClick={() => setActiveServiceView('transactions')}>
@@ -353,5 +413,9 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
+
+    
+
+    
 
     
