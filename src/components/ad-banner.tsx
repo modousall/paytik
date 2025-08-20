@@ -4,7 +4,7 @@
 import * as React from "react"
 import Autoplay from "embla-carousel-autoplay"
 
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -99,7 +99,8 @@ export default function AdBanner() {
               <Card className="overflow-hidden border-none shadow-lg relative group">
                  <Button 
                     variant="ghost" 
-                    size="icon" 
+                    size="icon"
+                    type="button" 
                     className="absolute top-1 right-1 z-20 h-6 w-6 rounded-full bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => handleDismiss(ad.id, e)}
                  >
@@ -112,7 +113,7 @@ export default function AdBanner() {
                         <p className="text-xs md:text-sm opacity-90">{ad.description}</p>
                         <Button variant="secondary" size="sm" className="mt-2 text-xs">{ad.cta}</Button>
                     </div>
-                    <div className="h-32 sm:h-40 relative order-1 sm:order-2">
+                    <div className="h-32 sm:h-full relative order-1 sm:order-2">
                         {ad.type === 'image' ? (
                             <Image 
                                 src={ad.mediaSrc} 

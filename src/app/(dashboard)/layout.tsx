@@ -15,7 +15,8 @@ import {
     useSidebar,
     SidebarInset,
     SidebarTrigger, 
-    SidebarRail
+    SidebarRail,
+    SidebarProvider
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -168,18 +169,20 @@ export default function DashboardLayout({
   }
 
   return (
-    <AppProviders alias={alias}>
-        <Sidebar collapsible="icon" side="left" variant="sidebar">
-            <SidebarContentComponent userInfo={userInfo} onLogoutClick={handleLogout} />
-        </Sidebar>
-        <SidebarInset>
-            <div className="flex items-center justify-between border-b p-2">
-                 <SidebarTrigger />
-                 {/* Can add a global search or other header items here */}
-            </div>
-            {children}
-        </SidebarInset>
-        <SidebarRail />
-    </AppProviders>
+    <SidebarProvider>
+        <AppProviders alias={alias}>
+            <Sidebar collapsible="icon" side="left" variant="sidebar">
+                <SidebarContentComponent userInfo={userInfo} onLogoutClick={handleLogout} />
+            </Sidebar>
+            <SidebarInset>
+                <div className="flex items-center justify-between border-b p-2">
+                    <SidebarTrigger />
+                    {/* Can add a global search or other header items here */}
+                </div>
+                {children}
+            </SidebarInset>
+            <SidebarRail />
+        </AppProviders>
+    </SidebarProvider>
   );
 }
