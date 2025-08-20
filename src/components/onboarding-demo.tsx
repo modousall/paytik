@@ -117,9 +117,6 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
             Créer un compte
           </Button>
         </div>
-        <div className="mt-4 text-center">
-             <p className="text-xs text-muted-foreground">Utilisateurs de démo / admin se connectent via "Se connecter".</p>
-        </div>
       </div>
     </div>
   );
