@@ -28,6 +28,8 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
+    // This effect now only runs once to check if a session already exists.
+    // It avoids complex logic that was causing issues.
     const onboarded = localStorage.getItem('paytik_onboarded') === 'true';
     const userAlias = localStorage.getItem('paytik_alias');
     const userName = localStorage.getItem('paytik_username');
@@ -69,11 +71,14 @@ export default function Home() {
   };
 
   const handleLogin = (loginAlias: string) => {
+    // This is the definitive fix. We read directly from localStorage, the source of truth.
     const storedAlias = localStorage.getItem('paytik_alias');
     const storedName = localStorage.getItem('paytik_username');
     const storedEmail = localStorage.getItem('paytik_useremail');
   
+    // We check if the entered alias matches the stored one, AND that user info exists.
     if (loginAlias === storedAlias && storedName && storedEmail) {
+      // If successful, we populate the state with ALL the stored information.
       setAlias(loginAlias);
       setUserInfo({ name: storedName, email: storedEmail });
       setStep('dashboard');
@@ -82,6 +87,7 @@ export default function Home() {
         description: "Connexion réussie.",
       });
     } else {
+      // If the alias doesn't match or user info is missing, we show an error.
       toast({
         title: "Alias non trouvé",
         description: "Cet alias n'existe pas. Veuillez vérifier l'alias ou créer un nouveau compte.",
