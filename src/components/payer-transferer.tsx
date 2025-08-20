@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import PaymentForm from './payment-form';
 import SplitBill from './split-bill';
 import BillPaymentForm from './bill-payment-form';
