@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState } from 'react';
@@ -24,23 +25,21 @@ type PayerTransfererProps = {
     onBack: () => void;
 }
 
-const ActionCard = ({ title, description, icon, onClick, color }: { title: string, description: string, icon: JSX.Element, onClick: () => void, color: string }) => (
+const FeatureCard = ({ title, description, icon, onClick, colorClass }: { title: string, description: string, icon: JSX.Element, onClick: () => void, colorClass: string }) => (
     <Card 
         onClick={onClick}
-        className={cn(
-            "text-white shadow-lg p-4 flex flex-col justify-between border-none cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out",
-            color
-        )}
+        className="w-full cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5"
     >
-        <div className="flex justify-between items-start">
-             <div className="p-2 bg-white/20 rounded-lg">
-                {icon}
+        <CardContent className="p-4 flex items-center gap-4">
+            <div className={cn("p-3 rounded-full", colorClass)}>
+                {React.cloneElement(icon, { className: "h-6 w-6 text-white"})}
             </div>
-        </div>
-        <div className="mt-4">
-            <p className="font-bold text-lg">{title}</p>
-            <p className="text-xs opacity-90">{description}</p>
-        </div>
+            <div className="flex-grow">
+                <p className="font-semibold">{title}</p>
+                <p className="text-sm text-muted-foreground">{description}</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </CardContent>
     </Card>
 );
 
@@ -50,10 +49,10 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
     const { flags } = useFeatureFlags();
 
     const menuItems = [
-        { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un contact ou un QR code.", icon: <ArrowUp className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-500 to-cyan-400" },
-        { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt className="h-6 w-6"/>, color: "bg-gradient-to-br from-green-500 to-emerald-400" },
-        { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users className="h-6 w-6"/>, color: "bg-gradient-to-br from-purple-500 to-violet-400" },
-        { id: 'merchants', title: "Services Marchands", description: "PICO, BNPL et plus.", icon: <ShoppingCart className="h-6 w-6"/>, color: "bg-gradient-to-br from-amber-500 to-yellow-400" },
+        { id: 'send', title: "Envoyer de l'argent", description: "Alias, contact ou QR code.", icon: <ArrowUp />, colorClass: "bg-blue-500" },
+        { id: 'bills', title: "Payer une facture", description: "SENELEC, SDE, etc.", icon: <Receipt />, colorClass: "bg-green-500" },
+        { id: 'split', title: "Partager une dépense", description: "Divisez avec des contacts.", icon: <Users />, colorClass: "bg-purple-500" },
+        { id: 'merchants', title: "Services Marchands", description: "PICO, Crédit Marchands...", icon: <ShoppingCart />, colorClass: "bg-amber-500" },
     ];
     
     if (merchantService) {
@@ -104,20 +103,20 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
-            <div className='grid grid-cols-2 gap-4'>
-                <ActionCard 
+            <div className='space-y-3'>
+                <FeatureCard 
                     {...menuItems[0]}
                     onClick={() => setState('send')}
                 />
-                <ActionCard 
+                <FeatureCard 
                     {...menuItems[1]}
                     onClick={() => setState('bills')}
                 />
                 
                 <Dialog>
                     <DialogTrigger asChild>
-                        <div className="cursor-pointer">
-                            <ActionCard 
+                        <div>
+                            <FeatureCard 
                                 {...menuItems[2]}
                                 onClick={() => {}} // onClick is handled by DialogTrigger
                             />
@@ -131,7 +130,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                     </DialogContent>
                 </Dialog>
 
-                <ActionCard 
+                <FeatureCard 
                     {...menuItems[3]}
                     onClick={() => setState('merchants')}
                 />
