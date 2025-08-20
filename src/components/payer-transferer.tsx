@@ -93,7 +93,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 {menuItems.map(item => (
                     <Card 
                         key={item.id} 

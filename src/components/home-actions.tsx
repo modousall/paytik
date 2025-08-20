@@ -26,7 +26,7 @@ type HomeActionsProps = {
 
 export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
     return (
-        <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-8 max-w-lg mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-8 max-w-lg mx-auto">
              <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="lg" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1">

@@ -14,9 +14,11 @@ import {
 } from "@/components/ui/carousel"
 import Image from "next/image"
 import { Button } from "./ui/button"
+import { X } from "lucide-react"
 
-const ads = [
+const initialAds = [
     {
+        id: 1,
         image: "https://placehold.co/800x400.png",
         imageHint: "woman smiling",
         title: "Transférez sans frais vers l'international",
@@ -25,6 +27,7 @@ const ads = [
         color: "from-blue-500 to-indigo-600"
     },
     {
+        id: 2,
         image: "https://placehold.co/800x400.png",
         imageHint: "delivery service",
         title: "Payez vos livraisons en un clic",
@@ -33,6 +36,7 @@ const ads = [
         color: "from-amber-500 to-orange-600"
     },
     {
+        id: 3,
         image: "https://placehold.co/800x400.png",
         imageHint: "mobile phone",
         title: "Besoin de crédit téléphonique ?",
@@ -43,9 +47,19 @@ const ads = [
 ]
 
 export default function AdBanner() {
+  const [ads, setAds] = React.useState(initialAds);
   const plugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   )
+
+  const handleDismiss = (id: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent carousel interaction
+    setAds(currentAds => currentAds.filter(ad => ad.id !== id));
+  }
+
+  if (ads.length === 0) {
+    return null; // Don't render the carousel if there are no ads
+  }
 
   return (
     <Carousel
@@ -55,17 +69,26 @@ export default function AdBanner() {
       onMouseLeave={plugin.current.reset}
     >
       <CarouselContent>
-        {ads.map((ad, index) => (
-          <CarouselItem key={index}>
+        {ads.map((ad) => (
+          <CarouselItem key={ad.id}>
             <div className="p-1">
-              <Card className="overflow-hidden border-none shadow-lg">
-                <CardContent className={`flex flex-col md:flex-row items-center p-0 ${ad.color} text-white`}>
-                    <div className="w-full md:w-1/2 p-6 md:p-8 space-y-3">
-                        <h3 className="text-xl md:text-2xl font-bold leading-tight">{ad.title}</h3>
-                        <p className="text-sm md:text-base opacity-90">{ad.description}</p>
-                        <Button variant="secondary" className="mt-2">{ad.cta}</Button>
+              <Card className="overflow-hidden border-none shadow-lg relative group">
+                 <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-1 right-1 z-10 h-6 w-6 rounded-full bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleDismiss(ad.id, e)}
+                 >
+                     <X size={14}/>
+                     <span className="sr-only">Fermer</span>
+                 </Button>
+                <CardContent className={`flex flex-col sm:flex-row items-center p-0 ${ad.color} text-white`}>
+                    <div className="w-full sm:w-1/2 p-4 md:p-6 space-y-2">
+                        <h3 className="text-lg md:text-xl font-bold leading-tight">{ad.title}</h3>
+                        <p className="text-xs md:text-sm opacity-90">{ad.description}</p>
+                        <Button variant="secondary" size="sm" className="mt-2 text-xs">{ad.cta}</Button>
                     </div>
-                    <div className="w-full md:w-1/2 h-48 md:h-full relative">
+                    <div className="w-full sm:w-1/2 h-32 sm:h-40 relative">
                         <Image 
                             src={ad.image} 
                             alt={ad.title} 
@@ -73,7 +96,7 @@ export default function AdBanner() {
                             objectFit="cover"
                             data-ai-hint={ad.imageHint}
                         />
-                         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/50 to-transparent"></div>
+                         <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-black/40 to-transparent"></div>
                     </div>
                 </CardContent>
               </Card>
@@ -81,8 +104,8 @@ export default function AdBanner() {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="hidden sm:flex left-4" />
-      <CarouselNext className="hidden sm:flex right-4" />
+      <CarouselPrevious className="hidden sm:flex left-2" />
+      <CarouselNext className="hidden sm:flex right-2" />
     </Carousel>
   )
 }
