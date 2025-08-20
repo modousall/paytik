@@ -7,9 +7,10 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { CreditCard, Users, Clock, PiggyBank, Wallet } from 'lucide-react';
+import { CreditCard, Users, Clock, PiggyBank, Wallet, ArrowLeft } from 'lucide-react';
 import AdminFeatureDetail from './admin-feature-detail';
 import AdminBnplManagement from './admin-bnpl-management';
+import { Button } from './ui/button';
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
@@ -44,6 +45,7 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
 export default function AdminFeatureManagement() {
   const { flags, setFlag } = useFeatureFlags();
   const { users } = useUserManagement();
+  const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'bnplManagement'>('overview');
   const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | null>(null);
 
   const kpis = useMemo(() => {
@@ -67,8 +69,22 @@ export default function AdminFeatureManagement() {
     { featureKey: 'tontine', title: "Tontines", value: formatCurrency(kpis.tontine), icon: <Users/>, description: "Permettre la création et la participation à des groupes d'épargne." },
   ]
 
-  if(selectedFeature) {
-      return <AdminFeatureDetail feature={selectedFeature} onBack={() => setSelectedFeature(null)} />
+  const handleFeatureClick = (feature: Feature | 'mainBalance' | 'vaults') => {
+      setSelectedFeature(feature);
+      setActiveView('featureDetail');
+  }
+
+  const handleBackToOverview = () => {
+      setActiveView('overview');
+      setSelectedFeature(null);
+  }
+
+  if(activeView === 'featureDetail' && selectedFeature) {
+      return <AdminFeatureDetail feature={selectedFeature} onBack={handleBackToOverview} />
+  }
+
+  if (activeView === 'bnplManagement') {
+      return <AdminBnplManagement />
   }
 
   return (
@@ -77,7 +93,7 @@ export default function AdminFeatureManagement() {
         <CardHeader>
           <CardTitle>Gestion des Services</CardTitle>
           <CardDescription>
-            Activez ou désactivez les fonctionnalités, visualisez leur utilisation et gérez les demandes de crédit.
+            Activez ou désactivez les fonctionnalités et cliquez sur une carte pour gérer le service correspondant.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -95,21 +111,21 @@ export default function AdminFeatureManagement() {
                     isEnabled={flags[featureKey]}
                     onToggle={setFlag}
                     featureKey={featureKey}
-                    onClick={() => setSelectedFeature(product.featureKey as any)}
+                    onClick={() => handleFeatureClick(product.featureKey as any)}
                 />
             )
         })}
-         {/* BNPL specific card without click-to-detail */}
-        <Card className="flex flex-col">
+
+        <Card className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('bnplManagement')}>
             <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
                 <div className="p-3 bg-primary/10 rounded-full text-primary"><Clock /></div>
                 <CardTitle className="text-lg font-semibold">Credit Marchands</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
-                 <p className="text-sm text-muted-foreground">Donner accès aux options de paiement échelonné.</p>
+                 <p className="text-sm text-muted-foreground">Gérer les demandes de paiement échelonné et activer ou désactiver la fonctionnalité.</p>
             </CardContent>
             <CardFooter className="flex-col items-start gap-4 border-t pt-4">
-                 <div className="flex items-center space-x-2">
+                 <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                     <Switch
                         id="bnpl-switch"
                         checked={flags.bnpl}
@@ -121,8 +137,6 @@ export default function AdminFeatureManagement() {
             </CardFooter>
         </Card>
       </div>
-
-      <AdminBnplManagement />
     </div>
   );
 }
