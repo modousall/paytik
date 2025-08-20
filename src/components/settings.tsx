@@ -17,6 +17,7 @@ type SettingsProps = {
     alias: string;
     onBack: () => void;
     onLogout: () => void;
+    onNavigate: (view: 'merchants') => void;
 };
 
 type SettingItemProps = {
@@ -163,7 +164,7 @@ const LimitsDialog = () => {
     )
 }
 
-export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
+export default function Settings({ alias, onBack, onLogout, onNavigate }: SettingsProps) {
     const { toast } = useToast();
     
     const handleLogout = () => {
@@ -186,7 +187,7 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     const supportSettings = [
         { icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
         { icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond", asChild: true },
-        { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité" },
+        { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité", onClick: () => onNavigate('merchants') },
     ];
     
     const securitySettings = [

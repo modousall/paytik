@@ -21,7 +21,7 @@ type ProfileProps = {
   alias: string;
   onLogout: () => void;
   onBack: () => void;
-  onNavigate: (view: 'settings') => void;
+  onNavigate: (view: 'settings' | 'merchants') => void;
 };
 
 export default function Profile({ userInfo, alias, onLogout, onBack, onNavigate }: ProfileProps) {

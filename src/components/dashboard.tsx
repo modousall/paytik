@@ -19,6 +19,7 @@ import { LayoutDashboard } from 'lucide-react';
 import AdminDashboard from './admin-dashboard';
 import MerchantDashboard from './merchant-dashboard';
 import Settings from './settings';
+import MerchantList from './merchant-list';
 
 type UserInfo = {
     name: string;
@@ -32,7 +33,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type View = 'dashboard' | 'profile' | 'backoffice' | 'settings';
+type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
 type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
@@ -79,7 +80,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} onBack={() => onNavigateTo('dashboard')} onNavigate={onNavigateTo} />;
         }
         if (view === 'settings') {
-            return <Settings alias={alias} onBack={() => onNavigateTo('profile')} onLogout={onLogout} />;
+            return <Settings alias={alias} onBack={() => onNavigateTo('profile')} onLogout={onLogout} onNavigate={onNavigateTo} />;
+        }
+        if (view === 'merchants') {
+            return <MerchantList onBack={() => onNavigateTo('settings')} />;
         }
         if(view === 'backoffice') {
             return renderBackoffice();
