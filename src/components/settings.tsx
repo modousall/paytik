@@ -3,14 +3,15 @@
 
 import React from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket, Copy } from "lucide-react";
+import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "./ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
+import { Card } from "./ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import ChangePinForm from './change-pin-form';
 import ConnectedDevices from './connected-devices';
-import { Input } from './ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import InviteFriendDialog from './invite-friend-dialog';
+import PromoCodeDialog from './promo-code-dialog';
+import LimitsDialog from './limits-dialog';
 
 
 type SettingsProps = {
@@ -25,142 +26,18 @@ type SettingItemProps = {
     text: string;
     onClick?: () => void;
     isDestructive?: boolean;
-    asChild?: boolean;
-    children?: React.ReactNode;
 }
 
-const SettingItem = ({ icon, text, onClick, isDestructive = false, asChild = false, children }: SettingItemProps) => {
-    const { toast } = useToast();
-    const Component = asChild ? "div" : "button";
-
-    const handleClick = onClick || (() => {
-        toast({
-            title: "Fonctionnalité à venir",
-            description: `L'option "${text}" sera bientôt disponible.`,
-        })
-    });
-    
+const SettingItem = ({ icon, text, onClick, isDestructive = false }: SettingItemProps) => {
     return (
-        <Component
-            onClick={asChild ? undefined : handleClick}
-            className={`w-full flex items-center p-4 text-left ${isDestructive ? 'text-destructive' : 'text-foreground'} ${asChild ? '' : 'cursor-pointer'}`}
+        <button
+            onClick={onClick}
+            className={`w-full flex items-center p-4 text-left ${isDestructive ? 'text-destructive' : 'text-foreground'}`}
         >
             {icon}
             <span className="flex-grow">{text}</span>
-            {children ? children : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-        </Component>
-    )
-}
-
-const InviteFriendDialog = ({ alias }: { alias: string}) => {
-    const { toast } = useToast();
-    const referralCode = `PAYTIK-${alias.substring(0, 4).toUpperCase()}${new Date().getFullYear()}`;
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(referralCode);
-        toast({ title: "Copié !", description: "Votre code de parrainage a été copié." });
-    };
-    
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Rejoignez PAYTIK !',
-                text: `Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`,
-                url: window.location.href,
-            }).catch((error) => console.log('Erreur de partage', error));
-        } else {
-             toast({ title: "Partage simulé", description: "Le message de parrainage a été copié dans votre presse-papiers." });
-             navigator.clipboard.writeText(`Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`);
-        }
-    }
-    
-    return (
-         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Invitez un ami et soyez récompensé</DialogTitle>
-                <DialogDescription>
-                    Partagez votre code unique. Votre ami recevra un bonus de bienvenue et vous recevrez une récompense après sa première transaction !
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4 text-center">
-                <p className="text-sm text-muted-foreground">Votre code de parrainage</p>
-                <div className="bg-muted p-3 rounded-lg w-fit mx-auto">
-                    <p className="text-2xl font-bold tracking-widest">{referralCode}</p>
-                </div>
-                 <div className="flex justify-center gap-2 pt-4">
-                    <Button variant="outline" onClick={handleCopy}><Copy className="mr-2"/> Copier</Button>
-                    <Button onClick={handleShare}><Share2 className="mr-2"/> Partager</Button>
-                </div>
-            </div>
-        </DialogContent>
-    )
-}
-
-const PromoCodeDialog = () => {
-    const { toast } = useToast();
-    const [code, setCode] = React.useState('');
-
-    const applyCode = () => {
-        if(!code) return;
-        toast({
-            title: "Code appliqué !",
-            description: "Votre bonus de bienvenue a été crédité sur votre compte."
-        });
-    }
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Utiliser un code promotionnel</DialogTitle>
-                <DialogDescription>
-                    Saisissez votre code promo ci-dessous pour l'appliquer à votre compte.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center space-x-2 py-4">
-                <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="ex: PAYTIK2024" />
-                <DialogClose asChild>
-                    <Button type="submit" onClick={applyCode} disabled={!code}>Appliquer</Button>
-                </DialogClose>
-            </div>
-        </DialogContent>
-    )
-}
-
-const LimitsDialog = () => {
-    const limits = [
-        { name: "Plafond du solde total", value: "5 000 000 Fcfa" },
-        { name: "Plafond par transaction", value: "2 000 000 Fcfa" },
-        { name: "Plafond de transactions journalier", value: "5 000 000 Fcfa" },
-        { name: "Plafond carte virtuelle", value: "2 000 000 Fcfa" },
-    ]
-    return (
-         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Vos Plafonds de Compte</DialogTitle>
-                <DialogDescription>
-                   Ces limites sont définies pour votre sécurité. Contactez le support pour toute question.
-                </DialogDescription>
-            </DialogHeader>
-            <Card>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Type de Plafond</TableHead>
-                                <TableHead className="text-right">Limite</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {limits.map(limit => (
-                                <TableRow key={limit.name}>
-                                    <TableCell>{limit.name}</TableCell>
-                                    <TableCell className="text-right font-medium">{limit.value}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </DialogContent>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </button>
     )
 }
 
@@ -223,7 +100,11 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                     <React.Fragment key={item.id}>
                        <Dialog>
                             <DialogTrigger asChild>
-                               <SettingItem icon={item.icon} text={item.text} asChild />
+                               <button className="w-full flex items-center p-4 text-left text-foreground">
+                                    {item.icon}
+                                    <span className="flex-grow">{item.text}</span>
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                </button>
                            </DialogTrigger>
                            {item.content}
                        </Dialog>
@@ -241,7 +122,11 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                          ) : (
                              <Dialog>
                                 <DialogTrigger asChild>
-                                    <SettingItem icon={item.icon} text={item.text} asChild />
+                                     <button className="w-full flex items-center p-4 text-left text-foreground">
+                                        {item.icon}
+                                        <span className="flex-grow">{item.text}</span>
+                                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                    </button>
                                 </DialogTrigger>
                                 {item.content}
                              </Dialog>
@@ -257,7 +142,11 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                     <React.Fragment key={item.id}>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <SettingItem icon={item.icon} text={item.text} asChild />
+                                 <button className="w-full flex items-center p-4 text-left text-foreground">
+                                    {item.icon}
+                                    <span className="flex-grow">{item.text}</span>
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                </button>
                             </DialogTrigger>
                            {item.content}
                         </Dialog>
