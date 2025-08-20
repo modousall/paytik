@@ -22,6 +22,7 @@ import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
 import { ProductProvider } from '@/hooks/use-product-management';
+import { RoleProvider } from '@/hooks/use-role-management';
 
 type UserInfo = {
   name: string;
@@ -55,19 +56,21 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
     return (
         <ProductProvider addSettlementTransaction={addTransaction}>
             <FeatureFlagProvider>
-                <AvatarProvider alias={alias}>
-                    <BalanceProvider alias={alias}>
-                        <ContactsProvider alias={alias}>
-                        <VirtualCardProvider alias={alias}>
-                            <VaultsProvider alias={alias}>
-                            <TontineProvider alias={alias}>
-                                {children}
-                            </TontineProvider>
-                            </VaultsProvider>
-                        </VirtualCardProvider>
-                        </ContactsProvider>
-                    </BalanceProvider>
-                </AvatarProvider>
+                <RoleProvider>
+                    <AvatarProvider alias={alias}>
+                        <BalanceProvider alias={alias}>
+                            <ContactsProvider alias={alias}>
+                            <VirtualCardProvider alias={alias}>
+                                <VaultsProvider alias={alias}>
+                                <TontineProvider alias={alias}>
+                                    {children}
+                                </TontineProvider>
+                                </VaultsProvider>
+                            </VirtualCardProvider>
+                            </ContactsProvider>
+                        </BalanceProvider>
+                    </AvatarProvider>
+                </RoleProvider>
             </FeatureFlagProvider>
       </ProductProvider>
     )
@@ -299,5 +302,3 @@ export default function AuthenticationGate() {
 
   return <main className="bg-background min-h-screen">{renderContent()}</main>;
 }
-
-    
