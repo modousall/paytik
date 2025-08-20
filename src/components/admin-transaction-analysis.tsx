@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useUserManagement, type ManagedUserWithTransactions, type Transaction } from '@/hooks/use-user-management';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
@@ -12,11 +12,14 @@ import { fr } from 'date-fns/locale';
 import { useProductManagement } from '@/hooks/use-product-management';
 import { Button } from './ui/button';
 import { Download } from 'lucide-react';
+import type { ProductWithBalance } from './admin-product-management';
+import AdminProductDetail from './admin-product-detail';
 
 export default function AdminTransactionAnalysis() {
   const { usersWithTransactions } = useUserManagement();
   const { billers, mobileMoneyOperators } = useProductManagement();
   const allProducts = useMemo(() => [...billers, ...mobileMoneyOperators], [billers, mobileMoneyOperators]);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithBalance | null>(null);
 
   const { kpis, chartData, recentTransactions, productPerformance, allTransactions } = useMemo(() => {
     const allTxs: Transaction[] = usersWithTransactions.flatMap(u => u.transactions);
@@ -51,16 +54,16 @@ export default function AdminTransactionAnalysis() {
         .slice(0, 10);
     
     // Calculate product performance
-    const productStats = new Map<string, { volume: number; count: number; commissions: number }>();
-
+    const productStats = new Map<string, { product: ProductWithBalance; volume: number; count: number; commissions: number }>();
+    
     allProducts.forEach(p => {
-        productStats.set(p.name, { volume: 0, count: 0, commissions: 0 });
+        productStats.set(p.name, { product: p as ProductWithBalance, volume: 0, count: 0, commissions: 0 });
     });
     
     allTxs.forEach(tx => {
         const product = allProducts.find(p => p.name === tx.counterparty || tx.reason.includes(p.name));
         if (product) {
-            const stats = productStats.get(product.name) ?? { volume: 0, count: 0, commissions: 0 };
+            const stats = productStats.get(product.name) ?? { product: product as ProductWithBalance, volume: 0, count: 0, commissions: 0 };
             stats.volume += tx.amount;
             stats.count += 1;
             stats.commissions += product.commission || 0;
@@ -68,8 +71,7 @@ export default function AdminTransactionAnalysis() {
         }
     });
 
-    const productPerformance = Array.from(productStats.entries())
-        .map(([name, stats]) => ({ name, ...stats }))
+    const productPerformance = Array.from(productStats.values())
         .sort((a,b) => b.volume - a.volume);
         
     return {
@@ -110,6 +112,10 @@ export default function AdminTransactionAnalysis() {
   }
 
   const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
+
+  if (selectedProduct) {
+      return <AdminProductDetail product={selectedProduct} allTransactions={allTransactions} onBack={() => setSelectedProduct(null)} />
+  }
   
   return (
     <div className="space-y-6">
@@ -172,7 +178,7 @@ export default function AdminTransactionAnalysis() {
       <Card>
         <CardHeader>
           <CardTitle>Performance des Produits</CardTitle>
-          <CardDescription>Analyse des transactions par produit ou service.</CardDescription>
+          <CardDescription>Analyse des transactions par produit ou service. Cliquez sur une ligne pour voir les détails.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -186,8 +192,8 @@ export default function AdminTransactionAnalysis() {
             </TableHeader>
             <TableBody>
               {productPerformance.map(p => (
-                <TableRow key={p.name}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
+                <TableRow key={p.product.name} onClick={() => setSelectedProduct(p.product)} className="cursor-pointer">
+                    <TableCell className="font-medium">{p.product.name}</TableCell>
                     <TableCell>{p.count}</TableCell>
                     <TableCell className="text-right">{formatCurrency(p.volume)}</TableCell>
                     <TableCell className="text-right text-green-600 font-medium">{formatCurrency(p.commissions)}</TableCell>
