@@ -23,7 +23,7 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { useBnpl } from '@/hooks/use-bnpl';
+import { useBnpl, BnplProvider } from '@/hooks/use-bnpl';
 
 
 // Import product components
@@ -352,3 +352,5 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
+
+    
