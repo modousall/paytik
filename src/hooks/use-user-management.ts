@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Transaction as UserTransaction } from './use-transactions';
 import type { Vault } from './use-vaults';
 import type { Tontine } from './use-tontine';
-import type { CardDetails } from './use-virtual-card';
+import type { CardDetails, CardTransaction } from './use-virtual-card';
 
 export type ManagedUser = {
   name: string;
@@ -27,7 +27,7 @@ export type ManagedUserWithTransactions = ManagedUser & {
 export type ManagedUserWithDetails = ManagedUserWithTransactions & {
     vaults: Vault[];
     tontines: Tontine[];
-    virtualCard: CardDetails | null;
+    virtualCard: (CardDetails & { transactions: CardTransaction[] }) | null;
 }
 
 export const useUserManagement = () => {
@@ -59,13 +59,17 @@ export const useUserManagement = () => {
             const vaultsDataString = localStorage.getItem(`paytik_vaults_${alias}`);
             const tontinesDataString = localStorage.getItem(`paytik_tontines_${alias}`);
             const virtualCardDataString = localStorage.getItem(`paytik_virtual_card_${alias}`);
+            const virtualCardTxDataString = localStorage.getItem(`paytik_virtual_card_txs_${alias}`);
             
             const balance = balanceDataString ? JSON.parse(balanceDataString) : 0;
             const transactions = transactionsDataString ? JSON.parse(transactionsDataString) : [];
             const vaults = vaultsDataString ? JSON.parse(vaultsDataString) : [];
             const tontines = tontinesDataString ? JSON.parse(tontinesDataString) : [];
-            const virtualCard = virtualCardDataString ? JSON.parse(virtualCardDataString) : null;
+            const virtualCardDetails = virtualCardDataString ? JSON.parse(virtualCardDataString) : null;
+            const virtualCardTxs = virtualCardTxDataString ? JSON.parse(virtualCardTxDataString) : [];
             
+            const virtualCard = virtualCardDetails ? { ...virtualCardDetails, transactions: virtualCardTxs } : null;
+
             const managedUser = {
               name: userData.name,
               email: userData.email,
@@ -93,7 +97,6 @@ export const useUserManagement = () => {
   useEffect(() => {
     loadUsers();
     
-    // Optional: listen to storage changes to auto-update
     const handleStorageChange = () => loadUsers();
     window.addEventListener('storage', handleStorageChange);
     return () => {
@@ -110,7 +113,6 @@ export const useUserManagement = () => {
             const userData = JSON.parse(userDataString);
             userData.isSuspended = suspend;
             localStorage.setItem(userKey, JSON.stringify(userData));
-            // Reload users to reflect the change in the UI
             loadUsers();
         } catch(e) {
             console.error(`Failed to update suspension status for user ${alias}`, e);
@@ -135,3 +137,5 @@ export const useUserManagement = () => {
 
   return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, refreshUsers: loadUsers };
 };
+
+    

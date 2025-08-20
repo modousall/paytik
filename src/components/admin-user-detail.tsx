@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Eye, EyeOff, Copy, Ban, Trash2, Wallet, ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet } from "lucide-react";
 import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -107,11 +107,13 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
     )
 };
 
+type TransactionFilter = 'all' | 'main' | 'card' | 'vaults' | 'tontine';
 
 export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWithDetails, onBack: () => void }) {
     const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
+    const [transactionFilter, setTransactionFilter] = useState<TransactionFilter>('all');
 
     const totalVaultsBalance = user.vaults.reduce((sum, v) => sum + v.balance, 0);
 
@@ -124,6 +126,23 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
         onBack(); // Go back to the list to see the updated status
     }
     
+    const filteredTransactions = user.transactions.filter(tx => {
+        if (transactionFilter === 'all') return true;
+        if (transactionFilter === 'main') {
+            return ['sent', 'received', 'card_recharge'].includes(tx.type) && !tx.reason.toLowerCase().includes('coffre') && !tx.reason.toLowerCase().includes('tontine');
+        }
+        if (transactionFilter === 'card') {
+            return tx.type === 'sent' && (tx.reason.toLowerCase().includes('carte') || user.virtualCard?.transactions.some(vctx => vctx.id === tx.id));
+        }
+        if (transactionFilter === 'vaults') {
+            return tx.reason.toLowerCase().includes('coffre');
+        }
+        if (transactionFilter === 'tontine') {
+            return tx.type === 'tontine';
+        }
+        return false;
+    });
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -186,25 +205,6 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                         </CardContent>
                     </Card>
                     
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Résumé Financier</CardTitle>
-                        </CardHeader>
-                         <CardContent className="space-y-3">
-                           <div className="flex justify-between items-center p-2 rounded-md bg-secondary">
-                                <span className="font-medium">Solde Principal</span>
-                                <span className="font-bold text-lg">{user.balance.toLocaleString()} Fcfa</span>
-                           </div>
-                           <div className="flex justify-between items-center p-2 rounded-md bg-secondary">
-                                <span className="font-medium">Solde Carte Virtuelle</span>
-                                <span className="font-bold text-lg">{(user.virtualCard?.balance ?? 0).toLocaleString()} Fcfa</span>
-                           </div>
-                           <div className="flex justify-between items-center p-2 rounded-md bg-secondary">
-                                <span className="font-medium">Total en Coffres</span>
-                                <span className="font-bold text-lg">{totalVaultsBalance.toLocaleString()} Fcfa</span>
-                           </div>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 {/* Right Column: Services & Transactions */}
@@ -212,14 +212,20 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                      <UserServiceProvider alias={user.alias}>
                         <Card>
                             <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
-                            <CardContent className="grid grid-cols-3 gap-4 text-center">
+                            <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                               <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full border-2 ${transactionFilter === 'main' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('main')}>
+                                    <Wallet className="mx-auto h-8 w-8 mb-2 text-primary"/>
+                                    <p className="text-sm font-medium">Compte Principal</p>
+                                    <Badge variant='default'>{user.balance.toLocaleString()} Fcfa</Badge>
+                               </button>
+
                                <Dialog>
                                     <DialogTrigger asChild>
-                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'card' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('card')}>
                                             <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
                                             <p className="text-sm font-medium">Carte Virtuelle</p>
                                             <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Gérer' : 'Inactive'}</Badge>
-                                        </div>
+                                        </button>
                                     </DialogTrigger>
                                     {user.virtualCard && 
                                         <DialogContent className="max-w-2xl">
@@ -232,11 +238,11 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                 </Dialog>
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'vaults' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('vaults')}>
                                             <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
                                             <p className="text-sm font-medium">Coffres-forts</p>
                                             <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? 'Gérer' : 'Inactifs'}</Badge>
-                                        </div>
+                                        </button>
                                     </DialogTrigger>
                                      <DialogContent className="max-w-3xl">
                                         <DialogHeader>
@@ -247,11 +253,11 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                 </Dialog>
                                <Dialog>
                                     <DialogTrigger asChild>
-                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                        <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'tontine' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('tontine')}>
                                             <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
                                             <p className="text-sm font-medium">Tontines</p>
                                             <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length > 0 ? 'Gérer' : 'Inactives'}</Badge>
-                                        </div>
+                                        </button>
                                     </DialogTrigger>
                                      <DialogContent className="max-w-4xl">
                                         <DialogHeader>
@@ -263,8 +269,7 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                             </CardContent>
                         </Card>
                     
-                        {/* Wrap TransactionHistory in a special provider to show only this user's transactions */}
-                        <StaticTransactionsProvider transactions={user.transactions}>
+                        <StaticTransactionsProvider transactions={filteredTransactions}>
                             <TransactionHistory showAll={true} onShowAll={() => {}} />
                         </StaticTransactionsProvider>
                     </UserServiceProvider>
@@ -273,3 +278,5 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
         </div>
     )
 }
+
+    

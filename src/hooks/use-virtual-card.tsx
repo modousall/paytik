@@ -8,7 +8,7 @@ import { useTransactions } from './use-transactions';
 
 const VIRTUAL_CARD_BALANCE_LIMIT = 2000000;
 
-type CardDetails = {
+export type CardDetails = {
   number: string;
   expiry: string;
   cvv: string;
@@ -16,7 +16,7 @@ type CardDetails = {
   balance: number;
 };
 
-type CardTransaction = {
+export type CardTransaction = {
   id: string;
   type: 'debit' | 'credit';
   amount: number;
@@ -160,7 +160,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
         addTransaction({
             type: 'sent',
             counterparty: 'Carte Virtuelle',
-            reason: 'Approvisionnement',
+            reason: 'Approvisionnement Carte',
             date: new Date().toISOString(),
             amount: amount,
             status: 'Terminé',
@@ -190,7 +190,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
         addTransaction({
             type: 'received',
             counterparty: 'Carte Virtuelle',
-            reason: 'Retrait',
+            reason: 'Retrait depuis Carte',
             date: new Date().toISOString(),
             amount: amount,
             status: 'Terminé',
@@ -219,3 +219,5 @@ export const useVirtualCard = () => {
   }
   return context;
 };
+
+    
