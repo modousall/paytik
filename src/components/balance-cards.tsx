@@ -21,7 +21,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
     const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
     const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
 
-    const cards = [
+    const cardsData = [
         {
             id: 'transactions' as const,
             title: 'Solde Principal',
@@ -29,32 +29,32 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             icon: <Wallet className="h-6 w-6 text-white" />,
             color: 'from-primary to-blue-400'
         },
-        ...(card ? [{
+        {
             id: 'ma-carte' as const,
             title: 'Carte Virtuelle',
-            balance: card.balance,
+            balance: card?.balance ?? 0,
             icon: <CreditCard className="h-6 w-6 text-white" />,
             color: 'from-sky-500 to-cyan-400'
-        }] : []),
-        ...(vaults.length > 0 ? [{
+        },
+        {
             id: 'coffres' as const,
             title: 'Mes Coffres',
             balance: totalVaultsBalance,
             icon: <PiggyBank className="h-6 w-6 text-white" />,
             color: 'from-amber-500 to-yellow-400'
-        }] : []),
-        ...(tontines.length > 0 ? [{
+        },
+        {
             id: 'tontine' as const,
             title: 'Mes Tontines',
             balance: totalTontinesBalance,
             icon: <Users className="h-6 w-6 text-white" />,
             color: 'from-emerald-500 to-green-400'
-        }] : [])
+        }
     ];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            {cards.map((c) => (
+            {cardsData.map((c) => (
                 <Card
                     key={c.id}
                     className={`text-white shadow-lg p-4 flex flex-col justify-between bg-gradient-to-br ${c.color} border-none cursor-pointer hover:scale-105 transition-transform duration-200 ease-in-out`}
