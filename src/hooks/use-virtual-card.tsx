@@ -69,8 +69,6 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
         }
     } catch (error) {
         console.error("Failed to parse virtual card from localStorage", error);
-        storedCard = null;
-        storedTransactions = null;
     }
 
     setCard(storedCard);
@@ -96,12 +94,10 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
 
 
   const createCard = () => {
-    if (!card) {
-      const newCard = generateCardDetails();
-      setCard(newCard);
-      setTransactions([]);
-      toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée. N'oubliez pas de l'approvisionner." });
-    }
+    const newCard = generateCardDetails();
+    setCard(newCard);
+    setTransactions([]);
+    toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée. N'oubliez pas de l'approvisionner." });
   };
 
   const toggleFreeze = () => {

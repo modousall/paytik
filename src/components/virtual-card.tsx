@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useVirtualCard } from '@/hooks/use-virtual-card';
@@ -12,7 +12,6 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useBalance } from '@/hooks/use-balance';
-import { useTransactions } from '@/hooks/use-transactions';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type VirtualCardProps = {
@@ -169,8 +168,8 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
         </div>
         
         <div className="w-full max-w-md mx-auto space-y-4">
-            <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl relative overflow-hidden aspect-[1.586/1]">
-                <CardContent className="p-4 sm:p-6 flex flex-col h-full justify-between font-mono">
+            <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl relative overflow-hidden aspect-[1.586/1] font-mono">
+                <CardContent className="p-4 sm:p-6 flex flex-col h-full justify-between">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-base sm:text-lg font-semibold tracking-wider">PAYTIK CARD</p>

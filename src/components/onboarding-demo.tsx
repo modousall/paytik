@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -10,7 +9,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Zap, ShieldCheck, DollarSign, UserPlus, ShieldAlert, Wifi } from "lucide-react";
+import { Zap, ShieldCheck, DollarSign, Wifi } from "lucide-react";
 import { cn } from '@/lib/utils';
 
 type OnboardingDemoProps = {

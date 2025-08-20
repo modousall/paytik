@@ -14,7 +14,7 @@ import { useUserManagement } from "@/hooks/use-user-management";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
-import { FeatureFlagProvider, useFeatureFlags } from '@/hooks/use-feature-flags';
+import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { TransactionsProvider } from '@/hooks/use-transactions';
@@ -22,7 +22,6 @@ import { ContactsProvider } from '@/hooks/use-contacts';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
-import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 

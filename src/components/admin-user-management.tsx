@@ -55,7 +55,6 @@ export default function AdminUserManagement() {
         return <AdminUserDetail user={selectedUser} onBack={handleBackToList} onUpdate={refreshUsers} />
     }
 
-    // Special provider for the superadmin account for logging settlement transactions
     const adminAlias = "+221775478575";
 
     return (
