@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -237,7 +236,8 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                         </div>
                                         <div className="text-right">
                                             <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
-                                                {tx.type === 'sent' ? '-' : '+'}{tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
+                                                {tx.type === 'sent' ? '-' : '+'}
+                                                {tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
                                             </div>
                                             {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={`${tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''} text-xs`}>{tx.status}</Badge>}
                                         </div>
