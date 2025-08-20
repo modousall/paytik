@@ -23,7 +23,7 @@ import { TransactionsProvider } from '@/hooks/use-transactions';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { ContactsProvider } from '@/hooks/use-contacts';
 import { Switch } from './ui/switch';
-import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
+import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
 
 const featureDetails: Record<Feature, { name: string; description: string; icon: JSX.Element }> = {
     virtualCards: {
@@ -155,6 +155,8 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         })
     }
 
+    const userFeatureFlags = user.featureFlags || defaultFlags;
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -244,14 +246,14 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                 </div>
 
                 <div className="lg:col-span-2 space-y-6">
-                    <UserServiceProvider alias={user.alias} flags={user.featureFlags}>
+                    <UserServiceProvider alias={user.alias} flags={userFeatureFlags}>
                          <Card>
                             <CardHeader>
                                 <CardTitle>Activation des Services</CardTitle>
                                 <CardDescription>Gérez les fonctionnalités accessibles pour cet utilisateur.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {(Object.keys(user.featureFlags) as Feature[]).map((key) => (
+                                {(Object.keys(userFeatureFlags) as Feature[]).map((key) => (
                                         <div key={key} className="flex items-start justify-between rounded-lg border p-4">
                                             <div className="flex items-start gap-4">
                                                 <div className="p-3 bg-primary/10 rounded-full">{featureDetails[key].icon}</div>
@@ -266,7 +268,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                             </div>
                                             <Switch
                                                 id={`feature-${key}`}
-                                                checked={user.featureFlags[key]}
+                                                checked={userFeatureFlags[key]}
                                                 onCheckedChange={() => handleFlagToggle(key)}
                                                 disabled={user.role === 'superadmin'}
                                             />
