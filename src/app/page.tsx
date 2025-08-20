@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard';
 import AdminDashboard from '@/components/admin-dashboard';
+import MerchantDashboard from '@/components/merchant-dashboard';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { ContactsProvider } from '@/hooks/use-contacts';
@@ -27,7 +28,7 @@ type UserInfo = {
   email: string;
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin' | 'merchant_dashboard';
 
 // Function to ensure the superadmin exists in localStorage
 const ensureSuperAdminExists = () => {
@@ -59,12 +60,6 @@ export default function AuthenticationGate() {
     // Ensure the superadmin account exists from the very beginning.
     ensureSuperAdminExists();
 
-    // Check for persisted admin state
-    if (localStorage.getItem('paytik_is_admin') === 'true') {
-        setStep('admin');
-        return;
-    }
-
     const lastAlias = localStorage.getItem('paytik_last_alias');
     if (lastAlias) {
         const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
@@ -82,7 +77,15 @@ export default function AuthenticationGate() {
             }
             setUserInfo({ name: userData.name, email: userData.email });
             setAlias(lastAlias);
-            setStep('dashboard');
+            
+            // Redirect based on role
+            if(userData.role === 'superadmin') {
+                setStep('admin');
+            } else if (userData.role === 'merchant') {
+                setStep('merchant_dashboard');
+            } else {
+                setStep('dashboard');
+            }
         } else {
              // Data mismatch, clear and go to demo
              localStorage.removeItem('paytik_last_alias');
@@ -160,7 +163,6 @@ export default function AuthenticationGate() {
   
   const handleLogout = () => {
     localStorage.removeItem('paytik_last_alias');
-    localStorage.removeItem('paytik_is_admin');
     setAlias(null);
     setUserInfo(null);
     setStep('demo');
@@ -171,24 +173,6 @@ export default function AuthenticationGate() {
   }
 
   const handleLogin = (loginAlias: string, pin: string) => {
-    const adminAlias = '+221775478575';
-    const adminDataString = localStorage.getItem(`paytik_user_${adminAlias}`);
-    
-    // Super admin login check
-    if (adminDataString && loginAlias === adminAlias) {
-        const adminData = JSON.parse(adminDataString);
-        if(adminData.role === 'superadmin' && adminData.pincode === pin) {
-            localStorage.setItem('paytik_is_admin', 'true');
-            toast({
-              title: `Bienvenue, Admin ${adminData.name} !`,
-              description: "Connexion au backoffice réussie.",
-            });
-            setStep('admin');
-            return;
-        }
-    }
-
-    // Standard user login
     const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
   
     if (userDataString) {
@@ -211,7 +195,16 @@ export default function AuthenticationGate() {
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
             });
-            setStep('dashboard');
+            
+            // Redirect based on role
+            if(userData.role === 'superadmin') {
+                setStep('admin');
+            } else if (userData.role === 'merchant') {
+                setStep('merchant_dashboard');
+            } else {
+                setStep('dashboard');
+            }
+
         } else {
              toast({
                 title: "Code PIN incorrect",
@@ -244,6 +237,12 @@ export default function AuthenticationGate() {
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'admin':
         return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
+       case 'merchant_dashboard':
+        if(alias && userInfo) {
+            return <MerchantDashboard userInfo={userInfo} onLogout={handleLogout} />;
+        }
+        setStep('demo'); // Fallback
+        return null;
       case 'dashboard':
         if(alias && userInfo) {
             return (
