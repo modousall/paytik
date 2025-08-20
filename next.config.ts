@@ -27,17 +27,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'api.qrserver.com',
       },
-    ],
-  },
-  remotePatterns: [],
-  videos: {
-    remotePatterns: [
-      {
+       {
         protocol: 'https',
         hostname: 'videos.pexels.com',
       },
-    ]
-  }
+    ],
+  },
 };
 
 export default nextConfig;
