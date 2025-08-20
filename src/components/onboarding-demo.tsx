@@ -10,14 +10,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Zap, ShieldCheck, DollarSign, UserPlus } from "lucide-react";
+import { Zap, ShieldCheck, DollarSign, UserPlus, ShieldAlert } from "lucide-react";
 
 type OnboardingDemoProps = {
   onStart: () => void;
   onLogin: () => void;
+  onAdmin: () => void;
 };
 
-export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps) {
+export default function OnboardingDemo({ onStart, onLogin, onAdmin }: OnboardingDemoProps) {
   const features = [
     {
       icon: <Zap className="h-12 w-12 text-primary" />,
@@ -72,6 +73,11 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
           <Button onClick={onStart} className="bg-accent text-accent-foreground hover:bg-accent/90">
             Créer un compte
           </Button>
+        </div>
+        <div className="mt-4 text-center">
+            <Button onClick={onAdmin} variant="link" size="sm" className="text-muted-foreground">
+                <ShieldAlert className="mr-2 h-4 w-4" /> Accès Admin (Démo)
+            </Button>
         </div>
       </div>
     </div>

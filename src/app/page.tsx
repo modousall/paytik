@@ -11,6 +11,7 @@ import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard';
+import AdminDashboard from '@/components/admin-dashboard';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { ContactsProvider } from '@/hooks/use-contacts';
@@ -24,7 +25,7 @@ type UserInfo = {
   email: string;
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin';
 
 
 export default function AuthenticationGate() {
@@ -108,6 +109,10 @@ export default function AuthenticationGate() {
   const handleLoginStart = () => {
     setStep('login');
   };
+
+  const handleAdminStart = () => {
+    setStep('admin');
+  }
   
   const handleKycComplete = (info: UserInfo) => {
     setUserInfo(info);
@@ -158,7 +163,7 @@ export default function AuthenticationGate() {
   const renderContent = () => {
     switch (step) {
       case 'demo':
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
       case 'permissions':
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
@@ -169,6 +174,8 @@ export default function AuthenticationGate() {
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
+      case 'admin':
+        return <AdminDashboard onExit={() => setStep('demo')} />;
       case 'dashboard':
         if(alias && userInfo) {
             return (
@@ -191,9 +198,9 @@ export default function AuthenticationGate() {
         }
         // Fallback if state is dashboard but data is missing
         setStep('demo');
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
       default:
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
     }
   };
   
