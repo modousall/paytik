@@ -12,7 +12,6 @@ import { fr } from 'date-fns/locale';
 import { useProductManagement } from '@/hooks/use-product-management';
 import { Button } from './ui/button';
 import { Download } from 'lucide-react';
-import Papa from 'papaparse';
 
 export default function AdminTransactionAnalysis() {
   const { usersWithTransactions } = useUserManagement();
@@ -86,7 +85,7 @@ export default function AdminTransactionAnalysis() {
     };
   }, [usersWithTransactions, allProducts]);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const dataToExport = allTransactions.map(tx => ({
         ID: tx.id,
         Date: tx.date,
@@ -96,7 +95,8 @@ export default function AdminTransactionAnalysis() {
         Montant: tx.amount,
         Statut: tx.status,
     }));
-
+    
+    const Papa = (await import('papaparse')).default;
     const csv = Papa.unparse(dataToExport);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -250,3 +250,5 @@ export default function AdminTransactionAnalysis() {
     </div>
   );
 }
+
+    
