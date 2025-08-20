@@ -3,20 +3,27 @@
 
 import { useState } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Eye, EyeOff, Copy, Ban, Trash2, Wallet, ArrowDown, ArrowUp } from "lucide-react";
 import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "./ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserManagement } from "@/hooks/use-user-management";
-import { DialogClose } from "@radix-ui/react-dialog";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
 import { TransactionsContext } from '@/hooks/use-transactions';
+import VirtualCard from './virtual-card';
+import Vaults from './vaults';
+import Tontine from './tontine';
+import { VaultsProvider } from '@/hooks/use-vaults';
+import { TontineProvider } from '@/hooks/use-tontine';
+import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { BalanceProvider } from '@/hooks/use-balance';
+import { TransactionsProvider } from '@/hooks/use-transactions';
+import { AvatarProvider } from '@/hooks/use-avatar';
 
 const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
     const [newPin, setNewPin] = useState("");
@@ -72,12 +79,32 @@ const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClo
 
 // A custom provider to inject specific transactions into the history component
 const StaticTransactionsProvider = ({ transactions, children }: { transactions: Transaction[], children: React.ReactNode }) => {
+    const Context = TransactionsContext;
     const value = {
       transactions,
       addTransaction: () => {}, // No-op in this context
       reverseTransaction: () => {}, // No-op in this context
     };
-    return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
+    return <Context.Provider value={value}>{children}</Context.Provider>;
+};
+
+// This is a special wrapper to use the real hooks but initialized for a specific user.
+const UserServiceProvider = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
+    return (
+        <AvatarProvider alias={alias}>
+            <BalanceProvider alias={alias}>
+                <TransactionsProvider alias={alias}>
+                    <VirtualCardProvider alias={alias}>
+                        <VaultsProvider alias={alias}>
+                            <TontineProvider alias={alias}>
+                                {children}
+                            </TontineProvider>
+                        </VaultsProvider>
+                    </VirtualCardProvider>
+                </TransactionsProvider>
+            </BalanceProvider>
+        </AvatarProvider>
+    )
 };
 
 
@@ -90,7 +117,6 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
 
     const handleToggleSuspension = () => {
         toggleUserSuspension(user.alias, !user.isSuspended);
-        // Toast is now handled in the page.tsx to avoid state inconsistencies
         toast({
             title: `Utilisateur ${!user.isSuspended ? 'suspendu' : 'réactivé'}`,
             description: `${user.name} a été ${!user.isSuspended ? 'suspendu' : 'réactivé'}.`
@@ -183,35 +209,58 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
 
                 {/* Right Column: Services & Transactions */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-3 gap-4 text-center">
-                            <div className="p-4 rounded-lg bg-secondary">
-                                <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                <p className="text-sm font-medium">Carte Virtuelle</p>
-                                <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Active' : 'Inactive'}</Badge>
-                            </div>
-                             <div className="p-4 rounded-lg bg-secondary">
-                                <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                <p className="text-sm font-medium">Coffres-forts</p>
-                                <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length} actif(s)</Badge>
-                            </div>
-                            <div className="p-4 rounded-lg bg-secondary">
-                                <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                <p className="text-sm font-medium">Tontines</p>
-                                <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length} groupe(s)</Badge>
-                            </div>
-                        </CardContent>
-                    </Card>
+                     <UserServiceProvider alias={user.alias}>
+                        <Card>
+                            <CardHeader><CardTitle>Utilisation des Services</CardTitle></CardHeader>
+                            <CardContent className="grid grid-cols-3 gap-4 text-center">
+                               <Dialog>
+                                    <DialogTrigger asChild>
+                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                            <CreditCard className={`mx-auto h-8 w-8 mb-2 ${user.virtualCard ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                            <p className="text-sm font-medium">Carte Virtuelle</p>
+                                            <Badge variant={user.virtualCard ? 'default' : 'secondary'}>{user.virtualCard ? 'Gérer' : 'Inactive'}</Badge>
+                                        </div>
+                                    </DialogTrigger>
+                                    {user.virtualCard && 
+                                        <DialogContent className="max-w-2xl">
+                                             <VirtualCard onBack={()=>{}}/>
+                                        </DialogContent>
+                                    }
+                                </Dialog>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                            <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                            <p className="text-sm font-medium">Coffres-forts</p>
+                                            <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? 'Gérer' : 'Inactifs'}</Badge>
+                                        </div>
+                                    </DialogTrigger>
+                                     <DialogContent className="max-w-3xl">
+                                        <Vaults onBack={()=>{}}/>
+                                    </DialogContent>
+                                </Dialog>
+                               <Dialog>
+                                    <DialogTrigger asChild>
+                                        <div className="p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors">
+                                            <ShieldCheck className={`mx-auto h-8 w-8 mb-2 ${user.tontines.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                            <p className="text-sm font-medium">Tontines</p>
+                                            <Badge variant={user.tontines.length > 0 ? 'default' : 'secondary'}>{user.tontines.length > 0 ? 'Gérer' : 'Inactives'}</Badge>
+                                        </div>
+                                    </DialogTrigger>
+                                     <DialogContent className="max-w-4xl">
+                                        <Tontine onBack={()=>{}}/>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardContent>
+                        </Card>
                     
-                    {/* Wrap TransactionHistory in a special provider to show only this user's transactions */}
-                    <StaticTransactionsProvider transactions={user.transactions}>
-                        <TransactionHistory showAll={true} onShowAll={() => {}} />
-                    </StaticTransactionsProvider>
+                        {/* Wrap TransactionHistory in a special provider to show only this user's transactions */}
+                        <StaticTransactionsProvider transactions={user.transactions}>
+                            <TransactionHistory showAll={true} onShowAll={() => {}} />
+                        </StaticTransactionsProvider>
+                    </UserServiceProvider>
                 </div>
             </div>
         </div>
     )
 }
-
-    
