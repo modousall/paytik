@@ -143,5 +143,3 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
         </div>
     )
 }
-
-    

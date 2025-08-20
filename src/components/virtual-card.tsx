@@ -295,5 +295,3 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
     </div>
   );
 }
-
-    
