@@ -17,6 +17,7 @@ import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type VirtualCardProps = {
     onBack: () => void;
+    cardHolderName: string;
 };
 
 const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, onRecharge: (amount: number) => void, onWithdraw: (amount: number) => void }) => {
@@ -112,12 +113,11 @@ const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, on
     );
 };
 
-export default function VirtualCard({ onBack }: VirtualCardProps) {
+export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps) {
   const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard, withdrawFromCard } = useVirtualCard();
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
   const { flags } = useFeatureFlags();
-  const cardHolderName = localStorage.getItem('paytik_username') || "Titulaire Inconnu";
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);

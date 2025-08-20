@@ -210,7 +210,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
             case 'transactions':
                 return <TransactionHistory showAll={true} onShowAll={() => {}} />;
             case 'ma-carte':
-                return <VirtualCard onBack={() => setActiveServiceView('transactions')} />;
+                return <VirtualCard onBack={() => setActiveServiceView('transactions')} cardHolderName={user.name} />;
             case 'coffres':
                 return <Vaults onBack={() => setActiveServiceView('transactions')} />;
             case 'tontine':
@@ -355,8 +355,3 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
-
-    
-
-    
-
