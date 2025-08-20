@@ -82,7 +82,7 @@ export default function AdBanner() {
                      <X size={14}/>
                      <span className="sr-only">Fermer</span>
                  </Button>
-                <CardContent className={`flex flex-col sm:flex-row items-center p-0 ${ad.color} text-white`}>
+                <CardContent className={`flex flex-col sm:flex-row items-center p-0 bg-gradient-to-r ${ad.color} text-white`}>
                     <div className="w-full sm:w-1/2 p-4 md:p-6 space-y-2">
                         <h3 className="text-lg md:text-xl font-bold leading-tight">{ad.title}</h3>
                         <p className="text-xs md:text-sm opacity-90">{ad.description}</p>
@@ -92,8 +92,8 @@ export default function AdBanner() {
                         <Image 
                             src={ad.image} 
                             alt={ad.title} 
-                            layout="fill"
-                            objectFit="cover"
+                            fill
+                            style={{objectFit: 'cover'}}
                             data-ai-hint={ad.imageHint}
                         />
                          <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-black/40 to-transparent"></div>
