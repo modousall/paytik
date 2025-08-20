@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,13 +19,14 @@ type UserInfo = {
 type HomeActionsProps = { 
     onSendClick: () => void; 
     onRechargeClick: () => void;
+    onWithdrawClick: () => void;
     alias: string;
     userInfo: UserInfo;
 };
 
-export default function HomeActions({ onSendClick, onRechargeClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
     return (
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8 max-w-lg mx-auto">
+        <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-8 max-w-lg mx-auto">
              <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="lg" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1">
@@ -43,6 +44,10 @@ export default function HomeActions({ onSendClick, onRechargeClick, alias, userI
 
             <Button size="lg" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1" onClick={onRechargeClick}>
                 <PlusCircle/> Recharger
+            </Button>
+            
+            <Button size="lg" variant="secondary" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1" onClick={onWithdrawClick}>
+                <Landmark/> Retirer
             </Button>
         </div>
     )

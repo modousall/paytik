@@ -12,6 +12,7 @@ import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
+import PICASH from './picash';
 
 type UserInfo = {
     name: string;
@@ -25,7 +26,7 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile';
-type ActiveAction = 'none' | 'payer' | 'recharger';
+type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
 type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
@@ -84,6 +85,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if (activeAction === 'recharger') {
             return <RechargerCompte onBack={() => setActiveAction('none')} />
         }
+        if (activeAction === 'retirer') {
+            return <PICASH onBack={() => setActiveAction('none')} />
+        }
         
         return (
             <div className="space-y-8">
@@ -91,6 +95,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
+                    onWithdrawClick={() => setActiveAction('retirer')}
                     alias={alias}
                     userInfo={userInfo}
                 />
