@@ -6,21 +6,24 @@ import { useUserManagement, type ManagedUserWithTransactions, type Transaction }
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, CartesianGrid } from 'recharts';
+import { format, subDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useProductManagement } from '@/hooks/use-product-management';
+import { Button } from './ui/button';
+import { Download } from 'lucide-react';
+import Papa from 'papaparse';
 
 export default function AdminTransactionAnalysis() {
   const { usersWithTransactions } = useUserManagement();
   const { billers, mobileMoneyOperators } = useProductManagement();
   const allProducts = useMemo(() => [...billers, ...mobileMoneyOperators], [billers, mobileMoneyOperators]);
 
-  const { kpis, chartData, recentTransactions, productPerformance } = useMemo(() => {
-    const allTransactions: Transaction[] = usersWithTransactions.flatMap(u => u.transactions);
+  const { kpis, chartData, recentTransactions, productPerformance, allTransactions } = useMemo(() => {
+    const allTxs: Transaction[] = usersWithTransactions.flatMap(u => u.transactions);
     
-    const totalVolume = allTransactions.reduce((acc, tx) => acc + tx.amount, 0);
-    const totalTransactions = allTransactions.length;
+    const totalVolume = allTxs.reduce((acc, tx) => acc + tx.amount, 0);
+    const totalTransactions = allTxs.length;
     const averageTransactionValue = totalTransactions > 0 ? totalVolume / totalTransactions : 0;
 
     const dailyVolumes = new Map<string, number>();
@@ -30,8 +33,8 @@ export default function AdminTransactionAnalysis() {
         dailyVolumes.set(formattedDate, 0);
     }
 
-    allTransactions.forEach(tx => {
-        const txDate = new Date(tx.date);
+    allTxs.forEach(tx => {
+        const txDate = parseISO(tx.date);
         if (txDate > subDays(new Date(), 7)) {
             const formattedDate = format(txDate, 'd MMM', { locale: fr });
             if(dailyVolumes.has(formattedDate)) {
@@ -44,7 +47,7 @@ export default function AdminTransactionAnalysis() {
         .map(([date, total]) => ({ date, total }))
         .reverse();
 
-    const recentTransactions = allTransactions
+    const recentTransactions = allTxs
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
     
@@ -55,13 +58,13 @@ export default function AdminTransactionAnalysis() {
         productStats.set(p.name, { volume: 0, count: 0, commissions: 0 });
     });
     
-    allTransactions.forEach(tx => {
-        const product = allProducts.find(p => p.name === tx.counterparty);
+    allTxs.forEach(tx => {
+        const product = allProducts.find(p => p.name === tx.counterparty || tx.reason.includes(p.name));
         if (product) {
-            const stats = productStats.get(product.name)!;
+            const stats = productStats.get(product.name) ?? { volume: 0, count: 0, commissions: 0 };
             stats.volume += tx.amount;
             stats.count += 1;
-            stats.commissions += product.commission;
+            stats.commissions += product.commission || 0;
             productStats.set(product.name, stats);
         }
     });
@@ -79,33 +82,69 @@ export default function AdminTransactionAnalysis() {
       chartData,
       recentTransactions,
       productPerformance,
+      allTransactions: allTxs,
     };
   }, [usersWithTransactions, allProducts]);
+
+  const handleExport = () => {
+    const dataToExport = allTransactions.map(tx => ({
+        ID: tx.id,
+        Date: tx.date,
+        Type: tx.type,
+        Interlocuteur: tx.counterparty,
+        Raison: tx.reason,
+        Montant: tx.amount,
+        Statut: tx.status,
+    }));
+
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'export_transactions.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
   
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+             <CardTitle>Centre d'Analyse Business</CardTitle>
+             <Button onClick={handleExport}>
+                <Download className="mr-2"/> Exporter en CSV (Excel)
+             </Button>
+          </div>
+          <CardDescription>Vue d'ensemble des métriques clés et des performances de la plateforme.</CardDescription>
+        </CardHeader>
+      </Card>
+      
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle>Volume Total Transigé</CardTitle>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-sm font-medium'>Volume Total Transigé</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(kpis.totalVolume)}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Nombre de Transactions</CardTitle>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-sm font-medium'>Nombre de Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.totalTransactions}</div>
+            <div className="text-2xl font-bold">{kpis.totalTransactions.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Valeur Moyenne par Transaction</CardTitle>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-sm font-medium'>Valeur Moyenne / Transaction</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(kpis.averageTransactionValue)}</div>
@@ -120,6 +159,7 @@ export default function AdminTransactionAnalysis() {
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${(value as number / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(value) => [formatCurrency(value as number), "Volume"]}/>
