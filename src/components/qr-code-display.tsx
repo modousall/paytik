@@ -85,7 +85,7 @@ export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amo
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white p-2 rounded-md shadow-md">
-                    <span className="font-bold text-lg text-primary">PAYTIK</span>
+                    <Image src="/paytik-logo.png" alt="PAYTIK Logo" width={60} height={13} data-ai-hint="logo" />
                   </div>
                 </div>
             </div>

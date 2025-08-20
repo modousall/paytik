@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Zap, ShieldCheck, DollarSign, Wifi } from "lucide-react";
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 type OnboardingDemoProps = {
   onStart: () => void;
@@ -72,7 +73,7 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
       <div className="flex flex-col items-center justify-center flex-grow text-center">
 
         <div className="my-8">
-            <h1 className="text-4xl font-bold text-primary tracking-tight">PAYTIK</h1>
+            <Image src="/paytik-logo.png" alt="PAYTIK Logo" width={180} height={40} data-ai-hint="logo" />
             <p className="text-muted-foreground mt-2">Votre solution de paiement simplifiée et sécurisée.</p>
         </div>
 
