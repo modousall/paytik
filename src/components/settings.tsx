@@ -4,14 +4,14 @@
 import React from 'react';
 import { Button } from "./ui/button";
 import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Card } from "./ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogTrigger } from './ui/dialog';
 import ChangePinForm from './change-pin-form';
 import ConnectedDevices from './connected-devices';
 import InviteFriendDialog from './invite-friend-dialog';
 import PromoCodeDialog from './promo-code-dialog';
 import LimitsDialog from './limits-dialog';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 
 
 type SettingsProps = {
@@ -29,16 +29,21 @@ type SettingItemProps = {
 }
 
 const SettingItem = ({ icon, text, onClick, isDestructive = false }: SettingItemProps) => {
-    return (
-        <button
-            onClick={onClick}
+    const content = (
+        <div
             className={`w-full flex items-center p-4 text-left ${isDestructive ? 'text-destructive' : 'text-foreground'}`}
         >
             {icon}
             <span className="flex-grow">{text}</span>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </button>
-    )
+        </div>
+    );
+    
+    if (onClick) {
+        return <button onClick={onClick} className="w-full">{content}</button>
+    }
+    
+    return <div className="w-full">{content}</div>
 }
 
 export default function Settings({ alias, onBack, onLogout, onNavigate }: SettingsProps) {
@@ -100,10 +105,8 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                     <React.Fragment key={item.id}>
                        <Dialog>
                             <DialogTrigger asChild>
-                               <button className="w-full flex items-center p-4 text-left text-foreground">
-                                    {item.icon}
-                                    <span className="flex-grow">{item.text}</span>
-                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <button className="w-full">
+                                    <SettingItem icon={item.icon} text={item.text} />
                                 </button>
                            </DialogTrigger>
                            {item.content}
@@ -117,19 +120,17 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
              <Card>
                 {supportSettings.map((item, index) => (
                      <React.Fragment key={item.id}>
-                         {item.onClick ? (
-                            <SettingItem {...item} />
-                         ) : (
+                         {item.content ? (
                              <Dialog>
                                 <DialogTrigger asChild>
-                                     <button className="w-full flex items-center p-4 text-left text-foreground">
-                                        {item.icon}
-                                        <span className="flex-grow">{item.text}</span>
-                                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                     <button className="w-full">
+                                        <SettingItem icon={item.icon} text={item.text} />
                                     </button>
                                 </DialogTrigger>
                                 {item.content}
                              </Dialog>
+                         ) : (
+                            <SettingItem {...item} />
                          )}
                         {index < supportSettings.length - 1 && <hr className="ml-14"/>}
                     </React.Fragment>
@@ -142,10 +143,8 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
                     <React.Fragment key={item.id}>
                         <Dialog>
                             <DialogTrigger asChild>
-                                 <button className="w-full flex items-center p-4 text-left text-foreground">
-                                    {item.icon}
-                                    <span className="flex-grow">{item.text}</span>
-                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <button className="w-full">
+                                    <SettingItem icon={item.icon} text={item.text} />
                                 </button>
                             </DialogTrigger>
                            {item.content}
