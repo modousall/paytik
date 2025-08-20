@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -21,15 +22,13 @@ const nextConfig: NextConfig = {
         hostname: 'images.pexels.com',
         port: '',
         pathname: '/**',
-      }
-    ],
-  },
-  remotePatterns: [
+      },
       {
         protocol: 'https',
         hostname: 'videos.pexels.com',
       },
-  ]
+    ],
+  },
 };
 
 export default nextConfig;
