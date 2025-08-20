@@ -223,6 +223,9 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                     </DialogTrigger>
                                     {user.virtualCard && 
                                         <DialogContent className="max-w-2xl">
+                                             <DialogHeader>
+                                                <DialogTitle>Gestion de la Carte Virtuelle</DialogTitle>
+                                             </DialogHeader>
                                              <VirtualCard onBack={()=>{}}/>
                                         </DialogContent>
                                     }
@@ -236,6 +239,9 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                         </div>
                                     </DialogTrigger>
                                      <DialogContent className="max-w-3xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Gestion des Coffres</DialogTitle>
+                                        </DialogHeader>
                                         <Vaults onBack={()=>{}}/>
                                     </DialogContent>
                                 </Dialog>
@@ -248,6 +254,9 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                         </div>
                                     </DialogTrigger>
                                      <DialogContent className="max-w-4xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Gestion des Tontines</DialogTitle>
+                                        </DialogHeader>
                                         <Tontine onBack={()=>{}}/>
                                     </DialogContent>
                                 </Dialog>
