@@ -10,18 +10,20 @@ import KYCForm from '@/components/kyc-form';
 import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Dashboard from '@/components/dashboard';
 
 type UserInfo = {
   name: string;
   email: string;
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard';
 
 
 export default function AuthenticationGate() {
   const [step, setStep] = useState<AppStep>('demo');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [alias, setAlias] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -30,9 +32,19 @@ export default function AuthenticationGate() {
     setIsClient(true);
     const lastAlias = localStorage.getItem('paytik_last_alias');
     if (lastAlias) {
-      router.push('/dashboard');
+        const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
+        if(userDataString) {
+            const userData = JSON.parse(userDataString);
+            setUserInfo({ name: userData.name, email: userData.email });
+            setAlias(lastAlias);
+            setStep('dashboard');
+        } else {
+             // Data mismatch, clear and go to demo
+             localStorage.removeItem('paytik_last_alias');
+             setStep('demo');
+        }
     }
-  }, [router]);
+  }, []);
 
   const handleAliasCreated = (newAlias: string) => {
     if (userInfo) {
@@ -42,6 +54,7 @@ export default function AuthenticationGate() {
           pincode: '' // PIN will be set at next step
       }));
       localStorage.setItem('paytik_active_alias_creation', newAlias);
+      setAlias(newAlias);
       setStep('pin_creation');
     } else {
         toast({
@@ -64,7 +77,8 @@ export default function AuthenticationGate() {
             localStorage.setItem(`paytik_onboarded_${aliasForPin}`, 'true');
             localStorage.setItem('paytik_last_alias', aliasForPin);
             localStorage.removeItem('paytik_active_alias_creation');
-            router.push('/dashboard');
+            setAlias(aliasForPin);
+            setStep('dashboard');
         }
     } else {
          toast({
@@ -92,6 +106,17 @@ export default function AuthenticationGate() {
     setUserInfo(info);
     setStep('alias');
   };
+  
+  const handleLogout = () => {
+    localStorage.removeItem('paytik_last_alias');
+    setAlias(null);
+    setUserInfo(null);
+    setStep('demo');
+    toast({
+        title: "Déconnexion",
+        description: "Vous avez été déconnecté avec succès.",
+    });
+  }
 
   const handleLogin = (loginAlias: string, pin: string) => {
     const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
@@ -100,11 +125,13 @@ export default function AuthenticationGate() {
         const userData = JSON.parse(userDataString);
         if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
+            setUserInfo({ name: userData.name, email: userData.email });
+            setAlias(loginAlias);
             toast({
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
             });
-            router.push('/dashboard');
+            setStep('dashboard');
         } else {
              toast({
                 title: "Code PIN incorrect",
@@ -135,13 +162,20 @@ export default function AuthenticationGate() {
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
+      case 'dashboard':
+        if(alias && userInfo) {
+            return <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+        }
+        // Fallback if state is dashboard but data is missing
+        setStep('demo');
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
       default:
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
   };
   
   if (!isClient) {
-    return null; // ou un loader global
+    return <div className="flex h-screen items-center justify-center">Chargement...</div>;
   }
 
   return <main className="bg-background min-h-screen">{renderContent()}</main>;
