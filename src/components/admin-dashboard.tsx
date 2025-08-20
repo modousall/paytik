@@ -4,24 +4,26 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks, Download } from 'lucide-react';
+import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks, Download, Clock } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminProductManagement from "./admin-product-management";
 import AdminRoleManagement from "./admin-role-management";
 import AdminFeatureManagement from "./admin-feature-management";
+import AdminBnplManagement from "./admin-bnpl-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'transactions' | 'roles' | 'partners' | 'services';
+type AdminView = 'dashboard' | 'users' | 'transactions' | 'roles' | 'partners' | 'services' | 'bnpl';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des utilisateurs", description: "Consulter, modifier, suspendre et gérer les accès.", icon: <Users /> },
     { id: "transactions", title: "Centre d'Analyse Business", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
     { id: "partners", title: "Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
     { id: "services", title: "Produits et Services", description: "Configurer les fonctionnalités de l'application (cartes, tontines...).", icon: <Blocks /> },
+    { id: "bnpl", title: "Demandes de Crédit (BNPL)", description: "Examiner et approuver les demandes de paiement échelonné.", icon: <Clock /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
 
@@ -40,6 +42,8 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminFeatureManagement />;
             case 'roles':
                  return <AdminRoleManagement />;
+            case 'bnpl':
+                 return <AdminBnplManagement />;
             default:
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

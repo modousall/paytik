@@ -8,11 +8,13 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Info, QrCode } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
+import { useBnpl } from '@/hooks/use-bnpl';
+import type { BnplAssessmentOutput } from '@/lib/types';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -25,11 +27,59 @@ type BnplProps = {
   onBack: () => void;
 };
 
+const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput, onBack: () => void }) => {
+    const statusConfig = {
+        approved: {
+            icon: <CheckCircle className="h-12 w-12 text-green-500" />,
+            title: "Demande Approuvée !",
+            alertVariant: "default" as "default",
+            description: "Votre demande de paiement échelonné a été approuvée. Vous pouvez maintenant finaliser votre achat auprès du marchand.",
+        },
+        rejected: {
+            icon: <XCircle className="h-12 w-12 text-destructive" />,
+            title: "Demande Rejetée",
+            alertVariant: "destructive" as "destructive",
+            description: "Malheureusement, nous ne pouvons pas approuver votre demande pour le moment.",
+        },
+        review: {
+            icon: <Hourglass className="h-12 w-12 text-blue-500" />,
+            title: "Demande en Cours d'Examen",
+            alertVariant: "default" as "default",
+            description: "Votre demande nécessite un examen manuel. Vous recevrez une notification une fois qu'une décision aura été prise (généralement sous 24h).",
+        }
+    }
+    
+    const config = statusConfig[result.status];
+
+    return (
+        <div className="flex flex-col items-center justify-center text-center space-y-6 max-w-lg mx-auto">
+            {config.icon}
+            <h2 className="text-2xl font-bold">{config.title}</h2>
+            <Alert variant={config.alertVariant}>
+                <AlertTitle className="font-semibold">Raison: {result.reason}</AlertTitle>
+                <AlertDescription>
+                   {config.description}
+                </AlertDescription>
+            </Alert>
+            
+            {result.status === 'approved' && result.repaymentPlan && (
+                <div className="w-full p-4 border rounded-lg bg-secondary">
+                    <h3 className="font-semibold mb-2">Plan de remboursement suggéré</h3>
+                    <p className="text-sm">{result.repaymentPlan}</p>
+                </div>
+            )}
+
+            <Button onClick={onBack} variant="outline">Retour</Button>
+        </div>
+    )
+}
+
 export default function BNPL({ onBack }: BnplProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
+  const { submitRequest } = useBnpl();
 
   const form = useForm<BnplFormValues>({
     resolver: zodResolver(bnplFormSchema),
@@ -39,17 +89,21 @@ export default function BNPL({ onBack }: BnplProps) {
     },
   });
 
-  const onSubmit = (values: BnplFormValues) => {
+  const onSubmit = async (values: BnplFormValues) => {
     setIsLoading(true);
-    // Simulate API call for credit check
-    setTimeout(() => {
+    try {
+      const result = await submitRequest(values.merchantAlias, values.amount);
+      setAssessmentResult(result);
+    } catch(e) {
+      console.error(e);
       toast({
-        title: 'Demande de crédit soumise',
-        description: `Votre demande de paiement en plusieurs fois est en cours d'examen.`,
+        title: "Erreur de soumission",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+        variant: "destructive"
       });
+    } finally {
       setIsLoading(false);
-      setIsSubmitted(true);
-    }, 2000);
+    }
   };
   
   const handleScannedCode = (decodedText: string) => {
@@ -57,24 +111,14 @@ export default function BNPL({ onBack }: BnplProps) {
     setIsScannerOpen(false);
     toast({ title: "Code Scanné", description: "L'alias du marchand a été inséré." });
   }
+  
+  const handleReset = () => {
+      setAssessmentResult(null);
+      form.reset();
+  }
 
-  if(isSubmitted) {
-    return (
-        <div>
-             <div className="flex items-center gap-4 mb-6">
-                <Button onClick={onBack} variant="ghost" size="icon">
-                    <ArrowLeft />
-                </Button>
-            </div>
-            <Alert className='max-w-lg mx-auto'>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Demande Reçue !</AlertTitle>
-                <AlertDescription>
-                    Votre demande de paiement échelonné a bien été enregistrée. Vous recevrez une notification une fois qu'elle aura été examinée par nos services.
-                </AlertDescription>
-            </Alert>
-        </div>
-    )
+  if(assessmentResult) {
+    return <ResultDisplay result={assessmentResult} onBack={handleReset} />;
   }
 
   return (
@@ -95,7 +139,7 @@ export default function BNPL({ onBack }: BnplProps) {
             <Info className="h-4 w-4" />
             <AlertTitle>Information</AlertTitle>
             <AlertDescription>
-              Ce service est soumis à une vérification d'éligibilité. Soumettre une demande ne garantit pas son approbation.
+              Ce service est soumis à une vérification d'éligibilité par IA. Soumettre une demande ne garantit pas son approbation.
             </AlertDescription>
           </Alert>
 

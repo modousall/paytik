@@ -14,3 +14,4 @@ export * from './use-product-management';
 export * from './use-merchant-dashboard';
 export * from './use-role-management';
 export * from './use-monthly-budget';
+export * from './use-bnpl';
