@@ -27,6 +27,21 @@ type UserInfo = {
 
 type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin';
 
+// Function to ensure the superadmin exists in localStorage
+const ensureSuperAdminExists = () => {
+    const adminAlias = '+221775478575';
+    const adminUserKey = `paytik_user_${adminAlias}`;
+
+    if (typeof window !== 'undefined' && !localStorage.getItem(adminUserKey)) {
+        const adminUser = {
+            name: 'Modou Sall',
+            email: 'modousall1@gmail.com',
+            pincode: '1234',
+            role: 'superadmin'
+        };
+        localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
+    }
+};
 
 export default function AuthenticationGate() {
   const [step, setStep] = useState<AppStep>('demo');
@@ -39,6 +54,9 @@ export default function AuthenticationGate() {
   useEffect(() => {
     setIsClient(true);
     
+    // Ensure the superadmin account exists from the very beginning.
+    ensureSuperAdminExists();
+
     // Check for persisted admin state
     if (localStorage.getItem('paytik_is_admin') === 'true') {
         setStep('admin');
