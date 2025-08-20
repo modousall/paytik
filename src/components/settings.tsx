@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card } from "./ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import ChangePinForm from './change-pin-form';
+import ConnectedDevices from './connected-devices';
 
 
 type SettingsProps = {
@@ -75,11 +76,15 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     ];
     
     const securitySettings = [
-        { icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />, text: "Vos appareils connectés" },
+        { 
+            icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />,
+            text: "Vos appareils connectés",
+            asChild: true,
+        },
         { 
             icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, 
             text: "Modifiez votre code secret",
-            asChild: true, // This indicates it will contain a DialogTrigger
+            asChild: true,
         },
     ];
 
@@ -115,7 +120,20 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
             
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Sécurité</h3>
              <Card>
-                <SettingItem {...securitySettings[0]} />
+                 <Dialog>
+                    <DialogTrigger asChild>
+                       <SettingItem {...securitySettings[0]} />
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Appareils Connectés</DialogTitle>
+                            <DialogDescription>
+                                Voici la liste des appareils où votre compte est actuellement actif.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <ConnectedDevices />
+                    </DialogContent>
+                </Dialog>
                 <hr className="ml-14"/>
                 <Dialog>
                     <DialogTrigger asChild>
