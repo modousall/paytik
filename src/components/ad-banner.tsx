@@ -83,12 +83,12 @@ export default function AdBanner() {
                      <span className="sr-only">Fermer</span>
                  </Button>
                 <CardContent className={`flex flex-col sm:flex-row items-center p-0 bg-gradient-to-r ${ad.color} text-white`}>
-                    <div className="w-full sm:w-1/2 p-4 md:p-6 space-y-2">
+                    <div className="w-full sm:w-1/2 p-4 md:p-6 space-y-2 order-2 sm:order-1">
                         <h3 className="text-lg md:text-xl font-bold leading-tight">{ad.title}</h3>
                         <p className="text-xs md:text-sm opacity-90">{ad.description}</p>
                         <Button variant="secondary" size="sm" className="mt-2 text-xs">{ad.cta}</Button>
                     </div>
-                    <div className="w-full sm:w-1/2 h-32 sm:h-40 relative">
+                    <div className="w-full sm:w-1/2 h-32 sm:h-40 relative order-1 sm:order-2">
                         <Image 
                             src={ad.image} 
                             alt={ad.title} 
