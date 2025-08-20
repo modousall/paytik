@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
+import { DialogClose } from './ui/dialog';
 
 const splitBillSchema = z.object({
   totalAmount: z.coerce.number().positive({ message: "Le montant total doit être positif." }),
@@ -60,9 +61,6 @@ export default function SplitBill() {
 
   return (
     <div className="pt-4">
-      <p className="text-muted-foreground mb-6">
-        Divisez facilement une dépense avec vos contacts. Les demandes de paiement seront envoyées automatiquement.
-      </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,10 +162,12 @@ export default function SplitBill() {
               </CardContent>
             </Card>
           )}
-
-          <Button type="submit" className="w-full bg-accent text-accent-foreground py-6 text-lg hover:bg-accent/90" disabled={amountPerPerson <= 0}>
-            Envoyer les demandes de paiement
-          </Button>
+          
+          <DialogClose asChild>
+            <Button type="submit" className="w-full bg-accent text-accent-foreground py-6 text-lg hover:bg-accent/90" disabled={amountPerPerson <= 0}>
+                Envoyer les demandes de paiement
+            </Button>
+          </DialogClose>
         </form>
       </Form>
     </div>
