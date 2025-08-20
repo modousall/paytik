@@ -104,8 +104,8 @@ export default function AdminCreateUserForm({ onUserCreated }: AdminCreateUserFo
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="support">Support (Interne)</SelectItem>
-                                    <SelectItem value="admin">Admin (Interne)</SelectItem>
+                                    <SelectItem value="support">Support</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />

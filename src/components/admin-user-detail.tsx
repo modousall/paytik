@@ -174,7 +174,7 @@ type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine';
 
 
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
-    const { toggleUserSuspension, updateUserRole } = useUserManagement();
+    const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
