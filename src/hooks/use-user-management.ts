@@ -30,6 +30,14 @@ export type ManagedUserWithDetails = ManagedUserWithTransactions & {
     virtualCard: (CardDetails & { transactions: CardTransaction[] }) | null;
 }
 
+export type NewUserPayload = {
+    name: string;
+    email: string;
+    alias: string;
+    pincode: string;
+    role: 'user' | 'merchant';
+}
+
 export const useUserManagement = () => {
   const [users, setUsers] = useState<ManagedUserWithDetails[]>([]);
   const [usersWithTransactions, setUsersWithTransactions] = useState<ManagedUserWithTransactions[]>([]);
@@ -133,7 +141,33 @@ export const useUserManagement = () => {
              console.error(`Failed to reset PIN for user ${alias}`, e);
         }
     }
-  }
+  };
 
-  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, refreshUsers: loadUsers };
+  const addUser = (payload: NewUserPayload): { success: boolean, message: string } => {
+    const userKey = `paytik_user_${payload.alias}`;
+    if (localStorage.getItem(userKey)) {
+        return { success: false, message: "Cet alias est déjà utilisé." };
+    }
+
+    const newUser = {
+        name: payload.name,
+        email: payload.email,
+        pincode: payload.pincode,
+        role: payload.role,
+        isSuspended: false
+    };
+
+    localStorage.setItem(userKey, JSON.stringify(newUser));
+    // Initialize other user-related data
+    localStorage.setItem(`paytik_balance_${payload.alias}`, '0');
+    localStorage.setItem(`paytik_transactions_${payload.alias}`, '[]');
+    localStorage.setItem(`paytik_contacts_${payload.alias}`, '[]');
+    localStorage.setItem(`paytik_vaults_${payload.alias}`, '[]');
+    localStorage.setItem(`paytik_tontines_${payload.alias}`, '[]');
+    
+    refreshUsers();
+    return { success: true, message: "Utilisateur créé avec succès." };
+  };
+
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, refreshUsers: loadUsers };
 };

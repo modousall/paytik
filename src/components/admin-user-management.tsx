@@ -7,16 +7,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { Input } from "./ui/input";
 import AdminUserDetail from "./admin-user-detail";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import AdminCreateUserForm from "./admin-create-user-form";
 
 
 export default function AdminUserManagement() {
     const { users, refreshUsers } = useUserManagement();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUser, setSelectedUser] = useState<ManagedUserWithDetails | null>(null);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const filteredUsers = users.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,6 +35,11 @@ export default function AdminUserManagement() {
         setSelectedUser(null);
         refreshUsers(); // Refresh data when going back to the list
     }
+    
+    const handleUserCreated = () => {
+        setIsCreateDialogOpen(false);
+        refreshUsers();
+    }
 
     if (selectedUser) {
         return <AdminUserDetail user={selectedUser} onBack={handleBackToList} />
@@ -46,14 +54,29 @@ export default function AdminUserManagement() {
                             <CardTitle>Gestion des Utilisateurs ({users.length})</CardTitle>
                             <CardDescription>Consultez la liste des utilisateurs. Cliquez sur un utilisateur pour voir les détails.</CardDescription>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Rechercher par nom, email, alias..." 
-                                className="pl-8 w-64"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2">
+                            <div className="relative">
+                                <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Rechercher..." 
+                                    className="pl-8 w-48"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <PlusCircle className="mr-2"/> Créer un utilisateur
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+                                    </DialogHeader>
+                                    <AdminCreateUserForm onUserCreated={handleUserCreated} />
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </CardHeader>
@@ -85,7 +108,7 @@ export default function AdminUserManagement() {
                                     </TableCell>
                                     <TableCell>{user.alias}</TableCell>
                                     <TableCell>
-                                        <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role || 'user'}</Badge>
+                                        <Badge variant={user.role === 'superadmin' ? 'destructive' : user.role === 'merchant' ? 'secondary' : 'outline'}>{user.role || 'user'}</Badge>
                                     </TableCell>
                                     <TableCell>{user.balance.toLocaleString()} Fcfa</TableCell>
                                     <TableCell>
