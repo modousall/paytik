@@ -7,7 +7,7 @@ import Contacts from "./contacts";
 import { Separator } from "./ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Camera, ArrowLeft, LogOut } from 'lucide-react';
+import { Camera, ArrowLeft, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAvatar } from '@/hooks/use-avatar';
 
@@ -21,9 +21,10 @@ type ProfileProps = {
   alias: string;
   onLogout: () => void;
   onBack: () => void;
+  onNavigate: (view: 'settings') => void;
 };
 
-export default function Profile({ userInfo, alias, onLogout, onBack }: ProfileProps) {
+export default function Profile({ userInfo, alias, onLogout, onBack, onNavigate }: ProfileProps) {
   const { avatar, setAvatar } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -47,14 +48,6 @@ export default function Profile({ userInfo, alias, onLogout, onBack }: ProfilePr
   const handleEditClick = () => {
     fileInputRef.current?.click();
   };
-  
-  const handleLogout = () => {
-    toast({
-        title: "Déconnexion",
-        description: "Vous avez été déconnecté avec succès.",
-    });
-    onLogout();
-  }
 
   return (
     <div className="space-y-8">
@@ -63,7 +56,7 @@ export default function Profile({ userInfo, alias, onLogout, onBack }: ProfilePr
                 <ArrowLeft />
             </Button>
             <div>
-                <h2 className="text-2xl font-bold text-primary">Profil et Paramètres</h2>
+                <h2 className="text-2xl font-bold text-primary">Profil</h2>
                 <p className="text-muted-foreground">Gérez vos informations, contacts et alias.</p>
             </div>
         </div>
@@ -93,9 +86,9 @@ export default function Profile({ userInfo, alias, onLogout, onBack }: ProfilePr
                 <h3 className="text-xl font-bold">{userInfo.name}</h3>
                 <p className="text-muted-foreground">{userInfo.email}</p>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Se déconnecter
+             <Button variant="outline" onClick={() => onNavigate('settings')}>
+                <Settings className="mr-2 h-4 w-4" />
+                Paramètres
             </Button>
         </div>
 
