@@ -10,6 +10,16 @@ import KYCForm from '@/components/kyc-form';
 import PinCreation from '@/components/pin-creation';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Dashboard from '@/components/dashboard'; // Import Dashboard
+import { 
+    TransactionsProvider,
+    ContactsProvider,
+    VirtualCardProvider,
+    TontineProvider,
+    VaultsProvider,
+    BalanceProvider,
+    AvatarProvider
+} from '@/hooks';
 
 type UserInfo = {
   name: string;
@@ -33,12 +43,17 @@ export default function AuthenticationGate() {
     if (lastAlias) {
         const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
         if(userDataString) {
-            router.push('/dashboard');
+            const userData = JSON.parse(userDataString);
+            setAlias(lastAlias);
+            setUserInfo({ name: userData.name, email: userData.email });
+            setStep('dashboard'); // Go directly to dashboard
         } else {
+            // User data is missing for the last alias, force login
+            localStorage.removeItem('paytik_last_alias');
             setStep('login');
         }
     }
-  }, [router]);
+  }, []);
 
   const handleAliasCreated = (newAlias: string) => {
     setAlias(newAlias);
@@ -54,7 +69,7 @@ export default function AuthenticationGate() {
         }));
         localStorage.setItem(`paytik_onboarded_${alias}`, 'true');
         localStorage.setItem('paytik_last_alias', alias);
-        router.push('/dashboard');
+        setStep('dashboard');
     } else {
          toast({
             title: "Erreur critique d'inscription",
@@ -89,7 +104,9 @@ export default function AuthenticationGate() {
         const userData = JSON.parse(userDataString);
         if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
-            router.push('/dashboard');
+            setAlias(loginAlias);
+            setUserInfo({ name: userData.name, email: userData.email });
+            setStep('dashboard');
             toast({
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
@@ -110,8 +127,34 @@ export default function AuthenticationGate() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('paytik_last_alias');
+    setAlias(null);
+    setUserInfo(null);
+    setStep('demo');
+  }
+
   const renderContent = () => {
     switch (step) {
+      case 'dashboard':
+          if (!alias) return null;
+          return (
+            <AvatarProvider alias={alias}>
+              <BalanceProvider alias={alias}>
+                <TransactionsProvider alias={alias}>
+                  <ContactsProvider alias={alias}>
+                    <VirtualCardProvider alias={alias}>
+                      <TontineProvider alias={alias}>
+                        <VaultsProvider alias={alias}>
+                          {userInfo && <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout}/>}
+                        </VaultsProvider>
+                      </TontineProvider>
+                    </VirtualCardProvider>
+                  </ContactsProvider>
+                </TransactionsProvider>
+              </BalanceProvider>
+            </AvatarProvider>
+          );
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
       case 'permissions':
