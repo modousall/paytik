@@ -18,9 +18,10 @@ type UserInfo = {
 type QrCodeDisplayProps = {
   alias: string;
   userInfo: UserInfo;
+  simpleMode?: boolean; // New prop to control UI complexity
 };
 
-export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
+export default function QrCodeDisplay({ alias, userInfo, simpleMode = false }: QrCodeDisplayProps) {
   const { toast } = useToast();
   // QR Code payload as per spec would be more complex. Here, we'll just encode the alias.
   // Spec mentions: champ Merchant Channel (ID 11) du QR Code = valeur 731.
@@ -48,23 +49,25 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
 
   return (
     <div className="flex flex-col h-full">
-        <SheetHeader className="p-4">
-            <SheetTitle className="sr-only">Afficher le QR Code</SheetTitle>
-            <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
-                    <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <h2 className="text-2xl font-bold">{userInfo.name}</h2>
-                    <div className="text-muted-foreground flex items-center gap-2">
-                        <span>{alias}</span> 
-                        <button onClick={handleCopyAlias} className="hover:text-primary"><Copy size={16}/></button>
+        {!simpleMode && (
+             <SheetHeader className="p-4">
+                <SheetTitle className="sr-only">Afficher le QR Code</SheetTitle>
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                        <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
+                        <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h2 className="text-2xl font-bold">{userInfo.name}</h2>
+                        <div className="text-muted-foreground flex items-center gap-2">
+                            <span>{alias}</span> 
+                            <button onClick={handleCopyAlias} className="hover:text-primary"><Copy size={16}/></button>
+                        </div>
                     </div>
+                    <Button variant="ghost" size="icon" className="ml-auto"><Share2/></Button>
                 </div>
-                <Button variant="ghost" size="icon" className="ml-auto"><Share2/></Button>
-            </div>
-        </SheetHeader>
+            </SheetHeader>
+        )}
 
         <div className="flex-grow flex items-center justify-center p-4">
             <div className="relative">
@@ -85,20 +88,22 @@ export default function QrCodeDisplay({ alias, userInfo }: QrCodeDisplayProps) {
             </div>
         </div>
 
-      <div className="mt-auto grid grid-cols-2 gap-2 p-4 border-t">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="secondary" className="py-6"><ScanLine className="mr-2"/>Scanner</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md p-0">
-                  <DialogHeader className="p-4">
-                      <DialogTitle>Scanner un code QR</DialogTitle>
-                  </DialogHeader>
-                  <QRCodeScanner onScan={handleScannedCode}/>
-              </DialogContent>
-            </Dialog>
-            <Button className="bg-primary hover:bg-primary/90 py-6">Mon Code</Button>
-      </div>
+      {!simpleMode && (
+          <div className="mt-auto grid grid-cols-2 gap-2 p-4 border-t">
+                <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="secondary" className="py-6"><ScanLine className="mr-2"/>Scanner</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md p-0">
+                    <DialogHeader className="p-4">
+                        <DialogTitle>Scanner un code QR</DialogTitle>
+                    </DialogHeader>
+                    <QRCodeScanner onScan={handleScannedCode}/>
+                </DialogContent>
+                </Dialog>
+                <Button className="bg-primary hover:bg-primary/90 py-6">Mon Code</Button>
+            </div>
+      )}
     </div>
   );
 }

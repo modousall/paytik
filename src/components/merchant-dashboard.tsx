@@ -1,10 +1,16 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Users, Settings, BarChart3, Package, ArrowLeft, Landmark, ShoppingCart } from 'lucide-react';
-import { useState } from "react";
+import { LogOut, BarChart3, FileText, Landmark, QrCode } from 'lucide-react';
+import QrCodeDisplay from './qr-code-display';
+import { useBalance } from "@/hooks/use-balance";
+import TransactionHistory from "./transaction-history";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useTransactions } from "@/hooks/use-transactions";
+import { toast } from "@/hooks/use-toast";
 
 type UserInfo = {
     name: string;
@@ -14,70 +20,104 @@ type UserInfo = {
 type MerchantDashboardProps = {
     onLogout: () => void;
     userInfo: UserInfo;
+    alias: string;
 };
 
-type MerchantView = 'dashboard' | 'sales' | 'terminals' | 'payouts';
 
-const merchantFeatures: {id: MerchantView, title: string, description: string, icon: JSX.Element}[] = [
-    { id: "sales", title: "Analyse des Ventes", description: "Consulter vos revenus et statistiques de ventes.", icon: <BarChart3 /> },
-    { id: "terminals", title: "Gestion des Terminaux", description: "Visualiser et gérer vos points de vente.", icon: <ShoppingCart /> },
-    { id: "payouts", title: "Versements", description: "Configurer et suivre les versements sur votre compte bancaire.", icon: <Landmark /> },
-]
+const KPIs = () => {
+    const { balance } = useBalance();
+    const { transactions } = useTransactions();
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todaysTransactions = transactions.filter(tx => tx.date.startsWith(today) && tx.type === 'received');
+    const todaysRevenue = todaysTransactions.reduce((acc, tx) => acc + tx.amount, 0);
 
-export default function MerchantDashboard({ onLogout, userInfo }: MerchantDashboardProps) {
-    const [view, setView] = useState<MerchantView>('dashboard');
+    const kpiData = [
+        { title: "Chiffre d'affaires (Aujourd'hui)", value: `${todaysRevenue.toLocaleString()} Fcfa` },
+        { title: "Transactions (Aujourd'hui)", value: todaysTransactions.length },
+        { title: "Solde Marchand Actuel", value: `${balance.toLocaleString()} Fcfa` },
+    ];
 
-    const renderContent = () => {
-        switch(view) {
-            case 'sales':
-            case 'terminals':
-            case 'payouts':
-                 return <div className="text-center p-8 bg-card rounded-lg"><p>Cette fonctionnalité est en cours de développement.</p></div>;
-            default:
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {merchantFeatures.map(feature => (
-                            <Card key={feature.title} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setView(feature.id)}>
-                                <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                                    <div className="p-3 bg-primary/10 rounded-full text-primary">{feature.icon}</div>
-                                    <CardTitle className="text-lg font-semibold">{feature.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <CardDescription>{feature.description}</CardDescription>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                )
-        }
-    }
+    return (
+        <div className="grid gap-4 md:grid-cols-3">
+            {kpiData.map(kpi => (
+                <Card key={kpi.title}>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{kpi.value}</div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+};
 
-  return (
-    <div className="min-h-screen bg-secondary">
-        <header className="bg-background border-b shadow-sm">
-            <div className="container mx-auto p-4 flex justify-between items-center">
-                 <h1 className="text-xl font-bold text-primary">Backoffice Marchand</h1>
-                 <Button variant="ghost" onClick={onLogout}>
-                    <ArrowLeft className="mr-2" /> Retour à l'application
-                </Button>
-            </div>
-        </header>
-        
-        <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-8">
-                {view === 'dashboard' ? (
-                     <>
-                        <h2 className="text-3xl font-bold">Bienvenue, {userInfo.name} !</h2>
-                        <p className="text-muted-foreground">Gérez votre activité commerciale depuis ce tableau de bord.</p>
-                     </>
-                ) : (
-                    <Button variant="outline" onClick={() => setView('dashboard')}>
-                        <ArrowLeft className="mr-2"/> Retour au tableau de bord
+const handlePlaceholderClick = (featureName: string) => {
+    toast({
+        title: "Fonctionnalité en cours de développement",
+        description: `La fonctionnalité "${featureName}" sera bientôt disponible.`,
+    });
+};
+
+export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
+    const [showAllTransactions, setShowAllTransactions] = useState(false);
+  
+    return (
+        <div className="min-h-screen bg-secondary">
+            <header className="bg-background border-b shadow-sm sticky top-0 z-10">
+                <div className="container mx-auto p-4 flex justify-between items-center">
+                    <h1 className="text-xl font-bold text-primary">Tableau de Bord Marchand</h1>
+                    <Button variant="outline" onClick={onLogout}>
+                        <LogOut className="mr-2" /> Déconnexion
                     </Button>
-                )}
-            </div>
-            {renderContent()}
-        </main>
-    </div>
-  );
+                </div>
+            </header>
+            
+            <main className="container mx-auto p-4 sm:p-6 lg:p-8">
+                 <Tabs defaultValue="cash-in" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 h-12">
+                        <TabsTrigger value="cash-in" className="h-full text-base"><QrCode className="mr-2"/>Encaisser</TabsTrigger>
+                        <TabsTrigger value="dashboard" className="h-full text-base"><BarChart3 className="mr-2"/>Tableau de Bord</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="cash-in" className="mt-6">
+                        <Card className="max-w-2xl mx-auto">
+                            <CardHeader className="text-center">
+                                <CardTitle className="text-2xl">Recevoir un Paiement</CardTitle>
+                                <CardDescription>Le client scanne ce code pour vous payer.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col items-center gap-6">
+                                <div className="p-4 bg-white rounded-lg shadow-md">
+                                    <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
+                                </div>
+                                <div className="flex gap-4">
+                                     <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => handlePlaceholderClick("Demander un paiement")}>
+                                        <FileText/> Demander un paiement
+                                    </Button>
+                                    <Button size="lg" variant="secondary" onClick={() => handlePlaceholderClick("Versements bancaires")}>
+                                        <Landmark/> Versements
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    
+                    <TabsContent value="dashboard" className="mt-6 space-y-6">
+                        <KPIs />
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Historique des Encaissements</CardTitle>
+                                <CardDescription>Liste de toutes les transactions reçues.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <TransactionHistory showAll={true} onShowAll={() => {}} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </main>
+        </div>
+    );
 }

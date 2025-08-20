@@ -26,7 +26,7 @@ import { ProductProvider } from '@/hooks/use-product-management';
 type UserInfo = {
   name: string;
   email: string;
-  role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
+  role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support' | 'agent';
 };
 
 type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin' | 'merchant_dashboard';
@@ -76,10 +76,15 @@ export default function AuthenticationGate() {
                 setStep('demo');
                 return;
             }
-            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
+            const userRole = userData.role || 'user';
+            setUserInfo({ name: userData.name, email: userData.email, role: userRole });
             setAlias(lastAlias);
-            // All roles now go to the dashboard first
-            setStep('dashboard');
+            
+            if (userRole === 'merchant') {
+                setStep('merchant_dashboard');
+            } else {
+                setStep('dashboard'); // All other roles go to the main dashboard first
+            }
             
         } else {
              // Data mismatch, clear and go to demo
@@ -185,16 +190,20 @@ export default function AuthenticationGate() {
 
         if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
-            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
+            const userRole = userData.role || 'user';
+            setUserInfo({ name: userData.name, email: userData.email, role: userRole });
             setAlias(loginAlias);
             toast({
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
             });
             
-            // ALL roles now go to the dashboard first.
-            // The dashboard will then decide whether to show a button to a backoffice.
-            setStep('dashboard');
+            if (userRole === 'merchant') {
+                setStep('merchant_dashboard');
+            } else {
+                // All other roles (user, admin, support, etc.) go to the main dashboard
+                setStep('dashboard');
+            }
 
         } else {
              toast({
@@ -213,8 +222,6 @@ export default function AuthenticationGate() {
   }
   
   const renderContent = () => {
-    // This function can be simplified as most paths lead to the dashboard now
-    // But we keep it for clarity of the onboarding flow.
     switch (step) {
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
@@ -225,7 +232,6 @@ export default function AuthenticationGate() {
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'alias':
-        // The user info from KYC doesn't have a role, so we cast it.
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo as {name: string, email: string}} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
@@ -233,12 +239,17 @@ export default function AuthenticationGate() {
          // This case is no longer directly reachable, flow goes through dashboard
         return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
        case 'merchant_dashboard':
-        // This case is no longer directly reachable, flow goes through dashboard
          if(alias && userInfo) {
             return (
               <FeatureFlagProvider>
                 <ProductProvider>
-                  <MerchantDashboard userInfo={userInfo} onLogout={handleLogout} />
+                    <AvatarProvider alias={alias}>
+                        <BalanceProvider alias={alias}>
+                            <TransactionsProvider alias={alias}>
+                                <MerchantDashboard userInfo={userInfo} alias={alias} onLogout={handleLogout} />
+                            </TransactionsProvider>
+                        </BalanceProvider>
+                    </AvatarProvider>
                 </ProductProvider>
               </FeatureFlagProvider>
             );
