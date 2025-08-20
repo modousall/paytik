@@ -73,7 +73,7 @@ export default function Home() {
     const storedName = localStorage.getItem('paytik_username');
     const storedEmail = localStorage.getItem('paytik_useremail');
   
-    if (storedAlias && loginAlias === storedAlias && storedName && storedEmail) {
+    if (loginAlias === storedAlias && storedName && storedEmail) {
       setAlias(loginAlias);
       setUserInfo({ name: storedName, email: storedEmail });
       setStep('dashboard');
