@@ -133,7 +133,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
   if (!card) {
     return (
       <div className="flex flex-col items-center justify-center text-center p-8">
-        <Image src="https://placehold.co/300x200.png" width={300} height={200} alt="No card" className="mb-4 rounded-lg" data-ai-hint="credit card illustration" />
+        <Image src="https://placehold.co/280x180.png" width={280} height={180} alt="No card" className="mb-4 rounded-lg" data-ai-hint="credit card illustration" />
         <h2 className="text-2xl font-bold mb-2">Aucune carte virtuelle active</h2>
         <p className="text-muted-foreground mb-4">Créez une carte virtuelle pour effectuer des paiements en ligne sécurisés.</p>
         <div className='flex gap-4'>
@@ -157,31 +157,33 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
         </div>
         
         <div className="w-full max-w-md mx-auto space-y-4">
-            <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl relative overflow-hidden">
-                <CardHeader>
+            <Card className="bg-gradient-to-br from-primary via-primary/80 to-accent/80 text-primary-foreground shadow-2xl relative overflow-hidden aspect-[1.586/1]">
+                <CardContent className="p-4 sm:p-6 flex flex-col h-full justify-between font-mono">
                     <div className="flex justify-between items-start">
                         <div>
-                            <CardTitle className="text-lg font-semibold tracking-wider">PAYTIK CARD</CardTitle>
-                            <CardDescription className="text-xs opacity-80 text-primary-foreground/80">Virtual</CardDescription>
+                            <p className="text-base sm:text-lg font-semibold tracking-wider">PAYTIK CARD</p>
+                            <p className="text-xs opacity-80 text-primary-foreground/80">Virtual</p>
                         </div>
-                        <p className="font-mono text-xl">VISA</p>
+                        <p className="text-lg sm:text-xl">VISA</p>
                     </div>
-                </CardHeader>
-                <CardContent className="font-mono space-y-2">
-                    <p className="text-center text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
-                    <div className="flex justify-between text-sm">
-                        <div>
-                            <p className="text-xs opacity-70">Expire Fin</p>
-                            <p>{showDetails ? card.expiry : "**/**"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs opacity-70">CVV</p>
-                            <p>{showDetails ? card.cvv : "***"}</p>
+                    
+                    <div className='space-y-1'>
+                        <p className="text-center text-lg sm:text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
+                        <div className="flex justify-between text-xs sm:text-sm pt-2">
+                            <div>
+                                <p className="opacity-70">Expire Fin</p>
+                                <p>{showDetails ? card.expiry : "**/**"}</p>
+                            </div>
+                            <div>
+                                <p className="opacity-70">CVV</p>
+                                <p>{showDetails ? card.cvv : "***"}</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="pt-2">
+
+                    <div>
                         <p className="text-xs opacity-70">Titulaire</p>
-                        <p className="font-medium tracking-wider uppercase">{cardHolderName}</p>
+                        <p className="font-medium tracking-wider uppercase text-sm sm:text-base">{cardHolderName}</p>
                     </div>
                 </CardContent>
                 

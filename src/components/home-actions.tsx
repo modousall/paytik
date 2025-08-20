@@ -26,10 +26,10 @@ type HomeActionsProps = {
 
 export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-8 max-w-lg mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
              <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="outline" size="lg" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1">
+                    <Button variant="outline" size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
                         <ArrowDown/> Recevoir
                     </Button>
                 </SheetTrigger>
@@ -38,15 +38,15 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 </SheetContent>
             </Sheet>
             
-            <Button size="lg" className="h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col sm:flex-row gap-1" onClick={onSendClick}>
+            <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1" onClick={onSendClick}>
                 <ArrowUp/> Payer
             </Button>
 
-            <Button size="lg" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1" onClick={onRechargeClick}>
+            <Button size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onRechargeClick}>
                 <PlusCircle/> Recharger
             </Button>
             
-            <Button size="lg" variant="secondary" className="h-16 w-full shadow-sm flex-col sm:flex-row gap-1" onClick={onWithdrawClick}>
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
                 <Landmark/> Retirer
             </Button>
         </div>
