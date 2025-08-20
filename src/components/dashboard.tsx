@@ -7,7 +7,6 @@ import Profile from './profile';
 import Tontine from './tontine';
 import VirtualCard from './virtual-card';
 import HomeActions from './home-actions';
-import type { Service } from './services';
 import Vaults from './vaults';
 import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
@@ -27,16 +26,16 @@ type DashboardProps = {
 type View = 'dashboard' | 'profile';
 type ActiveAction = 'none' | 'payer';
 
-const servicesMap: { [key: string]: Service } = {
-    "ma-carte": { name: "Ma Carte", icon: <></>, action: "ma-carte", description: "" },
-    "coffres": { name: "Coffres", icon: <></>, action: "coffres", description: "" },
-    "tontine": { name: "Tontine", icon: <></>, action: "tontine", description: "" },
+const servicesMap: { [key: string]: { name: string; action: 'ma-carte' | 'coffres' | 'tontine' } } = {
+    "ma-carte": { name: "Ma Carte", action: "ma-carte" },
+    "coffres": { name: "Coffres", action: "coffres" },
+    "tontine": { name: "Tontine", action: "tontine" },
 }
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
-    const [view, setView] = useState<View>('dashboard');
+    const [view, setView] = 'dashboard');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
-    const [activeService, setActiveService] = useState<Service | null>(null);
+    const [activeService, setActiveService] = useState<'ma-carte' | 'coffres' | 'tontine' | null>(null);
     const [activeAction, setActiveAction] = useState<ActiveAction>('none');
 
     const handleShowAllTransactions = (show: boolean) => {
@@ -54,13 +53,12 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if (destination === 'transactions') {
             setShowAllTransactions(true);
             setView('dashboard'); 
+            setActiveService(null);
+            setActiveAction('none');
         } else {
-            const service = servicesMap[destination];
-            if (service) {
-                setActiveService(service);
-                setView('dashboard');
-                setActiveAction('none');
-            }
+            setActiveService(destination);
+            setView('dashboard');
+            setActiveAction('none');
         }
       };
 
@@ -74,7 +72,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
         }
         if (activeService) {
-             switch (activeService.action) {
+             switch (activeService) {
                 case 'tontine':
                     return <Tontine onBack={() => setActiveService(null)}/>;
                 case 'ma-carte':
