@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X, Edit } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X, Edit, HandCoins } from "lucide-react";
 import type { ManagedUserWithDetails } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -23,6 +23,7 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useBnpl } from '@/hooks/use-bnpl';
 
 
 // Import product components
@@ -135,25 +136,27 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
     return (
         <FeatureFlagProvider>
             <AvatarProvider alias={alias}>
-                <BalanceProvider alias={alias}>
-                    <TransactionsProvider alias={alias}>
-                        <ContactsProvider alias={alias}>
-                            <VirtualCardProvider alias={alias}>
-                                <VaultsProvider alias={alias}>
-                                    <TontineProvider alias={alias}>
-                                        {children}
-                                    </TontineProvider>
-                                </VaultsProvider>
-                            </VirtualCardProvider>
-                        </ContactsProvider>
-                    </TransactionsProvider>
-                </BalanceProvider>
+                 <TransactionsProvider alias={alias}>
+                    <BalanceProvider alias={alias}>
+                        <BnplProvider alias={alias}>
+                            <ContactsProvider alias={alias}>
+                                <VirtualCardProvider alias={alias}>
+                                    <VaultsProvider alias={alias}>
+                                        <TontineProvider alias={alias}>
+                                            {children}
+                                        </TontineProvider>
+                                    </VaultsProvider>
+                                </VirtualCardProvider>
+                            </ContactsProvider>
+                        </BnplProvider>
+                    </BalanceProvider>
+                </TransactionsProvider>
             </AvatarProvider>
         </FeatureFlagProvider>
     )
 };
 
-const SummaryCard = ({ title, balance, icon, color, onClick }: { title: string, balance: number, icon: JSX.Element, color: string, onClick?: () => void }) => (
+const SummaryCard = ({ title, balance, icon, color, onClick, isCurrency = true }: { title: string, balance: number, icon: JSX.Element, color: string, onClick?: () => void, isCurrency?: boolean }) => (
     <Card 
       className={`text-white shadow-lg p-3 flex flex-col justify-between bg-gradient-to-br ${color} border-none ${onClick ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
       onClick={onClick}
@@ -164,7 +167,7 @@ const SummaryCard = ({ title, balance, icon, color, onClick }: { title: string, 
         </div>
         <div className="text-right mt-2">
             <p className="text-xl font-bold tracking-tight">{balance.toLocaleString()}</p>
-            <p className="text-xs opacity-80">Fcfa</p>
+            {isCurrency && <p className="text-xs opacity-80">Fcfa</p>}
         </div>
     </Card>
 );
@@ -190,6 +193,15 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
          const today = new Date().toISOString().split('T')[0];
         return user.transactions.filter(tx => tx.type === 'received' && tx.date.startsWith(today)).length;
     }, [user.transactions]);
+    
+    const { allRequests } = useBnpl();
+    
+    const merchantCreditBalance = useMemo(() => {
+        return allRequests
+            .filter(req => req.alias === user.alias && req.status === 'approved')
+            .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
+    }, [allRequests, user.alias]);
+
 
     const totalVaultsBalance = useMemo(() => user.vaults.reduce((acc, vault) => acc + vault.balance, 0), [user.vaults]);
     const totalTontinesBalance = useMemo(() => user.tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0), [user.tontines]);
@@ -277,28 +289,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                             </div>
                             </CardContent>
                         </Card>
-
-                        {user.role === 'merchant' && (
-                            <Card>
-                                <CardHeader><CardTitle>Statistiques Marchand (Jour)</CardTitle></CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-green-100 rounded-lg"><TrendingUp className="h-6 w-6 text-green-700"/></div>
-                                        <div>
-                                            <p className="text-muted-foreground text-sm">Chiffre d'affaires</p>
-                                            <p className="font-bold text-lg">{todaysRevenue.toLocaleString()} Fcfa</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-blue-100 rounded-lg"><Briefcase className="h-6 w-6 text-blue-700"/></div>
-                                        <div>
-                                            <p className="text-muted-foreground text-sm">Transactions</p>
-                                            <p className="font-bold text-lg">{todaysTransactionsCount}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                         
                         <Card>
                             <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
@@ -320,12 +310,20 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                     </div>
 
                     <div className="lg:col-span-2 space-y-6">
-                        {user.role === 'user' && (
+                         {user.role === 'user' && (
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 <SummaryCard title="Solde Principal" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-primary to-blue-400" onClick={() => setActiveServiceView('transactions')} />
                                 <SummaryCard title="Carte Virtuelle" balance={virtualCardBalance} icon={<CreditCard className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" onClick={() => setActiveServiceView('ma-carte')} />
                                 <SummaryCard title="Mes Coffres" balance={totalVaultsBalance} icon={<PiggyBank className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" onClick={() => setActiveServiceView('coffres')} />
                                 <SummaryCard title="Mes Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" onClick={() => setActiveServiceView('tontine')}/>
+                            </div>
+                        )}
+                        {user.role === 'merchant' && (
+                           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <SummaryCard title="Chiffre d'Affaires (jour)" balance={todaysRevenue} icon={<TrendingUp className="h-5 w-5 text-white" />} color="from-primary to-blue-400" />
+                                <SummaryCard title="Transactions (jour)" balance={todaysTransactionsCount} icon={<Briefcase className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" isCurrency={false} />
+                                <SummaryCard title="Solde Marchand" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" />
+                                <SummaryCard title="Crédit en Cours" balance={merchantCreditBalance} icon={<HandCoins className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" />
                             </div>
                         )}
                         <Card>
