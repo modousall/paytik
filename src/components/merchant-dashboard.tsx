@@ -4,12 +4,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine, Smartphone, Store } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useTransactions } from "@/hooks/use-transactions";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "./ui/dialog";
 import { useForm } from "react-hook-form";
@@ -18,6 +17,9 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import QRCodeScanner from "./qr-code-scanner";
+import { useProductManagement } from "@/hooks/use-product-management";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useTransactions } from "@/hooks/use-transactions";
 
 type UserInfo = {
     name: string;
@@ -149,34 +151,66 @@ const RequestPaymentDialog = ({ alias, userInfo }: { alias: string, userInfo: Us
 const PayoutDialog = () => {
     const { balance, debit } = useBalance();
     const { addTransaction } = useTransactions();
+    const { mobileMoneyOperators } = useProductManagement();
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submittedMessage, setSubmittedMessage] = useState("");
 
-    const payoutSchema = z.object({
+    const bankPayoutSchema = z.object({
         amount: z.coerce.number().positive("Le montant doit être positif.").max(balance, "Le solde est insuffisant."),
         iban: z.string().min(14, "L'IBAN est invalide.").regex(/^SN/, "L'IBAN doit commencer par SN."),
     });
-    type PayoutValues = z.infer<typeof payoutSchema>;
+    type BankPayoutValues = z.infer<typeof bankPayoutSchema>;
 
-     const form = useForm<PayoutValues>({
-        resolver: zodResolver(payoutSchema),
+    const mobileMoneyPayoutSchema = z.object({
+        amount: z.coerce.number().positive("Le montant doit être positif.").max(balance, "Le solde est insuffisant."),
+        operator: z.string().min(1, "L'opérateur est requis."),
+        phone: z.string().min(9, "Le numéro de téléphone est invalide."),
+    });
+    type MobileMoneyPayoutValues = z.infer<typeof mobileMoneyPayoutSchema>;
+    
+    const merchantPayoutSchema = z.object({
+        amount: z.coerce.number().positive("Le montant doit être positif.").max(balance, "Le solde est insuffisant."),
+        alias: z.string().min(3, "L'alias du marchand est invalide."),
+    });
+    type MerchantPayoutValues = z.infer<typeof merchantPayoutSchema>;
+
+     const bankForm = useForm<BankPayoutValues>({
+        resolver: zodResolver(bankPayoutSchema),
         defaultValues: { amount: undefined, iban: "" },
     });
+     const mobileMoneyForm = useForm<MobileMoneyPayoutValues>({
+        resolver: zodResolver(mobileMoneyPayoutSchema),
+        defaultValues: { amount: undefined, operator: "", phone: "" },
+    });
+    const merchantForm = useForm<MerchantPayoutValues>({
+        resolver: zodResolver(merchantPayoutSchema),
+        defaultValues: { amount: undefined, alias: "" },
+    });
 
-    const onSubmit = (values: PayoutValues) => {
-        debit(values.amount);
+    const handlePayout = (amount: number, reason: string, counterparty: string) => {
+        debit(amount);
         addTransaction({
             type: 'versement',
-            counterparty: `Banque via IBAN ****${values.iban.slice(-4)}`,
-            reason: "Versement des fonds",
+            counterparty,
+            reason,
             date: new Date().toISOString(),
-            amount: values.amount,
+            amount,
             status: "En attente"
         });
-        toast({
-            title: "Demande de versement initiée",
-            description: `Votre demande de versement de ${values.amount.toLocaleString()} Fcfa a été envoyée.`
-        });
+        setSubmittedMessage(`Votre demande de versement de ${amount.toLocaleString()} Fcfa a été envoyée.`);
         setIsSubmitted(true);
+    };
+
+    const onBankSubmit = (values: BankPayoutValues) => {
+        handlePayout(values.amount, "Versement bancaire", `Banque via IBAN ****${values.iban.slice(-4)}`);
+    };
+    
+    const onMobileMoneySubmit = (values: MobileMoneyPayoutValues) => {
+        handlePayout(values.amount, `Versement vers ${values.operator}`, values.phone);
+    };
+    
+    const onMerchantSubmit = (values: MerchantPayoutValues) => {
+        handlePayout(values.amount, "Transfert entre marchands", values.alias);
     };
 
     if (isSubmitted) {
@@ -186,7 +220,7 @@ const PayoutDialog = () => {
                     <DialogTitle>Demande de versement enregistrée</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 text-center">
-                    <p>Votre demande a été prise en compte et sera traitée dans les plus brefs délais.</p>
+                    <p>{submittedMessage}</p>
                 </div>
                  <div className="flex justify-end gap-2">
                     <DialogClose asChild><Button>Fermer</Button></DialogClose>
@@ -196,45 +230,82 @@ const PayoutDialog = () => {
     }
 
     return (
-         <DialogContent>
+         <DialogContent className="max-w-lg">
              <DialogHeader>
-                <DialogTitle>Demander un versement bancaire</DialogTitle>
-                <DialogDescription>Transférez les fonds de votre compte marchand vers votre compte bancaire.</DialogDescription>
+                <DialogTitle>Demander un versement</DialogTitle>
+                <DialogDescription>Transférez les fonds de votre compte marchand vers la destination de votre choix.</DialogDescription>
             </DialogHeader>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-                    <FormField
-                        control={form.control}
-                        name="amount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Montant (Fcfa)</FormLabel>
-                                <FormControl><Input type="number" placeholder="ex: 50000" {...field} /></FormControl>
-                                <FormMessage />
-                                <p className="text-xs text-muted-foreground">Solde disponible: {balance.toLocaleString()} Fcfa</p>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="iban"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>IBAN du compte bancaire</FormLabel>
-                                <FormControl><Input placeholder="SN00 XXXX XXXX XXXX XXXX XXX" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <div className="flex justify-end gap-2 pt-4">
-                        <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
-                        <Button type="submit" disabled={form.formState.isSubmitting}>
-                            {form.formState.isSubmitting && <Loader2 className="animate-spin mr-2"/>}
-                            Confirmer le versement
-                        </Button>
-                    </div>
-                </form>
-            </Form>
+            <p className="text-sm font-medium">Solde disponible: <span className="text-primary">{balance.toLocaleString()} Fcfa</span></p>
+            <Tabs defaultValue="bank">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="bank"><Landmark className="mr-2"/>Banque</TabsTrigger>
+                    <TabsTrigger value="mobile-money"><Smartphone className="mr-2"/>Mobile Money</TabsTrigger>
+                    <TabsTrigger value="merchant"><Store className="mr-2"/>Marchand</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="bank">
+                    <Form {...bankForm}>
+                        <form onSubmit={bankForm.handleSubmit(onBankSubmit)} className="space-y-4 pt-4">
+                            <FormField control={bankForm.control} name="amount" render={({ field }) => (
+                                <FormItem><FormLabel>Montant (Fcfa)</FormLabel><FormControl><Input type="number" placeholder="ex: 50000" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={bankForm.control} name="iban" render={({ field }) => (
+                                <FormItem><FormLabel>IBAN du compte bancaire</FormLabel><FormControl><Input placeholder="SN00 XXXX XXXX XXXX XXXX XXX" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <div className="flex justify-end gap-2 pt-4">
+                                <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                                <Button type="submit" disabled={bankForm.formState.isSubmitting}>Confirmer le versement</Button>
+                            </div>
+                        </form>
+                    </Form>
+                </TabsContent>
+
+                <TabsContent value="mobile-money">
+                     <Form {...mobileMoneyForm}>
+                        <form onSubmit={mobileMoneyForm.handleSubmit(onMobileMoneySubmit)} className="space-y-4 pt-4">
+                            <FormField control={mobileMoneyForm.control} name="amount" render={({ field }) => (
+                                <FormItem><FormLabel>Montant (Fcfa)</FormLabel><FormControl><Input type="number" placeholder="ex: 10000" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                             <FormField control={mobileMoneyForm.control} name="operator" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Opérateur Mobile Money</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Sélectionnez un opérateur" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {mobileMoneyOperators.map(op => (<SelectItem key={op.id} value={op.name}>{op.name}</SelectItem>))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                             <FormField control={mobileMoneyForm.control} name="phone" render={({ field }) => (
+                                <FormItem><FormLabel>Numéro de téléphone</FormLabel><FormControl><Input placeholder="+221 7X XXX XX XX" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <div className="flex justify-end gap-2 pt-4">
+                                <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                                <Button type="submit" disabled={mobileMoneyForm.formState.isSubmitting}>Confirmer le versement</Button>
+                            </div>
+                        </form>
+                    </Form>
+                </TabsContent>
+
+                <TabsContent value="merchant">
+                    <Form {...merchantForm}>
+                        <form onSubmit={merchantForm.handleSubmit(onMerchantSubmit)} className="space-y-4 pt-4">
+                            <FormField control={merchantForm.control} name="amount" render={({ field }) => (
+                                <FormItem><FormLabel>Montant (Fcfa)</FormLabel><FormControl><Input type="number" placeholder="ex: 25000" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={merchantForm.control} name="alias" render={({ field }) => (
+                                <FormItem><FormLabel>Alias du marchand destinataire</FormLabel><FormControl><Input placeholder="aliasMarchand123" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <div className="flex justify-end gap-2 pt-4">
+                                <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                                <Button type="submit" disabled={merchantForm.formState.isSubmitting}>Confirmer le transfert</Button>
+                            </div>
+                        </form>
+                    </Form>
+                </TabsContent>
+            </Tabs>
         </DialogContent>
     )
 }
