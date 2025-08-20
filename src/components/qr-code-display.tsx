@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SheetHeader, SheetTitle } from './ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
+import { useAvatar } from '@/hooks/use-avatar';
 
 type UserInfo = {
     name: string;
@@ -25,6 +26,7 @@ type QrCodeDisplayProps = {
 
 export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amount, reason }: QrCodeDisplayProps) {
   const { toast } = useToast();
+  const { avatar } = useAvatar();
   
   const qrDataBase = {
       shid: alias,
@@ -57,7 +59,7 @@ export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amo
                 <SheetTitle className="sr-only">Afficher le QR Code</SheetTitle>
                 <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
+                        <AvatarImage src={avatar ?? undefined} alt={userInfo.name} data-ai-hint="person face" />
                         <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>

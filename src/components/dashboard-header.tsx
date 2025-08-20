@@ -17,6 +17,7 @@ import { useVirtualCard } from '@/hooks/use-virtual-card';
 import { useVaults } from '@/hooks/use-vaults';
 import { useTontine } from '@/hooks/use-tontine';
 import { useAvatar } from '@/hooks/use-avatar';
+import { useMonthlyBudget } from '@/hooks/use-monthly-budget';
 
 type UserInfo = {
     name: string;
@@ -35,6 +36,7 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
     const { vaults } = useVaults();
     const { tontines } = useTontine();
     const { avatar } = useAvatar();
+    const { budget } = useMonthlyBudget();
 
     const [isBalanceVisible, setIsBalanceVisible] = useState(true);
 
@@ -44,16 +46,16 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
     const totalBalance = balance + (card?.balance || 0) + totalVaultsBalance + totalTontinesBalance;
     
     // Mock monthly budget for progress bar
-    const spentAmount = 4500000;
-    const monthlyBudget = 30000000;
-    const progress = (spentAmount / monthlyBudget) * 100;
+    const spentAmount = 450000;
+    const monthlyBudget = budget;
+    const progress = monthlyBudget > 0 ? (spentAmount / monthlyBudget) * 100 : 0;
 
     return (
         <header className="mb-6">
             <div className="flex justify-between items-center mb-4">
                  <button onClick={onProfileClick} className="flex items-center gap-3 text-left rounded-md p-2 -ml-2 hover:bg-secondary transition-colors">
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={avatar ?? `https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
+                        <AvatarImage src={avatar ?? undefined} alt={userInfo.name} data-ai-hint="person face" />
                         <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                      <div>
@@ -78,11 +80,11 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
                 <p className="text-sm text-muted-foreground">Solde Total</p>
                 <div className="flex items-center justify-center gap-2">
                      {isBalanceVisible ? (
-                        <p className="text-4xl font-bold tracking-tight text-primary">
-                            {totalBalance.toLocaleString()} <span className="text-lg font-normal">Fcfa</span>
+                        <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
+                            {totalBalance.toLocaleString()} <span className="text-base sm:text-lg font-normal">Fcfa</span>
                         </p>
                     ) : (
-                        <p className="text-4xl font-bold tracking-tight text-primary">
+                        <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
                             ••••••••
                         </p>
                     )}
@@ -92,13 +94,15 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
                 </div>
             </div>
 
-            <div className='mt-4 max-w-sm mx-auto'>
-                <div className='text-xs flex justify-between text-muted-foreground mb-1'>
-                    <span>Dépenses ce mois-ci</span>
-                    <span>{spentAmount.toLocaleString()} / {monthlyBudget.toLocaleString()} Fcfa</span>
+            {monthlyBudget > 0 && (
+                <div className='mt-4 max-w-sm mx-auto'>
+                    <div className='text-xs flex justify-between text-muted-foreground mb-1'>
+                        <span>Dépenses ce mois-ci</span>
+                        <span>{spentAmount.toLocaleString()} / {monthlyBudget.toLocaleString()} Fcfa</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
                 </div>
-                <Progress value={progress} className="h-2" />
-            </div>
+            )}
 
         </header>
     );

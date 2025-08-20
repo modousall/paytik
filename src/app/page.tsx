@@ -23,6 +23,7 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
 import { ProductProvider } from '@/hooks/use-product-management';
 import { RoleProvider } from '@/hooks/use-role-management';
+import { MonthlyBudgetProvider } from '@/hooks/use-monthly-budget';
 
 type UserInfo = {
   name: string;
@@ -57,19 +58,21 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
         <ProductProvider addSettlementTransaction={addTransaction}>
             <FeatureFlagProvider>
                 <RoleProvider>
-                    <AvatarProvider alias={alias}>
-                        <BalanceProvider alias={alias}>
-                            <ContactsProvider alias={alias}>
-                            <VirtualCardProvider alias={alias}>
-                                <VaultsProvider alias={alias}>
-                                <TontineProvider alias={alias}>
-                                    {children}
-                                </TontineProvider>
-                                </VaultsProvider>
-                            </VirtualCardProvider>
-                            </ContactsProvider>
-                        </BalanceProvider>
-                    </AvatarProvider>
+                    <MonthlyBudgetProvider>
+                        <AvatarProvider alias={alias}>
+                            <BalanceProvider alias={alias}>
+                                <ContactsProvider alias={alias}>
+                                <VirtualCardProvider alias={alias}>
+                                    <VaultsProvider alias={alias}>
+                                    <TontineProvider alias={alias}>
+                                        {children}
+                                    </TontineProvider>
+                                    </VaultsProvider>
+                                </VirtualCardProvider>
+                                </ContactsProvider>
+                            </BalanceProvider>
+                        </AvatarProvider>
+                    </MonthlyBudgetProvider>
                 </RoleProvider>
             </FeatureFlagProvider>
       </ProductProvider>

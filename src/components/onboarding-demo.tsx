@@ -20,22 +20,22 @@ type OnboardingDemoProps = {
 
 const features = [
     {
-      icon: <Wifi className="h-12 w-12 text-white" />,
+      icon: <Wifi className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
       title: "Paiements Interopérables",
       description: "Notre plateforme est conçue pour fonctionner de manière transparente avec divers services.",
     },
     {
-      icon: <Zap className="h-12 w-12 text-white" />,
+      icon: <Zap className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
       title: "Transactions Instantanées",
       description: "Profitez d'un traitement des paiements ultra-rapide pour tous vos besoins.",
     },
     {
-      icon: <ShieldCheck className="h-12 w-12 text-white" />,
+      icon: <ShieldCheck className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
       title: "Sécurité Renforcée",
       description: "Avec PAYTIK, vos transactions sont protégées par les dernières technologies de sécurité.",
     },
     {
-      icon: <DollarSign className="h-12 w-12 text-white" />,
+      icon: <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
       title: "Coûts Abordables",
       description: "Profitez de frais de transaction compétitifs et transparents.",
     },
@@ -74,7 +74,7 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
 
         <div className="my-8">
             <Image src="/paytik-logo.png" alt="PAYTIK Logo" width={180} height={40} data-ai-hint="logo" />
-            <p className="text-muted-foreground mt-2">Votre solution de paiement simplifiée et sécurisée.</p>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Votre solution de paiement simplifiée et sécurisée.</p>
         </div>
 
         <Carousel setApi={setApi} className="w-full max-w-sm sm:max-w-md">
@@ -84,8 +84,8 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
                 <div className="p-1">
                     <div className="flex flex-col aspect-[4/3.5] items-center justify-center p-6 text-center rounded-2xl bg-gradient-to-br from-primary to-blue-400 text-primary-foreground shadow-2xl">
                       <div className="mb-4">{feature.icon}</div>
-                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                      <p className="opacity-90 max-w-xs">{feature.description}</p>
+                      <h3 className="text-lg sm:text-xl font-semibold mb-2">{feature.title}</h3>
+                      <p className="opacity-90 max-w-xs text-sm sm:text-base">{feature.description}</p>
                     </div>
                 </div>
               </CarouselItem>

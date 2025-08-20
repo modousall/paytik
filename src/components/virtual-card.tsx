@@ -172,14 +172,14 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
                 <CardContent className="p-4 sm:p-6 flex flex-col h-full justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-base sm:text-lg font-semibold tracking-wider">PAYTIK CARD</p>
+                            <p className="text-sm sm:text-base font-semibold tracking-wider">PAYTIK CARD</p>
                             <p className="text-xs opacity-80 text-primary-foreground/80">Virtual</p>
                         </div>
-                        <p className="text-lg sm:text-xl">VISA</p>
+                        <p className="text-base sm:text-xl">VISA</p>
                     </div>
                     
                     <div className='space-y-1'>
-                        <p className="text-center text-lg sm:text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
+                        <p className="text-center text-base sm:text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
                         <div className="flex justify-between text-xs sm:text-sm pt-2">
                             <div>
                                 <p className="opacity-70">Expire Fin</p>
@@ -194,7 +194,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
 
                     <div>
                         <p className="text-xs opacity-70">Titulaire</p>
-                        <p className="font-medium tracking-wider uppercase text-sm sm:text-base">{cardHolderName}</p>
+                        <p className="font-medium tracking-wider uppercase text-sm">{cardHolderName}</p>
                     </div>
                 </CardContent>
                 
@@ -211,7 +211,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
             <Card>
                 <CardContent className="p-4 flex justify-between items-center">
                     <p className="text-muted-foreground">Solde de la carte</p>
-                    <p className="text-2xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
+                    <p className="text-xl sm:text-2xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
                 </CardContent>
             </Card>
 

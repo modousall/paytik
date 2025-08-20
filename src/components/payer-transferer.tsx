@@ -7,7 +7,6 @@ import SplitBill from './split-bill';
 import BillPaymentForm from './bill-payment-form';
 import MerchantServices from './merchant-services';
 import PICO from './pico';
-import PICASH from './picash';
 import BNPL from './bnpl';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowUp, Handshake, Receipt, ShoppingCart, Users } from 'lucide-react';
@@ -16,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type PayerTransfererState = 'menu' | 'send' | 'split' | 'bills' | 'merchants';
-type MerchantSubService = 'pico' | 'picash' | 'bnpl';
+type MerchantSubService = 'pico' | 'bnpl';
 
 type PayerTransfererProps = {
     onBack: () => void;
@@ -31,7 +30,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
         { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un numéro ou un marchand.", icon: <ArrowUp />, enabled: true },
         { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users />, enabled: true },
         { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt />, enabled: true },
-        { id: 'merchants', title: "Services Marchands", description: "PICO, PICASH, BNPL et plus.", icon: <ShoppingCart />, enabled: true }, // Enable the menu item itself
+        { id: 'merchants', title: "Services Marchands", description: "PICO, BNPL et plus.", icon: <ShoppingCart />, enabled: true }, // Enable the menu item itself
     ];
     
     const menuItems = allMenuItems.filter(item => item.enabled);
@@ -39,7 +38,6 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
     if (merchantService) {
         const onMerchantBack = () => setMerchantService(null);
         if (merchantService === 'pico') return <PICO onBack={onMerchantBack} />;
-        if (merchantService === 'picash') return <PICASH onBack={onMerchantBack} />;
         if (merchantService === 'bnpl' && flags.bnpl) return <BNPL onBack={onMerchantBack} />;
     }
 

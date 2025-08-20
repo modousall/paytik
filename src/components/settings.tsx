@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket } from "lucide-react";
+import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket, CircleDollarSign } from "lucide-react";
 import { Card } from "./ui/card";
 import { Dialog, DialogTrigger } from './ui/dialog';
 import ChangePinForm from './change-pin-form';
@@ -12,6 +12,7 @@ import InviteFriendDialog from './invite-friend-dialog';
 import PromoCodeDialog from './promo-code-dialog';
 import LimitsDialog from './limits-dialog';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import BudgetDialog from './budget-dialog';
 
 
 type SettingsProps = {
@@ -59,6 +60,7 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
     const mainSettings = [
         { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK", content: <InviteFriendDialog alias={alias}/> },
         { id: 'promo', icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", content: <PromoCodeDialog/> },
+        { id: 'budget', icon: <CircleDollarSign className="h-6 w-6 mr-4 text-primary" />, text: "Budget Mensuel", content: <BudgetDialog/> },
     ];
     
     const supportSettings = [

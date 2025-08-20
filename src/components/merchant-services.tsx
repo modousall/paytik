@@ -8,7 +8,7 @@ import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type MerchantServicesProps = {
     onBack: () => void;
-    onServiceClick: (service: 'pico' | 'picash' | 'bnpl') => void;
+    onServiceClick: (service: 'pico' | 'bnpl') => void;
 }
 
 
@@ -22,13 +22,6 @@ export default function MerchantServices({ onBack, onServiceClick }: MerchantSer
             icon: <ShoppingBag className="h-6 w-6 text-primary" />,
             title: "PICO (Achat + Retrait)",
             description: "Payez vos achats et retirez du cash en même temps chez un marchand partenaire. Idéal pour faire d'une pierre deux coups.",
-            enabled: true,
-        },
-        {
-            id: 'picash',
-            icon: <Landmark className="h-6 w-6 text-primary" />,
-            title: "PICASH (Retrait seul)",
-            description: "Retirez de l'argent facilement depuis n'importe quel point marchand agréé, sans avoir à effectuer d'achat.",
             enabled: true,
         },
         {
