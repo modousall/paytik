@@ -80,30 +80,30 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
 
             <Card>
                 {mainSettings.map((item, index) => (
-                    <>
-                     <SettingItem key={item.text} {...item} />
+                    <React.Fragment key={item.text}>
+                     <SettingItem {...item} />
                      {index < mainSettings.length - 1 && <hr className="ml-14"/>}
-                    </>
+                    </React.Fragment>
                 ))}
             </Card>
 
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Support</h3>
              <Card>
                 {supportSettings.map((item, index) => (
-                    <>
-                     <SettingItem key={item.text} {...item} />
+                    <React.Fragment key={item.text}>
+                     <SettingItem {...item} />
                      {index < supportSettings.length - 1 && <hr className="ml-14"/>}
-                    </>
+                    </React.Fragment>
                 ))}
             </Card>
             
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Sécurité</h3>
              <Card>
                 {securitySettings.map((item, index) => (
-                    <>
-                     <SettingItem key={item.text} {...item} />
+                     <React.Fragment key={item.text}>
+                     <SettingItem {...item} />
                      {index < securitySettings.length - 1 && <hr className="ml-14"/>}
-                    </>
+                    </React.Fragment>
                 ))}
             </Card>
 
