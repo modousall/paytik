@@ -17,7 +17,7 @@ const featureDetails: Record<Feature, { name: string; icon: JSX.Element; descrip
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
-const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey }: { title: string, value: string, icon: JSX.Element, isEnabled: boolean, onToggle: (feature: Feature, value: boolean) => void, description: string, featureKey: Feature }) => (
+const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey }: { title: string, value: string, icon: JSX.Element, isEnabled: boolean, onToggle: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature }) => (
     <Card className="flex flex-col">
         <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
             <div className="p-3 bg-primary/10 rounded-full text-primary">{icon}</div>
@@ -33,10 +33,11 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
                 <Switch
                     id={featureKey}
                     checked={isEnabled}
-                    onCheckedChange={(val) => onToggle(featureKey, val)}
+                    onCheckedChange={(val) => featureKey && onToggle(featureKey, val)}
                     aria-label={`Activer ou désactiver ${title}`}
+                    disabled={!featureKey}
                 />
-                <Label htmlFor={featureKey} className="cursor-pointer">{isEnabled ? "Activé" : "Désactivé"}</Label>
+                <Label htmlFor={featureKey} className={!featureKey ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}>{isEnabled ? "Activé" : "Désactivé"}</Label>
             </div>
         </CardFooter>
     </Card>
@@ -78,11 +79,9 @@ export default function AdminFeatureManagement() {
             title="Coffres / Tirelires"
             value={formatCurrency(kpis.vaults)}
             icon={<PiggyBank />}
-            // Coffres do not have a feature flag currently, so we show them as always enabled.
             isEnabled={true}
-            onToggle={() => {}} // No-op
-            description="Permettre aux utilisateurs de créer des coffres d'épargne personnels."
-            featureKey={'virtualCards'} // Placeholder, not used as toggle is disabled
+            onToggle={() => {}} // No-op, always enabled
+            description="Permettre aux utilisateurs de créer des coffres d'épargne personnels. Cette fonctionnalité est essentielle et ne peut être désactivée."
         />
 
         {allProducts.map(product => {
