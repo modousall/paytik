@@ -24,6 +24,7 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { AvatarProvider } from '@/hooks/use-avatar';
+import { ContactsProvider } from '@/hooks/use-contacts';
 
 const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
     const [newPin, setNewPin] = useState("");
@@ -79,13 +80,12 @@ const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClo
 
 // A custom provider to inject specific transactions into the history component
 const StaticTransactionsProvider = ({ transactions, children }: { transactions: Transaction[], children: React.ReactNode }) => {
-    const Context = TransactionsContext;
     const value = {
       transactions,
       addTransaction: () => {}, // No-op in this context
       reverseTransaction: () => {}, // No-op in this context
     };
-    return <Context.Provider value={value}>{children}</Context.Provider>;
+    return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
 };
 
 // This is a special wrapper to use the real hooks but initialized for a specific user.
@@ -94,13 +94,15 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
         <AvatarProvider alias={alias}>
             <BalanceProvider alias={alias}>
                 <TransactionsProvider alias={alias}>
-                    <VirtualCardProvider alias={alias}>
-                        <VaultsProvider alias={alias}>
-                            <TontineProvider alias={alias}>
-                                {children}
-                            </TontineProvider>
-                        </VaultsProvider>
-                    </VirtualCardProvider>
+                    <ContactsProvider alias={alias}>
+                        <VirtualCardProvider alias={alias}>
+                            <VaultsProvider alias={alias}>
+                                <TontineProvider alias={alias}>
+                                    {children}
+                                </TontineProvider>
+                            </VaultsProvider>
+                        </VirtualCardProvider>
+                    </ContactsProvider>
                 </TransactionsProvider>
             </BalanceProvider>
         </AvatarProvider>
@@ -129,13 +131,16 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
     const filteredTransactions = user.transactions.filter(tx => {
         if (transactionFilter === 'all') return true;
         if (transactionFilter === 'main') {
-            return ['sent', 'received', 'card_recharge'].includes(tx.type) && !tx.reason.toLowerCase().includes('coffre') && !tx.reason.toLowerCase().includes('tontine');
+            const reason = tx.reason?.toLowerCase() ?? '';
+            return ['sent', 'received', 'card_recharge'].includes(tx.type) && !reason.includes('coffre') && !reason.includes('tontine');
         }
         if (transactionFilter === 'card') {
-            return tx.type === 'sent' && (tx.reason.toLowerCase().includes('carte') || user.virtualCard?.transactions.some(vctx => vctx.id === tx.id));
+            const reason = tx.reason?.toLowerCase() ?? '';
+            return tx.type === 'sent' && (reason.includes('carte') || user.virtualCard?.transactions.some(vctx => vctx.id === tx.id));
         }
         if (transactionFilter === 'vaults') {
-            return tx.reason.toLowerCase().includes('coffre');
+            const reason = tx.reason?.toLowerCase() ?? '';
+            return reason.includes('coffre');
         }
         if (transactionFilter === 'tontine') {
             return tx.type === 'tontine';
@@ -241,7 +246,7 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                         <button className={`p-4 rounded-lg bg-secondary hover:bg-muted cursor-pointer transition-colors w-full text-center border-2 ${transactionFilter === 'vaults' ? 'border-primary' : 'border-transparent'}`} onClick={() => setTransactionFilter('vaults')}>
                                             <TrendingUp className={`mx-auto h-8 w-8 mb-2 ${user.vaults.length > 0 ? 'text-primary' : 'text-muted-foreground'}`}/>
                                             <p className="text-sm font-medium">Coffres-forts</p>
-                                            <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? 'Gérer' : 'Inactifs'}</Badge>
+                                            <Badge variant={user.vaults.length > 0 ? 'default' : 'secondary'}>{user.vaults.length > 0 ? `${totalVaultsBalance.toLocaleString()} Fcfa` : 'Inactifs'}</Badge>
                                         </button>
                                     </DialogTrigger>
                                      <DialogContent className="max-w-3xl">
