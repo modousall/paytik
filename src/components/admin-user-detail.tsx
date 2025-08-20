@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "./ui/
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserManagement } from "@/hooks/use-user-management";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -146,9 +146,11 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                         <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
                              <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
-                                <Button variant="outline" onClick={() => setIsPinDialogOpen(true)} disabled={user.role === 'superadmin'}>
-                                    <KeyRound className="mr-2"/> Réinitialiser PIN
-                                </Button>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" disabled={user.role === 'superadmin'}>
+                                        <KeyRound className="mr-2"/> Réinitialiser PIN
+                                    </Button>
+                                </DialogTrigger>
                                 {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)}/>}
                             </Dialog>
                             <Button variant="destructive" onClick={handleToggleSuspension} disabled={user.role === 'superadmin'}>
@@ -211,3 +213,5 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
         </div>
     )
 }
+
+    
