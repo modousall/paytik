@@ -16,7 +16,7 @@ const userSchema = z.object({
   email: z.string().email("L'email est invalide."),
   alias: z.string().min(3, "L'alias doit contenir au moins 3 caractères."),
   pincode: z.string().regex(/^\d{4}$/, "Le code PIN doit être composé de 4 chiffres."),
-  role: z.enum(['user', 'merchant'], { required_error: "Le rôle est requis." }),
+  role: z.enum(['user', 'merchant', 'agent', 'support', 'admin'], { required_error: "Le rôle est requis." }),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
@@ -37,7 +37,7 @@ export default function AdminCreateUserForm({ onUserCreated }: AdminCreateUserFo
     const onSubmit = (values: UserFormValues) => {
         const result = addUser({
             ...values,
-            role: values.role as 'user' | 'merchant',
+            role: values.role as 'user' | 'merchant' | 'agent' | 'support' | 'admin',
         });
 
         if (result.success) {
@@ -104,8 +104,11 @@ export default function AdminCreateUserForm({ onUserCreated }: AdminCreateUserFo
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="user">Utilisateur</SelectItem>
-                                    <SelectItem value="merchant">Marchand</SelectItem>
+                                    <SelectItem value="user">Utilisateur (Client final)</SelectItem>
+                                    <SelectItem value="merchant">Marchand (Accepte les paiements)</SelectItem>
+                                    <SelectItem value="agent">Agent (Point de service)</SelectItem>
+                                    <SelectItem value="support">Support (Interne)</SelectItem>
+                                    <SelectItem value="admin">Admin (Interne)</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />

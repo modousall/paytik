@@ -14,6 +14,15 @@ import AdminUserDetail from "./admin-user-detail";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import AdminCreateUserForm from "./admin-create-user-form";
 
+const roleVariantMap: {[key: string]: 'default' | 'secondary' | 'destructive' | 'outline'} = {
+    superadmin: 'destructive',
+    admin: 'destructive',
+    support: 'secondary',
+    merchant: 'default',
+    agent: 'default',
+    user: 'outline'
+};
+
 
 export default function AdminUserManagement() {
     const { users, refreshUsers } = useUserManagement();
@@ -70,7 +79,7 @@ export default function AdminUserManagement() {
                                         <PlusCircle className="mr-2"/> Créer un utilisateur
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
                                     </DialogHeader>
@@ -108,7 +117,7 @@ export default function AdminUserManagement() {
                                     </TableCell>
                                     <TableCell>{user.alias}</TableCell>
                                     <TableCell>
-                                        <Badge variant={user.role === 'superadmin' ? 'destructive' : user.role === 'merchant' ? 'secondary' : 'outline'}>{user.role || 'user'}</Badge>
+                                        <Badge variant={roleVariantMap[user.role || 'user'] || 'outline'}>{user.role || 'user'}</Badge>
                                     </TableCell>
                                     <TableCell>{user.balance.toLocaleString()} Fcfa</TableCell>
                                     <TableCell>
