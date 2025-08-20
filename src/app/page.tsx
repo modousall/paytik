@@ -60,9 +60,9 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
             <FeatureFlagProvider>
                 <RoleProvider>
                     <MonthlyBudgetProvider>
-                        <BnplProvider alias={alias}>
-                            <AvatarProvider alias={alias}>
-                                <BalanceProvider alias={alias}>
+                         <BalanceProvider alias={alias}>
+                            <BnplProvider alias={alias}>
+                                <AvatarProvider alias={alias}>
                                     <ContactsProvider alias={alias}>
                                     <VirtualCardProvider alias={alias}>
                                         <VaultsProvider alias={alias}>
@@ -72,9 +72,9 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
                                         </VaultsProvider>
                                     </VirtualCardProvider>
                                     </ContactsProvider>
-                                </BalanceProvider>
-                            </AvatarProvider>
-                        </BnplProvider>
+                                </AvatarProvider>
+                            </BnplProvider>
+                        </BalanceProvider>
                     </MonthlyBudgetProvider>
                 </RoleProvider>
             </FeatureFlagProvider>
