@@ -86,17 +86,16 @@ export default function AdBanner() {
 
   const handleDismiss = (id: number, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent carousel interaction
+    event.preventDefault(); // Prevent link navigation if wrapped in <a>
     
-    // Update local storage
     const dismissedAds = JSON.parse(localStorage.getItem(DISMISSED_ADS_STORAGE_KEY) || '[]');
     localStorage.setItem(DISMISSED_ADS_STORAGE_KEY, JSON.stringify([...dismissedAds, id]));
     
-    // Update state to remove ad from UI
     setAds(currentAds => currentAds.filter(ad => ad.id !== id));
   }
 
   if (ads.length === 0) {
-    return null; // Don't render the carousel if there are no ads
+    return null;
   }
 
   return (
