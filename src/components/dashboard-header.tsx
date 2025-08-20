@@ -64,12 +64,12 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
                 </button>
                  <div className="flex items-center gap-1">
                     <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon"><QrCode /></Button>
-                    </SheetTrigger>
-                    <SheetContent className="p-0">
-                        <QrCodeDisplay alias={alias} userInfo={userInfo} />
-                    </SheetContent>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon"><QrCode /></Button>
+                        </SheetTrigger>
+                        <SheetContent className="p-0">
+                            <QrCodeDisplay alias={alias} userInfo={userInfo} />
+                        </SheetContent>
                     </Sheet>
                     <Notifications />
                  </div>
