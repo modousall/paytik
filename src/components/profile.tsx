@@ -7,7 +7,7 @@ import Contacts from "./contacts";
 import { Separator } from "./ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Camera, ArrowLeft } from 'lucide-react';
+import { Camera, ArrowLeft, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAvatar } from '@/hooks/use-avatar';
 
@@ -47,6 +47,14 @@ export default function Profile({ userInfo, alias, onLogout, onBack }: ProfilePr
   const handleEditClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleLogout = () => {
+    toast({
+        title: "Déconnexion",
+        description: "Vous avez été déconnecté avec succès.",
+    });
+    onLogout();
+  }
 
   return (
     <div className="space-y-8">
@@ -85,6 +93,10 @@ export default function Profile({ userInfo, alias, onLogout, onBack }: ProfilePr
                 <h3 className="text-xl font-bold">{userInfo.name}</h3>
                 <p className="text-muted-foreground">{userInfo.email}</p>
             </div>
+            <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Se déconnecter
+            </Button>
         </div>
 
         <Separator />
