@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2 } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
+import QRCodeScanner from "./qr-code-scanner";
 
 type UserInfo = {
     name: string;
@@ -58,13 +59,6 @@ const KPIs = () => {
             ))}
         </div>
     );
-};
-
-const handlePlaceholderClick = (featureName: string) => {
-    toast({
-        title: "Fonctionnalité en cours de développement",
-        description: `La fonctionnalité "${featureName}" sera bientôt disponible.`,
-    });
 };
 
 const paymentRequestSchema = z.object({
@@ -246,7 +240,15 @@ const PayoutDialog = () => {
 }
 
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
-    const [showAllTransactions, setShowAllTransactions] = useState(false);
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+    const handleScannedCode = (decodedText: string) => {
+        setIsScannerOpen(false);
+        toast({
+            title: "Code Client Scanné !",
+            description: `Code décodé (simulation): ${decodedText}`,
+        });
+    }
   
     return (
         <div className="min-h-screen bg-secondary">
@@ -270,13 +272,24 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                         <Card className="max-w-2xl mx-auto">
                             <CardHeader className="text-center">
                                 <CardTitle className="text-2xl">Recevoir un Paiement</CardTitle>
-                                <CardDescription>Le client scanne ce code pour vous payer un montant libre.</CardDescription>
+                                <CardDescription>Le client scanne ce code. Cliquez sur le code pour scanner celui du client.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col items-center gap-6">
-                                <div className="p-4 bg-white rounded-lg shadow-md">
-                                    <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
-                                </div>
-                                <div className="flex gap-4">
+                                <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                    <DialogTrigger asChild>
+                                        <div className="p-4 bg-white rounded-lg shadow-md cursor-pointer hover:scale-105 transition-transform">
+                                            <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
+                                        </div>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-md p-0">
+                                        <DialogHeader className="p-4">
+                                            <DialogTitle>Scanner le code QR du client</DialogTitle>
+                                        </DialogHeader>
+                                        <QRCodeScanner onScan={handleScannedCode}/>
+                                    </DialogContent>
+                                </Dialog>
+
+                                <div className="flex flex-col sm:flex-row gap-4">
                                      <Dialog>
                                         <DialogTrigger asChild>
                                             <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
