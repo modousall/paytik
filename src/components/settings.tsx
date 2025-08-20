@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket, Copy } from "lucide-react";
+import { ArrowLeft, ChevronRight, Share2, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut, Ticket, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
@@ -165,13 +165,8 @@ const LimitsDialog = () => {
 }
 
 export default function Settings({ alias, onBack, onLogout, onNavigate }: SettingsProps) {
-    const { toast } = useToast();
     
     const handleLogout = () => {
-        toast({
-            title: "Déconnexion",
-            description: "Vous avez été déconnecté avec succès.",
-        });
         onLogout();
     }
     
@@ -180,28 +175,48 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
     }
 
     const mainSettings = [
-        { icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK", asChild: true },
-        { icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", asChild: true },
+        { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK" },
+        { id: 'promo', icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel" },
     ];
     
     const supportSettings = [
-        { icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
-        { icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond", asChild: true },
-        { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité", onClick: () => onNavigate('merchants') },
+        { id: 'support', icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
+        { id: 'limits', icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond" },
+        { id: 'merchants', icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité", onClick: () => onNavigate('merchants') },
     ];
     
     const securitySettings = [
-        { 
-            icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />,
-            text: "Vos appareils connectés",
-            asChild: true,
-        },
-        { 
-            icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, 
-            text: "Modifiez votre code secret",
-            asChild: true,
-        },
+        { id: 'devices', icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />, text: "Vos appareils connectés" },
+        { id: 'pin', icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, text: "Modifiez votre code secret" },
     ];
+
+    const renderDialog = (id: string) => {
+        switch(id) {
+            case 'invite': return <InviteFriendDialog alias={alias}/>;
+            case 'promo': return <PromoCodeDialog />;
+            case 'limits': return <LimitsDialog />;
+            case 'devices': return (
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Appareils Connectés</DialogTitle>
+                        <DialogDescription>Voici la liste des appareils où votre compte est actuellement actif.</DialogDescription>
+                    </DialogHeader>
+                    <ConnectedDevices />
+                </DialogContent>
+            );
+            case 'pin': return (
+                 <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Changer votre code secret</DialogTitle>
+                        <DialogDescription>Pour des raisons de sécurité, veuillez fournir votre ancien code PIN avant d'en définir un nouveau.</DialogDescription>
+                    </DialogHeader>
+                    <ChangePinForm alias={alias} />
+                </DialogContent>
+            );
+            default: return null;
+        }
+    }
+
 
     return (
         <div className="space-y-6">
@@ -215,66 +230,51 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
             </div>
 
             <Card>
-                 <Dialog>
-                    <DialogTrigger asChild>
-                        <SettingItem {...mainSettings[0]} />
-                    </DialogTrigger>
-                    <InviteFriendDialog alias={alias}/>
-                </Dialog>
-                <hr className="ml-14"/>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <SettingItem {...mainSettings[1]} />
-                    </DialogTrigger>
-                    <PromoCodeDialog />
-                </Dialog>
+                {mainSettings.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                        <Dialog>
+                             <DialogTrigger asChild>
+                                <SettingItem icon={item.icon} text={item.text} asChild />
+                            </DialogTrigger>
+                            {renderDialog(item.id)}
+                        </Dialog>
+                        {index < mainSettings.length - 1 && <hr className="ml-14"/>}
+                    </React.Fragment>
+                ))}
             </Card>
 
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Support</h3>
              <Card>
-                <SettingItem {...supportSettings[0]} />
-                <hr className="ml-14"/>
-                <Dialog>
-                     <DialogTrigger asChild>
-                        <SettingItem {...supportSettings[1]} />
-                    </DialogTrigger>
-                    <LimitsDialog />
-                </Dialog>
-                <hr className="ml-14"/>
-                <SettingItem {...supportSettings[2]} />
+                {supportSettings.map((item, index) => (
+                     <React.Fragment key={item.id}>
+                         {item.onClick ? (
+                            <SettingItem {...item} />
+                         ) : (
+                             <Dialog>
+                                <DialogTrigger asChild>
+                                    <SettingItem icon={item.icon} text={item.text} asChild />
+                                </DialogTrigger>
+                                {renderDialog(item.id)}
+                             </Dialog>
+                         )}
+                        {index < supportSettings.length - 1 && <hr className="ml-14"/>}
+                    </React.Fragment>
+                ))}
             </Card>
             
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Sécurité</h3>
              <Card>
-                 <Dialog>
-                    <DialogTrigger asChild>
-                       <SettingItem {...securitySettings[0]} />
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Appareils Connectés</DialogTitle>
-                            <DialogDescription>
-                                Voici la liste des appareils où votre compte est actuellement actif.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <ConnectedDevices />
-                    </DialogContent>
-                </Dialog>
-                <hr className="ml-14"/>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <SettingItem {...securitySettings[1]}/>
-                    </DialogTrigger>
-                     <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Changer votre code secret</DialogTitle>
-                            <DialogDescription>
-                                Pour des raisons de sécurité, veuillez fournir votre ancien code PIN avant d'en définir un nouveau.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <ChangePinForm alias={alias} />
-                    </DialogContent>
-                </Dialog>
+                {securitySettings.map((item, index) => (
+                    <React.Fragment key={item.id}>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <SettingItem icon={item.icon} text={item.text} asChild />
+                            </DialogTrigger>
+                            {renderDialog(item.id)}
+                        </Dialog>
+                        {index < securitySettings.length - 1 && <hr className="ml-14"/>}
+                    </React.Fragment>
+                ))}
             </Card>
 
              <Card>
@@ -295,3 +295,5 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
         </div>
     );
 }
+
+    
