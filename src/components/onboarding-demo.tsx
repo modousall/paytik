@@ -15,10 +15,9 @@ import { Zap, ShieldCheck, DollarSign, UserPlus, ShieldAlert } from "lucide-reac
 type OnboardingDemoProps = {
   onStart: () => void;
   onLogin: () => void;
-  onAdmin: () => void;
 };
 
-export default function OnboardingDemo({ onStart, onLogin, onAdmin }: OnboardingDemoProps) {
+export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps) {
   const features = [
     {
       icon: <Zap className="h-12 w-12 text-primary" />,
@@ -75,9 +74,7 @@ export default function OnboardingDemo({ onStart, onLogin, onAdmin }: Onboarding
           </Button>
         </div>
         <div className="mt-4 text-center">
-            <Button onClick={onAdmin} variant="link" size="sm" className="text-muted-foreground">
-                <ShieldAlert className="mr-2 h-4 w-4" /> Accès Admin (Démo)
-            </Button>
+             <p className="text-xs text-muted-foreground">Utilisateurs de démo / admin se connectent via "Se connecter".</p>
         </div>
       </div>
     </div>

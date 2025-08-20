@@ -47,6 +47,7 @@ export default function AdminUserManagement() {
                         <TableRow>
                             <TableHead>Utilisateur</TableHead>
                             <TableHead>Alias</TableHead>
+                            <TableHead>Rôle</TableHead>
                             <TableHead>Solde Principal</TableHead>
                             <TableHead>Statut</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
@@ -68,6 +69,9 @@ export default function AdminUserManagement() {
                                     </div>
                                 </TableCell>
                                 <TableCell>{user.alias}</TableCell>
+                                <TableCell>
+                                    <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role || 'user'}</Badge>
+                                </TableCell>
                                 <TableCell>{user.balance.toLocaleString()} Fcfa</TableCell>
                                 <TableCell>
                                     <Badge variant={user.isSuspended ? "destructive" : "default"} className={!user.isSuspended ? "bg-green-100 text-green-800" : ""}>
@@ -77,7 +81,7 @@ export default function AdminUserManagement() {
                                 <TableCell className="text-right">
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={user.role === 'superadmin'}>
                                             <span className="sr-only">Ouvrir le menu</span>
                                             <MoreHorizontal className="h-4 w-4" />
                                         </Button>

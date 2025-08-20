@@ -38,6 +38,13 @@ export default function AuthenticationGate() {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Check for persisted admin state
+    if (localStorage.getItem('paytik_is_admin') === 'true') {
+        setStep('admin');
+        return;
+    }
+
     const lastAlias = localStorage.getItem('paytik_last_alias');
     if (lastAlias) {
         const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
@@ -111,7 +118,8 @@ export default function AuthenticationGate() {
   };
 
   const handleAdminStart = () => {
-    setStep('admin');
+    // This is now handled by the login form checking roles
+    setStep('login');
   }
   
   const handleKycComplete = (info: UserInfo) => {
@@ -121,6 +129,7 @@ export default function AuthenticationGate() {
   
   const handleLogout = () => {
     localStorage.removeItem('paytik_last_alias');
+    localStorage.removeItem('paytik_is_admin');
     setAlias(null);
     setUserInfo(null);
     setStep('demo');
@@ -136,6 +145,15 @@ export default function AuthenticationGate() {
     if (userDataString) {
         const userData = JSON.parse(userDataString);
         if (userData.pincode === pin) {
+            if (userData.role === 'superadmin') {
+                localStorage.setItem('paytik_is_admin', 'true');
+                toast({
+                  title: `Bienvenue, Admin ${userData.name} !`,
+                  description: "Connexion au backoffice réussie.",
+                });
+                setStep('admin');
+                return;
+            }
             localStorage.setItem('paytik_last_alias', loginAlias);
             setUserInfo({ name: userData.name, email: userData.email });
             setAlias(loginAlias);
@@ -163,7 +181,7 @@ export default function AuthenticationGate() {
   const renderContent = () => {
     switch (step) {
       case 'demo':
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
       case 'permissions':
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
@@ -175,7 +193,7 @@ export default function AuthenticationGate() {
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'admin':
-        return <AdminDashboard onExit={() => setStep('demo')} />;
+        return <AdminDashboard onExit={handleLogout} />;
       case 'dashboard':
         if(alias && userInfo) {
             return (
@@ -198,9 +216,9 @@ export default function AuthenticationGate() {
         }
         // Fallback if state is dashboard but data is missing
         setStep('demo');
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
       default:
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} onAdmin={handleAdminStart} />;
+        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
   };
   

@@ -11,6 +11,7 @@ export type ManagedUser = {
   balance: number;
   avatar: string | null;
   isSuspended: boolean;
+  role?: string;
 };
 
 // Exporting Transaction type to be used in other components
@@ -20,11 +21,33 @@ export type ManagedUserWithTransactions = ManagedUser & {
     transactions: Transaction[];
 }
 
+// Function to ensure the superadmin exists in localStorage
+const ensureSuperAdminExists = () => {
+    const adminAlias = '+221775478575';
+    const adminUserKey = `paytik_user_${adminAlias}`;
+
+    if (!localStorage.getItem(adminUserKey)) {
+        const adminUser = {
+            name: 'Modou Sall',
+            email: 'modousall1@gmail.com',
+            pincode: '1234',
+            role: 'superadmin'
+        };
+        localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
+    }
+};
+
+
 export const useUserManagement = () => {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [usersWithTransactions, setUsersWithTransactions] = useState<ManagedUserWithTransactions[]>([]);
 
   const loadUsers = useCallback(() => {
+    // Ensure the admin user is present before loading
+    if(typeof window !== 'undefined') {
+        ensureSuperAdminExists();
+    }
+    
     const loadedUsers: ManagedUser[] = [];
     const loadedUsersWithTx: ManagedUserWithTransactions[] = [];
 
@@ -50,6 +73,7 @@ export const useUserManagement = () => {
               balance: balance,
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
+              role: userData.role || 'user'
             };
 
             loadedUsers.push(managedUser);
