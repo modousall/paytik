@@ -3,8 +3,9 @@
 
 import * as React from "react"
 import Autoplay from "embla-carousel-autoplay"
+import Image from "next/image"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import {
   Carousel,
   CarouselContent,
@@ -12,7 +13,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import Image from "next/image"
 import { Button } from "./ui/button"
 import { X } from "lucide-react"
 
@@ -110,7 +110,7 @@ export default function AdBanner() {
         {ads.map((ad) => (
           <CarouselItem key={ad.id}>
             <div className="p-1">
-              <Card className="overflow-hidden border-none shadow-lg relative group">
+              <Card className={`overflow-hidden border-none shadow-lg relative group bg-gradient-to-r ${ad.color} text-white`}>
                  <Button 
                     variant="ghost" 
                     size="icon"
@@ -121,20 +121,21 @@ export default function AdBanner() {
                      <X size={14}/>
                      <span className="sr-only">Fermer</span>
                  </Button>
-                <div className={`grid grid-cols-1 sm:grid-cols-2 bg-gradient-to-r ${ad.color} text-white`}>
-                    <div className="p-4 md:p-6 space-y-2 order-2 sm:order-1 self-center">
-                        <h3 className="text-lg md:text-xl font-bold leading-tight">{ad.title}</h3>
-                        <p className="text-xs md:text-sm opacity-90">{ad.description}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-center">
+                    <div className="p-4 space-y-2 order-2 sm:order-1 self-center">
+                        <h3 className="text-lg font-bold leading-tight">{ad.title}</h3>
+                        <p className="text-xs opacity-90">{ad.description}</p>
                         <Button variant="secondary" size="sm" className="mt-2 text-xs">{ad.cta}</Button>
                     </div>
-                    <div className="h-32 sm:h-full relative order-1 sm:order-2">
+                    <div className="h-24 sm:h-32 w-full relative order-1 sm:order-2">
                         {ad.type === 'image' ? (
                             <Image 
                                 src={ad.mediaSrc} 
-                                alt={ad.title} 
-                                fill
-                                className="object-cover"
+                                alt={ad.title}
+                                className="w-full h-full object-cover"
                                 data-ai-hint={ad.imageHint}
+                                width={400}
+                                height={200}
                                 unoptimized
                             />
                         ) : (
