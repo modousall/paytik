@@ -140,20 +140,29 @@ export default function AuthenticationGate() {
   }
 
   const handleLogin = (loginAlias: string, pin: string) => {
-    const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
-  
-    if (userDataString) {
-        const userData = JSON.parse(userDataString);
-        if (userData.pincode === pin) {
-            if (userData.role === 'superadmin') {
+    // Super admin login check
+    if (loginAlias === '+221775478575' && pin === '1234') {
+        const adminDataString = localStorage.getItem('paytik_user_+221775478575');
+        if (adminDataString) {
+            const adminData = JSON.parse(adminDataString);
+            if(adminData.role === 'superadmin') {
                 localStorage.setItem('paytik_is_admin', 'true');
                 toast({
-                  title: `Bienvenue, Admin ${userData.name} !`,
+                  title: `Bienvenue, Admin ${adminData.name} !`,
                   description: "Connexion au backoffice réussie.",
                 });
                 setStep('admin');
                 return;
             }
+        }
+    }
+
+    // Standard user login
+    const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
+  
+    if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
             setUserInfo({ name: userData.name, email: userData.email });
             setAlias(loginAlias);
