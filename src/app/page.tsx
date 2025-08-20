@@ -60,7 +60,16 @@ export default function Home() {
     setIsClient(true);
     const lastAlias = localStorage.getItem('paytik_last_alias');
     if (lastAlias) {
-        setStep('login');
+        const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
+        if(userDataString) {
+            const userData = JSON.parse(userDataString);
+            setAlias(lastAlias);
+            setUserInfo({ name: userData.name, email: userData.email });
+            setStep('dashboard'); // Go directly to dashboard
+        } else {
+            // User data is missing, force login
+            setStep('login');
+        }
     }
   }, []);
 
