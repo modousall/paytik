@@ -58,11 +58,8 @@ export default function Home() {
 
   useEffect(() => {
     setIsClient(true);
-    // For demo purposes, we can check if there was a last logged in user
-    // In a real app, this logic would be different.
     const lastAlias = localStorage.getItem('paytik_last_alias');
     if (lastAlias) {
-        // If there was a last user, prompt for login
         setStep('login');
     }
   }, []);
@@ -74,17 +71,23 @@ export default function Home() {
 
   const handlePinCreated = (pin: string) => {
     if (alias && userInfo) {
-        // Store user data scoped by their alias
+        // This is the critical step: save all user info together under the new alias
         localStorage.setItem(`paytik_user_${alias}`, JSON.stringify({
             name: userInfo.name,
             email: userInfo.email,
             pincode: pin
         }));
-        // For convenience, we can also store that this user has fully onboarded
         localStorage.setItem(`paytik_onboarded_${alias}`, 'true');
-        // Set this alias as the last one used
         localStorage.setItem('paytik_last_alias', alias);
         setStep('dashboard');
+    } else {
+        // This case should not happen, but it's a safeguard.
+         toast({
+            title: "Erreur critique d'inscription",
+            description: "Les informations de l'utilisateur ou l'alias sont manquants. Veuillez réessayer.",
+            variant: "destructive",
+        });
+        setStep('demo');
     }
   }
   
