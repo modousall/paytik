@@ -138,7 +138,7 @@ export default function AdminFeatureDetail({ feature, onBack }: AdminFeatureDeta
                                 />
                             </div>
                             <Button onClick={handleExport} variant="outline">
-                                <Download className="mr-2" /> Exporter en CSV
+                                <Download className="mr-2" /> Exporter vers Excel
                             </Button>
                         </div>
                     </div>

@@ -118,7 +118,7 @@ export default function AdminTransactionAnalysis() {
           <div className="flex justify-between items-center">
              <CardTitle>Centre d'Analyse Business</CardTitle>
              <Button onClick={handleExport}>
-                <Download className="mr-2"/> Exporter en CSV (Excel)
+                <Download className="mr-2"/> Exporter vers Excel
              </Button>
           </div>
           <CardDescription>Vue d'ensemble des métriques clés et des performances de la plateforme.</CardDescription>
@@ -250,5 +250,3 @@ export default function AdminTransactionAnalysis() {
     </div>
   );
 }
-
-    
