@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank, Eye, EyeOff, X, Edit } from "lucide-react";
 import type { ManagedUserWithDetails } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -24,11 +24,61 @@ import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { Switch } from './ui/switch';
 import type { Feature } from '@/hooks/use-feature-flags';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
 
 // Import product components
 import Vaults from './vaults';
 import Tontine from './tontine';
 import VirtualCard from './virtual-card';
+
+
+const RoleManagementDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
+    const { updateUserRole } = useUserManagement();
+    const [selectedRole, setSelectedRole] = useState(user.role);
+    const { toast } = useToast();
+
+    const handleSaveRole = () => {
+        if (selectedRole) {
+            updateUserRole(user.alias, selectedRole);
+            toast({
+                title: "Rôle mis à jour",
+                description: `Le rôle de ${user.name} a été changé en "${selectedRole}".`
+            });
+            onClose();
+        }
+    };
+
+    const availableRoles = ['user', 'merchant', 'support', 'admin'];
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Gérer le rôle de {user.name}</DialogTitle>
+                <DialogDescription>
+                    La modification du rôle changera les accès et l'interface de l'utilisateur.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-2">
+                <Label htmlFor="role-select">Nouveau rôle</Label>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger id="role-select">
+                        <SelectValue placeholder="Sélectionner un rôle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableRoles.map(role => (
+                            <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                <Button onClick={handleSaveRole}>Sauvegarder le rôle</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
 
 
 const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
@@ -131,9 +181,10 @@ type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine';
 
 
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
-    const { toggleUserSuspension, updateUserFlags } = useUserManagement();
+    const { toggleUserSuspension, updateUserRole } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
+    const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
     const [activeServiceView, setActiveServiceView] = useState<ActiveServiceView>('transactions');
     
     const todaysRevenue = useMemo(() => {
@@ -159,16 +210,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
             description: `${user.name} a été ${!user.isSuspended ? 'suspendu' : 'réactivé'}.`
         });
         onUpdate(); 
-    }
-    
-    const handleFlagChange = (flag: Feature, enabled: boolean) => {
-        const newFlags = { ...user.featureFlags, [flag]: enabled };
-        updateUserFlags(user.alias, newFlags);
-        toast({
-            title: `Service mis à jour`,
-            description: `Le service "${featureDetails[flag].name}" est maintenant ${enabled ? 'activé' : 'désactivé'} pour ${user.name}.`
-        });
-        onUpdate();
     }
     
     const userFlags = user.featureFlags || defaultFlags;
@@ -220,9 +261,19 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                     <span className="text-muted-foreground">Email</span>
                                     <span>{user.email}</span>
                             </div>
-                            <div className="flex justify-between">
+                            <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Rôle</span>
-                                    <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role}</Badge>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role}</Badge>
+                                        <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" disabled={user.role === 'superadmin'}>
+                                                    <Edit className="h-3 w-3" />
+                                                </Button>
+                                            </DialogTrigger>
+                                            {isRoleDialogOpen && <RoleManagementDialog user={user} onClose={() => { setIsRoleDialogOpen(false); onUpdate(); }} />}
+                                        </Dialog>
+                                    </div>
                             </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Statut</span>
@@ -274,29 +325,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                     {user.isSuspended ? <UserCheck className="mr-2"/> : <UserX className="mr-2"/>}
                                     {user.isSuspended ? 'Réactiver' : 'Suspendre'}
                                 </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Activation des Services</CardTitle>
-                                <CardDescription>Activez ou désactivez des services spécifiques pour cet utilisateur.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {(Object.keys(userFlags) as Feature[]).map((key) => (
-                                    <div key={key} className="flex items-center justify-between rounded-lg border p-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-primary/10 rounded-full">{featureDetails[key].icon}</div>
-                                             <Label htmlFor={`switch-${key}`} className="font-medium cursor-pointer">{featureDetails[key].name}</Label>
-                                        </div>
-                                        <Switch
-                                            id={`switch-${key}`}
-                                            checked={userFlags[key]}
-                                            onCheckedChange={(checked) => handleFlagChange(key, checked)}
-                                            disabled={user.role === 'superadmin'}
-                                        />
-                                    </div>
-                                ))}
                             </CardContent>
                         </Card>
                     </div>

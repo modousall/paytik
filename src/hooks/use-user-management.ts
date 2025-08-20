@@ -88,7 +88,7 @@ export const useUserManagement = () => {
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
               role: userData.role || 'user',
-              featureFlags: userData.featureFlags, // Load feature flags
+              featureFlags: userData.featureFlags || defaultFlags,
             };
 
             loadedUsersWithTx.push({ ...managedUser, transactions });
@@ -143,6 +143,12 @@ export const useUserManagement = () => {
     });
   };
 
+  const updateUserRole = (alias: string, newRole: string) => {
+    updateUserProperty(alias, userData => {
+      userData.role = newRole;
+    });
+  };
+
   const addUser = (payload: NewUserPayload): { success: boolean, message: string } => {
     const userKey = `paytik_user_${payload.alias}`;
     if (localStorage.getItem(userKey)) {
@@ -170,5 +176,5 @@ export const useUserManagement = () => {
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
-  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, refreshUsers: loadUsers };
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserRole, refreshUsers: loadUsers };
 };
