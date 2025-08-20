@@ -46,7 +46,7 @@ const SettlementDialog = ({ product, onSettle }: { product: ProductItem, onSettl
              <div className="py-4 space-y-4">
                  <div className="p-4 rounded-lg bg-secondary">
                     <p className="text-sm text-muted-foreground">Solde actuel dû</p>
-                    <p className="text-2xl font-bold">{product.balance.toLocaleString()} Fcfa</p>
+                    <p className="text-2xl font-bold">{(product.balance || 0).toLocaleString()} Fcfa</p>
                 </div>
                 <FormItem>
                     <FormLabel>Montant du règlement</FormLabel>
@@ -195,13 +195,13 @@ const ProductTable = ({
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">{p.name}</TableCell>
-                                <TableCell>{p.fee.toLocaleString()} Fcfa</TableCell>
-                                <TableCell>{p.commission.toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{(p.fee || 0).toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{(p.commission || 0).toLocaleString()} Fcfa</TableCell>
                                 <TableCell>
                                      <Dialog>
                                         <DialogTrigger asChild>
-                                            <Button variant="link" className="p-0 h-auto text-base" disabled={p.balance <= 0}>
-                                                {p.balance.toLocaleString()} Fcfa
+                                            <Button variant="link" className="p-0 h-auto text-base" disabled={(p.balance || 0) <= 0}>
+                                                {(p.balance || 0).toLocaleString()} Fcfa
                                             </Button>
                                         </DialogTrigger>
                                         <SettlementDialog product={p} onSettle={onSettle}/>
@@ -260,5 +260,3 @@ export default function AdminProductManagement() {
     </div>
   );
 }
-
-    
