@@ -79,7 +79,7 @@ export default function AuthenticationGate() {
             setAlias(lastAlias);
             
             // Redirect based on role
-            if(userData.role === 'superadmin') {
+            if(userData.role === 'superadmin' || userData.role === 'admin' || userData.role === 'support') {
                 setStep('admin');
             } else if (userData.role === 'merchant') {
                 setStep('merchant_dashboard');
@@ -197,7 +197,7 @@ export default function AuthenticationGate() {
             });
             
             // Redirect based on role
-            if(userData.role === 'superadmin') {
+            if(userData.role === 'superadmin' || userData.role === 'admin' || userData.role === 'support') {
                 setStep('admin');
             } else if (userData.role === 'merchant') {
                 setStep('merchant_dashboard');
@@ -239,7 +239,13 @@ export default function AuthenticationGate() {
         return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
        case 'merchant_dashboard':
         if(alias && userInfo) {
-            return <MerchantDashboard userInfo={userInfo} onLogout={handleLogout} />;
+            return (
+              <FeatureFlagProvider>
+                <ProductProvider>
+                  <MerchantDashboard userInfo={userInfo} onLogout={handleLogout} />
+                </ProductProvider>
+              </FeatureFlagProvider>
+            );
         }
         setStep('demo'); // Fallback
         return null;
