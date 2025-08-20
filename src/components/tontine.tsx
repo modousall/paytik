@@ -11,6 +11,7 @@ import CreateTontineForm from "./create-tontine-form";
 import { useState } from "react";
 import TontineDetails from "./tontine-details";
 import type { Tontine as TontineType } from "@/hooks/use-tontine";
+import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type TontineProps = {
     onBack: () => void;
@@ -20,6 +21,17 @@ export default function Tontine({ onBack }: TontineProps) {
   const { tontines } = useTontine();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTontine, setSelectedTontine] = useState<TontineType | null>(null);
+  const { flags } = useFeatureFlags();
+
+  if (!flags.tontine) {
+      return (
+          <div className="text-center p-8">
+              <h2 className="text-xl font-bold">Fonctionnalité désactivée</h2>
+              <p className="text-muted-foreground">La gestion des tontines est actuellement désactivée par l'administrateur.</p>
+              <Button onClick={onBack} className="mt-4">Retour</Button>
+          </div>
+      )
+  }
 
   if (selectedTontine) {
     return (

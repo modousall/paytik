@@ -31,7 +31,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
         { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un numéro ou un marchand.", icon: <ArrowUp />, enabled: true },
         { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users />, enabled: true },
         { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt />, enabled: true },
-        { id: 'merchants', title: "Services Marchands", description: "PICO, PICASH, BNPL et plus.", icon: <ShoppingCart />, enabled: flags.bnpl }, // Example: link merchants to BNPL flag
+        { id: 'merchants', title: "Services Marchands", description: "PICO, PICASH, BNPL et plus.", icon: <ShoppingCart />, enabled: true }, // Enable the menu item itself
     ];
     
     const menuItems = allMenuItems.filter(item => item.enabled);

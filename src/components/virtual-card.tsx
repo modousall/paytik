@@ -13,6 +13,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
+import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type VirtualCardProps = {
     onBack: () => void;
@@ -115,6 +116,7 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
   const { card, transactions, createCard, toggleFreeze, deleteCard, rechargeCard, withdrawFromCard } = useVirtualCard();
   const [showDetails, setShowDetails] = useState(false);
   const { toast } = useToast();
+  const { flags } = useFeatureFlags();
   const cardHolderName = localStorage.getItem('paytik_username') || "Titulaire Inconnu";
 
   const handleCopy = (text: string) => {
@@ -128,6 +130,16 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
 
   const handleWithdraw = (amount: number) => {
     withdrawFromCard(amount);
+  }
+  
+  if (!flags.virtualCards) {
+      return (
+          <div className="text-center p-8">
+              <h2 className="text-xl font-bold">Fonctionnalité désactivée</h2>
+              <p className="text-muted-foreground">La création de cartes virtuelles est actuellement désactivée par l'administrateur.</p>
+              <Button onClick={onBack} className="mt-4">Retour</Button>
+          </div>
+      )
   }
 
   if (!card) {

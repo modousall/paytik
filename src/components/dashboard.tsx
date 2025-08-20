@@ -70,9 +70,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if(userInfo.role === 'admin' || userInfo.role === 'superadmin' || userInfo.role === 'support') {
             return <AdminDashboard onExit={() => onNavigateTo('dashboard')} />
         }
-        if(userInfo.role === 'merchant') {
-            return <MerchantDashboard userInfo={userInfo} onLogout={() => onNavigateTo('dashboard')} />
-        }
         return null;
     }
     
@@ -109,7 +106,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             return <PICASH onBack={() => setActiveAction('none')} />
         }
         
-        const isPrivilegedUser = userInfo.role !== 'user';
+        const isPrivilegedUser = ['admin', 'superadmin', 'support'].includes(userInfo.role);
 
         return (
             <div className="space-y-8">
