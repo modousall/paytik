@@ -1,94 +1,39 @@
-
 "use client";
 
-import { useUserManagement, type ManagedUser } from "@/hooks/use-user-management";
+import { useUserManagement, type ManagedUserWithDetails } from "@/hooks/use-user-management";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { MoreHorizontal, UserX, UserCheck, Search, KeyRound } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Label } from "./ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { DialogClose } from "@radix-ui/react-dialog";
-
-const ResetPinDialog = ({ user, onClose }: { user: ManagedUser, onClose: () => void }) => {
-    const [newPin, setNewPin] = useState("");
-    const { resetUserPin } = useUserManagement();
-    const { toast } = useToast();
-    
-    const handleReset = () => {
-        if(newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
-            toast({
-                title: "Code PIN invalide",
-                description: "Le code PIN doit contenir exactement 4 chiffres.",
-                variant: "destructive"
-            });
-            return;
-        }
-        resetUserPin(user.alias, newPin);
-        toast({
-            title: "Code PIN réinitialisé",
-            description: `Le code PIN pour ${user.name} a été mis à jour.`
-        });
-        onClose();
-    }
-    
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Réinitialiser le PIN de {user.name}</DialogTitle>
-                <DialogDescription>
-                    Entrez un nouveau code PIN à 4 chiffres pour cet utilisateur. L'utilisateur devra être informé de ce changement.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-                <Label htmlFor="new-pin">Nouveau Code PIN</Label>
-                <Input
-                    id="new-pin"
-                    type="password"
-                    value={newPin}
-                    onChange={(e) => setNewPin(e.target.value)}
-                    maxLength={4}
-                    placeholder="••••"
-                    className="text-center tracking-widest text-lg"
-                />
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="ghost">Annuler</Button>
-                </DialogClose>
-                <Button onClick={handleReset}>Réinitialiser</Button>
-            </DialogFooter>
-        </DialogContent>
-    )
-}
+import AdminUserDetail from "./admin-user-detail";
 
 
 export default function AdminUserManagement() {
-    const { users, toggleUserSuspension } = useUserManagement();
+    const { users, refreshUsers } = useUserManagement();
     const [searchTerm, setSearchTerm] = useState("");
-    const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
+    const [selectedUser, setSelectedUser] = useState<ManagedUserWithDetails | null>(null);
 
     const filteredUsers = users.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.alias.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const handlePinResetClick = (user: ManagedUser) => {
+    
+    const handleUserSelect = (user: ManagedUserWithDetails) => {
         setSelectedUser(user);
-        setIsPinDialogOpen(true);
     }
     
-    const handleDialogClose = () => {
-        setIsPinDialogOpen(false);
+    const handleBackToList = () => {
         setSelectedUser(null);
+        refreshUsers(); // Refresh data when going back to the list
+    }
+
+    if (selectedUser) {
+        return <AdminUserDetail user={selectedUser} onBack={handleBackToList} />
     }
 
     return (
@@ -98,7 +43,7 @@ export default function AdminUserManagement() {
                     <div className="flex justify-between items-center">
                         <div>
                             <CardTitle>Gestion des Utilisateurs ({users.length})</CardTitle>
-                            <CardDescription>Consultez la liste des utilisateurs et gérez leurs comptes.</CardDescription>
+                            <CardDescription>Consultez la liste des utilisateurs. Cliquez sur un utilisateur pour voir les détails.</CardDescription>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
@@ -120,12 +65,11 @@ export default function AdminUserManagement() {
                                 <TableHead>Rôle</TableHead>
                                 <TableHead>Solde Principal</TableHead>
                                 <TableHead>Statut</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                         {filteredUsers.map(user => (
-                                <TableRow key={user.alias}>
+                                <TableRow key={user.alias} onClick={() => handleUserSelect(user)} className="cursor-pointer">
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10">
@@ -148,27 +92,6 @@ export default function AdminUserManagement() {
                                             {user.isSuspended ? "Suspendu" : "Actif"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0" disabled={user.role === 'superadmin'}>
-                                                <span className="sr-only">Ouvrir le menu</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => toggleUserSuspension(user.alias, !user.isSuspended)}>
-                                                    {user.isSuspended ? <UserCheck className="mr-2 h-4 w-4" /> : <UserX className="mr-2 h-4 w-4" />}
-                                                    <span>{user.isSuspended ? "Réactiver" : "Suspendre"}</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handlePinResetClick(user)}>
-                                                    <KeyRound className="mr-2 h-4 w-4" />
-                                                    <span>Réinitialiser PIN</span>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
                                 </TableRow>
                         ))}
                         </TableBody>
@@ -180,10 +103,6 @@ export default function AdminUserManagement() {
                     )}
                 </CardContent>
             </Card>
-
-            <Dialog open={isPinDialogOpen} onOpenChange={handleDialogClose}>
-                {selectedUser && <ResetPinDialog user={selectedUser} onClose={handleDialogClose} />}
-            </Dialog>
         </>
     )
 }

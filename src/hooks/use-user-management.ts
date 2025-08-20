@@ -3,6 +3,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Transaction as UserTransaction } from './use-transactions';
+import type { Vault } from './use-vaults';
+import type { Tontine } from './use-tontine';
+import type { CardDetails } from './use-virtual-card';
 
 export type ManagedUser = {
   name: string;
@@ -21,12 +24,18 @@ export type ManagedUserWithTransactions = ManagedUser & {
     transactions: Transaction[];
 }
 
+export type ManagedUserWithDetails = ManagedUserWithTransactions & {
+    vaults: Vault[];
+    tontines: Tontine[];
+    virtualCard: CardDetails | null;
+}
+
 export const useUserManagement = () => {
-  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [users, setUsers] = useState<ManagedUserWithDetails[]>([]);
   const [usersWithTransactions, setUsersWithTransactions] = useState<ManagedUserWithTransactions[]>([]);
 
   const loadUsers = useCallback(() => {
-    const loadedUsers: ManagedUser[] = [];
+    const loadedUsersWithDetails: ManagedUserWithDetails[] = [];
     const loadedUsersWithTx: ManagedUserWithTransactions[] = [];
 
     if (typeof window === 'undefined') {
@@ -38,15 +47,24 @@ export const useUserManagement = () => {
       if (key && key.startsWith('paytik_user_')) {
         const alias = key.replace('paytik_user_', '');
         const userDataString = localStorage.getItem(key);
-        const balanceDataString = localStorage.getItem(`paytik_balance_${alias}`);
-        const avatarDataString = localStorage.getItem(`paytik_avatar_${alias}`);
-        const transactionsDataString = localStorage.getItem(`paytik_transactions_${alias}`);
-
+        
         if (userDataString) {
           try {
             const userData = JSON.parse(userDataString);
+
+            // Fetch all related data from localStorage
+            const balanceDataString = localStorage.getItem(`paytik_balance_${alias}`);
+            const avatarDataString = localStorage.getItem(`paytik_avatar_${alias}`);
+            const transactionsDataString = localStorage.getItem(`paytik_transactions_${alias}`);
+            const vaultsDataString = localStorage.getItem(`paytik_vaults_${alias}`);
+            const tontinesDataString = localStorage.getItem(`paytik_tontines_${alias}`);
+            const virtualCardDataString = localStorage.getItem(`paytik_virtual_card_${alias}`);
+            
             const balance = balanceDataString ? JSON.parse(balanceDataString) : 0;
             const transactions = transactionsDataString ? JSON.parse(transactionsDataString) : [];
+            const vaults = vaultsDataString ? JSON.parse(vaultsDataString) : [];
+            const tontines = tontinesDataString ? JSON.parse(tontinesDataString) : [];
+            const virtualCard = virtualCardDataString ? JSON.parse(virtualCardDataString) : null;
             
             const managedUser = {
               name: userData.name,
@@ -58,8 +76,8 @@ export const useUserManagement = () => {
               role: userData.role || 'user'
             };
 
-            loadedUsers.push(managedUser);
             loadedUsersWithTx.push({ ...managedUser, transactions });
+            loadedUsersWithDetails.push({ ...managedUser, transactions, vaults, tontines, virtualCard });
 
           } catch (e) {
             console.error(`Failed to parse data for user ${alias}`, e);
@@ -67,7 +85,7 @@ export const useUserManagement = () => {
         }
       }
     }
-    setUsers(loadedUsers);
+    setUsers(loadedUsersWithDetails);
     setUsersWithTransactions(loadedUsersWithTx);
 
   }, []);
