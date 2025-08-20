@@ -6,14 +6,17 @@ import { useUserManagement, type ManagedUserWithTransactions, type Transaction }
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
-import { BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useProductManagement } from '@/hooks/use-product-management';
 
 export default function AdminTransactionAnalysis() {
   const { usersWithTransactions } = useUserManagement();
+  const { billers, mobileMoneyOperators } = useProductManagement();
+  const allProducts = useMemo(() => [...billers, ...mobileMoneyOperators], [billers, mobileMoneyOperators]);
 
-  const { kpis, chartData, recentTransactions } = useMemo(() => {
+  const { kpis, chartData, recentTransactions, productPerformance } = useMemo(() => {
     const allTransactions: Transaction[] = usersWithTransactions.flatMap(u => u.transactions);
     
     const totalVolume = allTransactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -44,6 +47,28 @@ export default function AdminTransactionAnalysis() {
     const recentTransactions = allTransactions
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
+    
+    // Calculate product performance
+    const productStats = new Map<string, { volume: number; count: number; commissions: number }>();
+
+    allProducts.forEach(p => {
+        productStats.set(p.name, { volume: 0, count: 0, commissions: 0 });
+    });
+    
+    allTransactions.forEach(tx => {
+        const product = allProducts.find(p => p.name === tx.counterparty);
+        if (product) {
+            const stats = productStats.get(product.name)!;
+            stats.volume += tx.amount;
+            stats.count += 1;
+            stats.commissions += product.commission;
+            productStats.set(product.name, stats);
+        }
+    });
+
+    const productPerformance = Array.from(productStats.entries())
+        .map(([name, stats]) => ({ name, ...stats }))
+        .sort((a,b) => b.volume - a.volume);
         
     return {
       kpis: {
@@ -53,8 +78,9 @@ export default function AdminTransactionAnalysis() {
       },
       chartData,
       recentTransactions,
+      productPerformance,
     };
-  }, [usersWithTransactions]);
+  }, [usersWithTransactions, allProducts]);
 
   const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
   
@@ -102,6 +128,39 @@ export default function AdminTransactionAnalysis() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance des Produits</CardTitle>
+          <CardDescription>Analyse des transactions par produit ou service.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Produit</TableHead>
+                <TableHead>Nb. Transactions</TableHead>
+                <TableHead className="text-right">Volume Total</TableHead>
+                <TableHead className="text-right">Commissions Générées</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {productPerformance.map(p => (
+                <TableRow key={p.name}>
+                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell>{p.count}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(p.volume)}</TableCell>
+                    <TableCell className="text-right text-green-600 font-medium">{formatCurrency(p.commissions)}</TableCell>
+                </TableRow>
+              ))}
+              {productPerformance.length === 0 && (
+                <TableRow><TableCell colSpan={4} className="text-center p-8">Aucune donnée de performance disponible.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
 
       <Card>
         <CardHeader>
