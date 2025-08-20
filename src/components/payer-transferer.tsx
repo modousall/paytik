@@ -9,13 +9,14 @@ import MerchantServices from './merchant-services';
 import PICO from './pico';
 import BNPL from './bnpl';
 import { Button } from './ui/button';
-import { ArrowLeft, ArrowUp, Handshake, Receipt, ShoppingCart, Users } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Handshake, Receipt, ShoppingCart, Users, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
+import MyBnplRequests from './my-bnpl-requests';
 
 type PayerTransfererState = 'menu' | 'send' | 'split' | 'bills' | 'merchants';
-type MerchantSubService = 'pico' | 'bnpl';
+type MerchantSubService = 'pico' | 'bnpl' | 'my-requests';
 
 type PayerTransfererProps = {
     onBack: () => void;
@@ -39,6 +40,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
         const onMerchantBack = () => setMerchantService(null);
         if (merchantService === 'pico') return <PICO onBack={onMerchantBack} />;
         if (merchantService === 'bnpl' && flags.bnpl) return <BNPL onBack={onMerchantBack} />;
+        if (merchantService === 'my-requests' && flags.bnpl) return <MyBnplRequests onBack={onMerchantBack} />;
     }
 
     if (state !== 'menu') {

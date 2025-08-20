@@ -2,13 +2,13 @@
 "use client";
 
 import { Button } from "./ui/button";
-import { ArrowLeft, ShoppingBag, Landmark, Clock } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Landmark, Clock, History } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type MerchantServicesProps = {
     onBack: () => void;
-    onServiceClick: (service: 'pico' | 'bnpl') => void;
+    onServiceClick: (service: 'pico' | 'bnpl' | 'my-requests') => void;
 }
 
 
@@ -29,6 +29,13 @@ export default function MerchantServices({ onBack, onServiceClick }: MerchantSer
             icon: <Clock className="h-6 w-6 text-primary" />,
             title: "BNPL (Payer plus tard)",
             description: "Achetez maintenant et payez plus tard grâce à nos solutions de paiement échelonné flexibles chez les commerçants participants.",
+            enabled: flags.bnpl,
+        },
+        {
+            id: 'my-requests',
+            icon: <History className="h-6 w-6 text-primary" />,
+            title: "Mes Demandes de Crédit",
+            description: "Consultez l'historique et le statut de vos demandes de paiement échelonné (BNPL).",
             enabled: flags.bnpl,
         }
     ] as const;

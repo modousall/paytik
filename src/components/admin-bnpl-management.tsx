@@ -24,15 +24,15 @@ const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' |
 
 
 export default function AdminBnplManagement() {
-    const { requests, updateRequestStatus } = useBnpl();
+    const { allRequests, updateRequestStatus } = useBnpl();
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredRequests = useMemo(() => {
-        return requests.filter(req => 
+        return allRequests.filter(req => 
             req.alias.toLowerCase().includes(searchTerm.toLowerCase()) ||
             req.merchantAlias.toLowerCase().includes(searchTerm.toLowerCase())
         ).sort((a,b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
-    }, [requests, searchTerm]);
+    }, [allRequests, searchTerm]);
 
     const handleUpdateRequest = (id: string, status: 'approved' | 'rejected') => {
         updateRequestStatus(id, status);

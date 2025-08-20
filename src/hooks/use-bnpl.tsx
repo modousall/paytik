@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { assessBnplApplication } from '@/ai/flows/bnpl-assessment-flow';
 import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
@@ -10,7 +10,8 @@ import type { BnplRequest, BnplAssessmentOutput } from '@/lib/types';
 
 
 type BnplContextType = {
-  requests: BnplRequest[];
+  allRequests: BnplRequest[];
+  myRequests: BnplRequest[];
   submitRequest: (merchantAlias: string, amount: number) => Promise<BnplAssessmentOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
 };
@@ -25,7 +26,7 @@ type BnplProviderProps = {
 };
 
 export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
-  const [requests, setRequests] = useState<BnplRequest[]>([]);
+  const [allRequests, setAllRequests] = useState<BnplRequest[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
   const { balance, debit } = useBalance();
@@ -34,11 +35,11 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
     try {
       const storedRequests = localStorage.getItem(bnplStorageKey);
       if (storedRequests) {
-        setRequests(JSON.parse(storedRequests));
+        setAllRequests(JSON.parse(storedRequests));
       }
     } catch (error) {
         console.error("Failed to parse BNPL requests from localStorage", error);
-        setRequests([]);
+        setAllRequests([]);
     }
     setIsInitialized(true);
   }, []);
@@ -46,12 +47,16 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   useEffect(() => {
     if (isInitialized) {
         try {
-            localStorage.setItem(bnplStorageKey, JSON.stringify(requests));
+            localStorage.setItem(bnplStorageKey, JSON.stringify(allRequests));
         } catch (error) {
             console.error("Failed to write BNPL requests to localStorage", error);
         }
     }
-  }, [requests, isInitialized]);
+  }, [allRequests, isInitialized]);
+  
+  const myRequests = useMemo(() => {
+      return allRequests.filter(req => req.alias === alias);
+  }, [allRequests, alias]);
 
   const submitRequest = async (merchantAlias: string, amount: number): Promise<BnplAssessmentOutput> => {
       const transactionHistory = transactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
@@ -74,7 +79,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
           requestDate: new Date().toISOString(),
       };
       
-      setRequests(prev => [...prev, newRequest]);
+      setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
           debit(amount);
@@ -92,13 +97,13 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   };
 
   const updateRequestStatus = (id: string, status: 'approved' | 'rejected') => {
-      const requestToUpdate = requests.find(r => r.id === id);
+      const requestToUpdate = allRequests.find(r => r.id === id);
       if (!requestToUpdate) {
         console.error("BNPL request not found");
         return;
       }
 
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
+      setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
       
       // If a request under review is approved, execute the transaction
       if (requestToUpdate.status === 'review' && status === 'approved') {
@@ -114,7 +119,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             if(userBalance < requestToUpdate.amount) {
                  toast({ title: "Solde insuffisant", description: `L'utilisateur ${requestToUpdate.alias} n'a pas les fonds nécessaires.`, variant: "destructive" });
                  // Revert status
-                 setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
+                 setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
                  return;
             }
             
@@ -164,7 +169,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             console.error("Failed to process manual BNPL approval:", error);
             toast({ title: "Erreur de traitement", description: "Une erreur est survenue lors de l'approbation.", variant: "destructive" });
             // Revert status on error
-            setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
+            setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
         }
 
       } else {
@@ -172,7 +177,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       }
   }
 
-  const value = { requests, submitRequest, updateRequestStatus };
+  const value = { allRequests, myRequests, submitRequest, updateRequestStatus };
 
   return (
     <BnplContext.Provider value={value}>
@@ -188,4 +193,3 @@ export const useBnpl = () => {
   }
   return context;
 };
-
