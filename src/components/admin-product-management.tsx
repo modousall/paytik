@@ -7,7 +7,7 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark } from 'lucide-react';
+import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark, Calculator } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from './ui/switch';
 import { toast } from '@/hooks/use-toast';
 import AdminProductDetail from './admin-product-detail';
+import AdminTegSimulator from './admin-teg-simulator';
 
 const productSchema = z.object({
   id: z.string().optional(),
@@ -287,9 +288,19 @@ export default function AdminProductManagement() {
   return (
     <div className="space-y-8">
       <Card>
-        <CardHeader>
-            <CardTitle>Gestion des Partenaires</CardTitle>
-            <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+            <div>
+                <CardTitle>Gestion des Partenaires</CardTitle>
+                <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
+            </div>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="secondary">
+                        <Calculator className="mr-2"/> Simulateur TEG
+                    </Button>
+                </DialogTrigger>
+                <AdminTegSimulator />
+            </Dialog>
         </CardHeader>
       </Card>
       
@@ -314,5 +325,3 @@ export default function AdminProductManagement() {
     </div>
   );
 }
-
-    
