@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -15,6 +16,7 @@ import {
     DialogDescription,
     DialogFooter,
     DialogTrigger,
+    DialogClose
   } from "@/components/ui/dialog";
 import type { Transaction } from '@/hooks/use-transactions';
 import {
@@ -97,30 +99,30 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             <DialogHeader>
                 <DialogTitle>Détails de la transaction</DialogTitle>
                 <DialogDescription>
-                    ID: {transaction.id}
+                    ID de transaction : {transaction.id}
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4 border-y">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Montant</span>
                     <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.type === 'sent' ? '-' : '+'}
                         {transaction.amount.toLocaleString()} Fcfa
                     </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">{transaction.type === 'sent' ? 'À' : 'De'}</span>
                     <span className="font-medium">{transaction.counterparty}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-start gap-4">
                     <span className="text-muted-foreground">Raison</span>
-                    <span className="font-medium">{transaction.reason}</span>
+                    <span className="font-medium text-right">{transaction.reason}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{formatDate(transaction.date)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Statut</span>
                     <Badge variant={transaction.status === 'Terminé' ? 'default' : transaction.status === 'Retourné' ? 'secondary' : 'destructive'} 
                            className={transaction.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
@@ -128,11 +130,12 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                     </Badge>
                 </div>
             </div>
-            <DialogFooter className="sm:justify-between gap-2">
+            <DialogFooter className="sm:justify-between gap-2 flex-wrap">
+                 <Button variant="ghost"><Download className="mr-2" /> Télécharger le reçu</Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="outline" disabled={!canBeReversed}>
-                            <RotateCcw className="mr-2" /> Retourner
+                            <RotateCcw className="mr-2" /> Retourner la transaction
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -144,12 +147,12 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleReverse}>Confirmer</AlertDialogAction>
+                            <DialogClose asChild>
+                                <AlertDialogAction onClick={handleReverse}>Confirmer</AlertDialogAction>
+                            </DialogClose>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-
-                <Button><Download className="mr-2" /> Télécharger le reçu</Button>
             </DialogFooter>
         </DialogContent>
     )
@@ -257,7 +260,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                     </div>
                 )}
                 {!showAll && transactions.length > 5 && (
-                    <Button variant="link" className="w-full mt-4 text-accent" onClick={() => onShowAll(true)}>
+                    <Button variant="link" className="w-full mt-4 text-primary" onClick={() => onShowAll(true)}>
                         Tout afficher
                     </Button>
                 )}

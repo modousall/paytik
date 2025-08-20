@@ -104,7 +104,7 @@ const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, on
                     <ArrowDown className="h-6 w-6 mb-2"/> Retirer vers solde principal
                 </Button>
                 <Button className="py-10 flex-col h-auto bg-primary hover:bg-primary/90" onClick={() => setAction('recharge')}>
-                    <Wallet className="h-6 w-6 mb-2"/> Approvisionner la carte
+                    <ArrowUp className="h-6 w-6 mb-2"/> Approvisionner la carte
                 </Button>
             </div>
         </DialogContent>

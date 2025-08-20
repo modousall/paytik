@@ -26,7 +26,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, PiggyBank, PlusCircle, Target, Edit, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowDown, PiggyBank, PlusCircle, Target, Edit, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
@@ -225,7 +225,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
                 <Button variant="outline" className="py-10 flex-col h-auto" onClick={() => setAction('withdraw')}>
-                    <ArrowLeft className="h-6 w-6 mb-2"/> Retirer de la tirelire
+                    <ArrowDown className="h-6 w-6 mb-2"/> Retirer de la tirelire
                 </Button>
                 <Button className="py-10 flex-col h-auto bg-primary hover:bg-primary/90" onClick={() => setAction('deposit')}>
                     <Wallet className="h-6 w-6 mb-2"/> Approvisionner

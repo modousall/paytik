@@ -8,13 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useContacts } from "@/hooks/use-contacts";
 import type { Tontine } from "@/hooks/use-tontine";
 import { ArrowDown, ArrowUp, CheckCircle, Clock } from "lucide-react";
+import type { Contact } from "@/hooks/use-contacts";
 
 type TontineDetailsProps = {
     tontine: Tontine;
 };
 
 // This function now uses real contact data
-const getParticipantsDetails = (tontine: Tontine, contacts: any[]) => {
+const getParticipantsDetails = (tontine: Tontine, contacts: Contact[]) => {
     return tontine.participants.map(id => {
         const contact = contacts.find(c => c.id === id);
         // In a real app, status would come from the backend. We'll keep the random simulation for now for UI purposes.

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from "@/components/ui/progress";
 import { Users, PlusCircle, UserPlus, Eye, ArrowLeft } from "lucide-react";
 import { useTontine } from "@/hooks/use-tontine";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import CreateTontineForm from "./create-tontine-form";
 import { useState } from "react";
 import TontineDetails from "./tontine-details";

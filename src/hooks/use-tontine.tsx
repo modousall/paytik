@@ -22,27 +22,6 @@ type TontineContextType = {
 
 const TontineContext = createContext<TontineContextType | undefined>(undefined);
 
-const initialTontines: Tontine[] = [
-    {
-        id: "tontine1",
-        name: "Tontine Familiale Mensuelle",
-        participants: ['1', '3'],
-        amount: 100000,
-        frequency: "monthly",
-        progress: 75,
-        isMyTurn: false,
-    },
-    {
-        id: "tontine2",
-        name: "Collègues du bureau",
-        participants: ['2'],
-        amount: 20000,
-        frequency: "monthly",
-        progress: 90,
-        isMyTurn: true,
-    }
-];
-
 type TontineProviderProps = {
     children: ReactNode;
     alias: string;
