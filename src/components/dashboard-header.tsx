@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { QrCode, Bell, Eye, EyeOff } from "lucide-react";
+import { QrCode, Bell, Eye, EyeOff, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
@@ -27,9 +27,10 @@ type UserInfo = {
 type HeaderProps = { 
     userInfo: UserInfo; 
     alias: string; 
+    onProfileClick: () => void;
 };
 
-export default function DashboardHeader({ userInfo, alias }: HeaderProps) {
+export default function DashboardHeader({ userInfo, alias, onProfileClick }: HeaderProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
@@ -51,7 +52,7 @@ export default function DashboardHeader({ userInfo, alias }: HeaderProps) {
     return (
         <header className="mb-6">
             <div className="flex justify-between items-center mb-4">
-                 <div className="flex items-center gap-3">
+                 <button onClick={onProfileClick} className="flex items-center gap-3 text-left rounded-md p-2 -ml-2 hover:bg-secondary transition-colors">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={avatar ?? `https://i.pravatar.cc/150?u=${userInfo.email}`} alt={userInfo.name} data-ai-hint="person face" />
                         <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
@@ -60,7 +61,7 @@ export default function DashboardHeader({ userInfo, alias }: HeaderProps) {
                         <p className="text-sm font-medium text-muted-foreground">Bienvenue,</p>
                         <p className="font-bold text-lg text-foreground">{userInfo.name}</p>
                     </div>
-                </div>
+                </button>
                  <div className="flex items-center gap-1">
                     <Sheet>
                     <SheetTrigger asChild>

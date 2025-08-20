@@ -2,8 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import { Home, User as UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import TransactionHistory from './transaction-history';
 import Profile from './profile';
 import Tontine from './tontine';
@@ -26,7 +24,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type NavItem = 'accueil' | 'profil';
+type View = 'dashboard' | 'profile';
 type ActiveAction = 'none' | 'payer';
 
 const servicesMap: { [key: string]: Service } = {
@@ -36,7 +34,7 @@ const servicesMap: { [key: string]: Service } = {
 }
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
-    const [activeTab, setActiveTab] = useState<NavItem>('accueil');
+    const [view, setView] = useState<View>('dashboard');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<Service | null>(null);
     const [activeAction, setActiveAction] = useState<ActiveAction>('none');
@@ -45,28 +43,33 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setShowAllTransactions(show);
     };
     
-    const onTabClick = (tab: NavItem) => {
+    const onNavigateTo = (newView: View) => {
         setShowAllTransactions(false);
         setActiveService(null);
         setActiveAction('none');
-        setActiveTab(tab);
+        setView(newView);
     }
     
       const handleCardNavigation = (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => {
         if (destination === 'transactions') {
             setShowAllTransactions(true);
-            setActiveTab('accueil'); 
+            setView('dashboard'); 
         } else {
             const service = servicesMap[destination];
             if (service) {
                 setActiveService(service);
-                setActiveTab('accueil');
+                setView('dashboard');
                 setActiveAction('none');
             }
         }
       };
 
       const renderContent = () => {
+        if(view === 'profile'){
+            return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} onBack={() => onNavigateTo('dashboard')} />;
+        }
+
+        // Dashboard view and its sub-states
         if (showAllTransactions) {
             return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
         }
@@ -86,55 +89,25 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             return <PayerTransferer onBack={() => setActiveAction('none')} />
         }
         
-        switch(activeTab){
-            case 'accueil':
-                return (
-                    <div className="space-y-8">
-                        <DashboardHeader userInfo={userInfo} alias={alias} />
-                        <HomeActions 
-                            onSendClick={() => setActiveAction('payer')} 
-                            alias={alias}
-                            userInfo={userInfo}
-                        />
-                        <BalanceCards onNavigate={handleCardNavigation} />
-                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
-                    </div>
-                )
-            case 'profil':
-                return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} />;
-            default:
-                 return (
-                    <div className="space-y-8">
-                        <DashboardHeader userInfo={userInfo} alias={alias} />
-                        <HomeActions 
-                            onSendClick={() => setActiveAction('payer')} 
-                            alias={alias}
-                            userInfo={userInfo}
-                        />
-                        <BalanceCards onNavigate={handleCardNavigation} />
-                        <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
-                    </div>
-                )
-        }
+        return (
+            <div className="space-y-8">
+                <DashboardHeader userInfo={userInfo} alias={alias} onProfileClick={() => onNavigateTo('profile')} />
+                <HomeActions 
+                    onSendClick={() => setActiveAction('payer')} 
+                    alias={alias}
+                    userInfo={userInfo}
+                />
+                <BalanceCards onNavigate={handleCardNavigation} />
+                <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
+            </div>
+        )
       }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-        <main className="flex-grow container mx-auto p-4 sm:p-6 pb-24">
+        <main className="flex-grow container mx-auto p-4 sm:p-6">
             {renderContent()}
         </main>
-      <footer className="fixed bottom-0 inset-x-0 z-40 flex justify-center p-4">
-          <nav className="bg-background/95 backdrop-blur-sm shadow-lg border rounded-full grid grid-cols-2 gap-1 p-2 max-w-xs w-full">
-            <Button onClick={() => onTabClick('accueil')} variant={activeTab === 'accueil' && !showAllTransactions && !activeService ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
-                <Home />
-                <span className="text-xs">Accueil</span>
-            </Button>
-            <Button onClick={() => onTabClick('profil')} variant={activeTab === 'profil' ? 'secondary' : 'ghost'} className="flex-col h-auto py-2 px-4 rounded-full">
-                <UserIcon />
-                <span className="text-xs">Profil</span>
-            </Button>
-          </nav>
-      </footer>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import Contacts from "./contacts";
 import { Separator } from "./ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Camera } from 'lucide-react';
+import { Camera, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAvatar } from '@/hooks/use-avatar';
 
@@ -20,9 +20,10 @@ type ProfileProps = {
   userInfo: UserInfo;
   alias: string;
   onLogout: () => void;
+  onBack: () => void;
 };
 
-export default function Profile({ userInfo, alias, onLogout }: ProfileProps) {
+export default function Profile({ userInfo, alias, onLogout, onBack }: ProfileProps) {
   const { avatar, setAvatar } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -49,9 +50,14 @@ export default function Profile({ userInfo, alias, onLogout }: ProfileProps) {
 
   return (
     <div className="space-y-8">
-        <div className="mb-6">
-            <h2 className="text-2xl font-bold text-primary">Profil et Paramètres</h2>
-            <p className="text-muted-foreground">Gérez vos informations, contacts et alias.</p>
+        <div className="flex items-center gap-4 mb-6">
+            <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft />
+            </Button>
+            <div>
+                <h2 className="text-2xl font-bold text-primary">Profil et Paramètres</h2>
+                <p className="text-muted-foreground">Gérez vos informations, contacts et alias.</p>
+            </div>
         </div>
 
         <div className="flex flex-col items-center gap-4">
