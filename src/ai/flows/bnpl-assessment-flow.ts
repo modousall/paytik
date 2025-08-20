@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for assessing BNPL (Buy Now, Pay Later) applications.
@@ -19,7 +20,7 @@ export async function assessBnplApplication(
     output: { schema: BnplAssessmentOutputSchema },
     model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Vous êtes un expert en évaluation de crédit pour un service financier en Afrique de l'Ouest.
-Analysez la demande de "Payer Plus Tard" (BNPL) suivante et décidez si elle doit être approuvée, rejetée, ou mise en attente d'un examen manuel.
+Analysez la demande de "Credit Marchands" (BNPL) suivante et décidez si elle doit être approuvée, rejetée, ou mise en attente d'un examen manuel.
 
 Critères d'évaluation :
 1.  **Montant de l'achat** : Si le montant est très élevé (ex: > 150 000 Fcfa), soyez prudent.

@@ -9,12 +9,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { CreditCard, Users, Clock, PiggyBank, Wallet } from 'lucide-react';
 import AdminFeatureDetail from './admin-feature-detail';
-
-const featureDetails: Record<Feature, { name: string; icon: JSX.Element; description: string }> = {
-    virtualCards: { name: 'Cartes Virtuelles', icon: <CreditCard />, description: "Activer la création et l'utilisation de cartes de paiement virtuelles." },
-    tontine: { name: 'Tontines', icon: <Users />, description: "Permettre la création et la participation à des groupes d'épargne." },
-    bnpl: { name: 'Payer Plus Tard (BNPL)', icon: <Clock />, description: "Donner accès aux options de paiement échelonné chez les marchands." },
-};
+import AdminBnplManagement from './admin-bnpl-management';
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
@@ -49,7 +44,7 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
 export default function AdminFeatureManagement() {
   const { flags, setFlag } = useFeatureFlags();
   const { users } = useUserManagement();
-  const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | 'bnpl' | null>(null);
 
   const kpis = useMemo(() => {
     const totalMainBalance = users.reduce((sum, user) => sum + user.balance, 0);
@@ -71,10 +66,13 @@ export default function AdminFeatureManagement() {
     { featureKey: 'vaults', title: "Coffres / Tirelires", value: formatCurrency(kpis.vaults), icon: <PiggyBank />, description: "Permettre aux utilisateurs de créer des coffres d'épargne. Essentiel et ne peut être désactivé." },
     { featureKey: 'virtualCards', title: "Cartes Virtuelles", value: formatCurrency(kpis.virtualCards), icon: <CreditCard/>, description: "Activer la création et l'utilisation de cartes virtuelles." },
     { featureKey: 'tontine', title: "Tontines", value: formatCurrency(kpis.tontine), icon: <Users/>, description: "Permettre la création et la participation à des groupes d'épargne." },
-    { featureKey: 'bnpl', title: "BNPL", value: "N/A", icon: <Clock/>, description: "Donner accès aux options de paiement échelonné." },
+    { featureKey: 'bnpl', title: "Credit Marchands (BNPL)", value: "N/A", icon: <Clock/>, description: "Donner accès aux options de paiement échelonné." },
   ]
 
   if(selectedFeature) {
+      if (selectedFeature === 'bnpl') {
+          return <AdminBnplManagement />;
+      }
       return <AdminFeatureDetail feature={selectedFeature} onBack={() => setSelectedFeature(null)} />
   }
 
@@ -101,7 +99,7 @@ export default function AdminFeatureManagement() {
                     isEnabled={flags[featureKey]}
                     onToggle={setFlag}
                     featureKey={featureKey}
-                    onClick={product.featureKey === 'bnpl' ? undefined : () => setSelectedFeature(product.featureKey as any)}
+                    onClick={() => setSelectedFeature(product.featureKey as any)}
                 />
             )
         })}

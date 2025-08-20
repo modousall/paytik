@@ -15,10 +15,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import QRCodeScanner from './qr-code-scanner';
 import { useBnpl } from '@/hooks/use-bnpl';
 import type { BnplAssessmentOutput } from '@/lib/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant de l'achat doit être positif." }),
+  downPayment: z.coerce.number().min(0, "L'avance ne peut être négative.").optional(),
+  duration: z.string().min(1, { message: "La durée est requise." }),
 });
 
 type BnplFormValues = z.infer<typeof bnplFormSchema>;
@@ -86,6 +89,8 @@ export default function BNPL({ onBack }: BnplProps) {
     defaultValues: {
       merchantAlias: '',
       amount: '' as any,
+      downPayment: '' as any,
+      duration: '3',
     },
   });
 
@@ -128,7 +133,7 @@ export default function BNPL({ onBack }: BnplProps) {
           <ArrowLeft />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-primary">BNPL (Acheter maintenant, Payer plus tard)</h2>
+          <h2 className="text-2xl font-bold text-primary">Credit Marchands (BNPL)</h2>
           <p className="text-muted-foreground">Financez vos achats et payez en plusieurs fois.</p>
         </div>
       </div>
@@ -139,7 +144,7 @@ export default function BNPL({ onBack }: BnplProps) {
             <Info className="h-4 w-4" />
             <AlertTitle>Information</AlertTitle>
             <AlertDescription>
-              Ce service est soumis à une vérification d'éligibilité par IA. Soumettre une demande ne garantit pas son approbation.
+              Ce service est soumis à une vérification d'éligibilité par IA. La soumission ne garantit pas l'approbation.
             </AlertDescription>
           </Alert>
 
@@ -184,10 +189,52 @@ export default function BNPL({ onBack }: BnplProps) {
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="downPayment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Avance (Fcfa, optionnel)</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="ex: 30000" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Durée</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionnez..." />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="1">1 mois</SelectItem>
+                                    <SelectItem value="2">2 mois</SelectItem>
+                                    <SelectItem value="3">3 mois</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormItem>
+                    <FormLabel>Taux de marge</FormLabel>
+                    <Input value="0% (Halal)" readOnly disabled />
+                </FormItem>
+           </div>
+
 
           <Button type="submit" className="w-full py-6" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Soumettre la demande de crédit
+            Soumettre la demande
           </Button>
         </form>
       </Form>

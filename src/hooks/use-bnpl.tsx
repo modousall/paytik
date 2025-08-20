@@ -7,6 +7,7 @@ import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
 import type { BnplRequest, BnplAssessmentOutput } from '@/lib/types';
+import { useUserManagement } from './use-user-management';
 
 
 type BnplContextType = {
@@ -37,6 +38,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
   const { balance, debit, credit } = useBalance();
+  const { users } = useUserManagement();
 
   useEffect(() => {
     try {
@@ -116,12 +118,11 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          // Add the credit amount to the user's main balance.
           credit(amount);
           
           addTransaction({
               type: 'received',
-              counterparty: `Crédit BNPL`,
+              counterparty: 'Credit Marchands',
               reason: `Crédit approuvé pour achat chez ${merchantAlias}`,
               amount,
               date: new Date().toISOString(),
@@ -145,41 +146,64 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       
       if (wasInReview && status === 'approved') {
         try {
-            // This is a simulation since we can't reliably update other users' localStorage.
-            // In a real app, this logic would be handled by a backend service.
+            const userToCredit = users.find(u => u.alias === requestToUpdate.alias);
+            const merchantToPay = users.find(u => u.alias === requestToUpdate.merchantAlias);
+
+            if (!userToCredit || !merchantToPay) {
+                throw new Error("Utilisateur ou marchand introuvable pour la transaction BNPL.");
+            }
+
+            // This is a simulation, in a real app this would be a multi-step backend transaction.
             
-            // 1. Give the user the loan amount as a transaction. They now "owe" this.
-            // This is simulated by adding a transaction to their history. The actual debt is tracked in the request itself.
-            const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
+            // 1. Credit the user's balance
+            const userBalanceKey = `paytik_balance_${userToCredit.alias}`;
+            const userNewBalance = (userToCredit.balance || 0) + requestToUpdate.amount;
+            localStorage.setItem(userBalanceKey, JSON.stringify(userNewBalance));
+
+            // 2. Add transaction for user to see the credit
+            const userTxKey = `paytik_transactions_${userToCredit.alias}`;
             const userTxStr = localStorage.getItem(userTxKey);
             const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
             const userNewTx = {
                 id: `TXN${Date.now()}`,
                 type: 'received',
-                counterparty: 'Crédit BNPL',
-                reason: `Crédit approuvé pour ${requestToUpdate.merchantAlias}`,
+                counterparty: 'Credit Marchands',
+                reason: `Crédit approuvé pour ${merchantToPay.name}`,
                 amount: requestToUpdate.amount,
                 date: new Date().toISOString(),
                 status: 'Terminé'
             };
             localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
 
-            // 2. Credit the merchant's balance for the sale
-            const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
-            const merchantBalanceStr = localStorage.getItem(merchantBalanceKey);
-            const merchantBalance = merchantBalanceStr ? JSON.parse(merchantBalanceStr) : 0;
-            const newMerchantBalance = merchantBalance + requestToUpdate.amount;
+            // 3. Immediately debit the user for the payment to the merchant
+            const userFinalBalance = userNewBalance - requestToUpdate.amount;
+            localStorage.setItem(userBalanceKey, JSON.stringify(userFinalBalance));
+            const userPaymentTx = {
+                 id: `TXN${Date.now()+1}`,
+                 type: 'sent',
+                 counterparty: merchantToPay.alias,
+                 reason: `Achat chez ${merchantToPay.name}`,
+                 amount: requestToUpdate.amount,
+                 date: new Date().toISOString(),
+                 status: 'Terminé'
+            }
+             localStorage.setItem(userTxKey, JSON.stringify([userPaymentTx, userNewTx, ...userTxs]));
+
+
+            // 4. Credit the merchant's balance
+            const merchantBalanceKey = `paytik_balance_${merchantToPay.alias}`;
+            const newMerchantBalance = (merchantToPay.balance || 0) + requestToUpdate.amount;
             localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
 
-            // 3. Add transaction for merchant to see the sale
-            const merchantTxKey = `paytik_transactions_${requestToUpdate.merchantAlias}`;
+            // 5. Add transaction for merchant to see the sale
+            const merchantTxKey = `paytik_transactions_${merchantToPay.alias}`;
             const merchantTxStr = localStorage.getItem(merchantTxKey);
             const merchantTxs = merchantTxStr ? JSON.parse(merchantTxStr) : [];
              const merchantNewTx = {
-                id: `TXN${Date.now()+1}`,
+                id: `TXN${Date.now()+2}`,
                 type: 'received',
-                counterparty: `${requestToUpdate.alias}`,
-                reason: `Paiement pour Achat BNPL`,
+                counterparty: userToCredit.alias,
+                reason: `Paiement pour Achat BNPL de ${userToCredit.alias}`,
                 amount: requestToUpdate.amount,
                 date: new Date().toISOString(),
                 status: 'Terminé'
@@ -188,9 +212,9 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
             toast({ title: "Demande approuvée", description: `Le marchand ${requestToUpdate.merchantAlias} a été crédité et la dette de l'utilisateur a été enregistrée.` });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to process manual BNPL approval:", error);
-            toast({ title: "Erreur de traitement", description: "Une erreur est survenue lors de l'approbation.", variant: "destructive" });
+            toast({ title: "Erreur de traitement", description: error.message || "Une erreur est survenue lors de l'approbation.", variant: "destructive" });
             // Revert status on error
             setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
         }
@@ -230,8 +254,8 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
     
     addTransaction({
         type: 'sent',
-        counterparty: 'PAYTIK Crédit',
-        reason: 'Remboursement BNPL',
+        counterparty: 'Credit Marchands',
+        reason: 'Remboursement',
         amount: repaymentAmount,
         date: new Date().toISOString(),
         status: 'Terminé'

@@ -39,8 +39,8 @@ export default function MyBnplRequests({ onBack }: MyBnplRequestsProps) {
                     <ArrowLeft />
                 </Button>
                 <div>
-                    <h2 className="text-2xl font-bold text-primary">Mes Demandes de Crédit</h2>
-                    <p className="text-muted-foreground">Consultez l'historique et le statut de vos demandes BNPL.</p>
+                    <h2 className="text-2xl font-bold text-primary">Mes Demandes de Credit Marchands</h2>
+                    <p className="text-muted-foreground">Consultez l'historique et le statut de vos demandes.</p>
                 </div>
             </div>
             <Card>

@@ -4,10 +4,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useBalance } from "@/hooks/use-balance";
 import { useVirtualCard } from "@/hooks/use-virtual-card";
-import { CreditCard, Wallet, PiggyBank, Users } from 'lucide-react';
+import { CreditCard, Wallet, PiggyBank, Users, Info } from 'lucide-react';
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { useBnpl } from "@/hooks/use-bnpl";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 type UserInfo = {
     role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
@@ -18,12 +25,66 @@ type BalanceCardsProps = {
     userInfo: UserInfo;
 }
 
+const RepayCreditDialog = () => {
+    const { currentCreditBalance, repayCredit } = useBnpl();
+    const { balance: mainBalance } = useBalance();
+    const [repaymentAmount, setRepaymentAmount] = useState<number | string>('');
+
+    const handleRepay = () => {
+        const amount = Number(repaymentAmount);
+        if (amount <= 0) {
+            toast({ title: "Montant invalide", variant: 'destructive' });
+            return;
+        }
+        repayCredit(amount);
+        setRepaymentAmount('');
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Rembourser votre Credit Marchands</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                    Le montant sera déduit de votre solde principal.
+                    Solde disponible: {mainBalance.toLocaleString()} Fcfa.
+                </p>
+                <div>
+                    <Label htmlFor="repayment-amount">Montant à rembourser (Fcfa)</Label>
+                    <Input
+                        id="repayment-amount"
+                        type="number"
+                        value={repaymentAmount}
+                        onChange={(e) => setRepaymentAmount(e.target.value)}
+                        placeholder={`ex: ${currentCreditBalance}`}
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="ghost">Annuler</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                    <Button
+                        onClick={handleRepay}
+                        disabled={!repaymentAmount || Number(repaymentAmount) <= 0 || Number(repaymentAmount) > currentCreditBalance || Number(repaymentAmount) > mainBalance}
+                    >
+                        Confirmer le remboursement
+                    </Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
 export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
     const { tontines } = useTontine();
     const { flags } = useFeatureFlags();
+    const { currentCreditBalance } = useBnpl();
 
     const isMerchant = userInfo.role === 'merchant';
 
@@ -37,7 +98,8 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
             balance: balance,
             icon: <Wallet className="h-5 w-5 text-white" />,
             color: 'from-primary to-blue-400',
-            enabled: true
+            enabled: true,
+            creditBalance: currentCreditBalance,
         },
         {
             id: 'ma-carte' as const,
@@ -83,6 +145,17 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                         <p className="text-xl sm:text-2xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
                         <p className="text-xs sm:text-sm opacity-80">Fcfa</p>
                     </div>
+                     {c.creditBalance && c.creditBalance > 0 && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <div className="mt-2 pt-2 border-t border-white/20 text-left text-xs flex justify-between items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                                    <span>Credit Marchands: -{c.creditBalance.toLocaleString()} Fcfa</span>
+                                    <Info className="h-3 w-3"/>
+                                </div>
+                            </DialogTrigger>
+                            <RepayCreditDialog />
+                        </Dialog>
+                    )}
                 </Card>
             ))}
         </div>

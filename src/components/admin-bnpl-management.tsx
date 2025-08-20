@@ -58,7 +58,7 @@ export default function AdminBnplManagement() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Gestion des Demandes de Crédit (BNPL)</CardTitle>
+                    <CardTitle>Gestion des Demandes de Credit Marchands</CardTitle>
                     <CardDescription>
                         Examinez, approuvez ou rejetez les demandes de paiement échelonné des utilisateurs.
                     </CardDescription>

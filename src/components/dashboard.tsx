@@ -20,7 +20,6 @@ import AdminDashboard from './admin-dashboard';
 import MerchantDashboard from './merchant-dashboard';
 import Settings from './settings';
 import MerchantList from './merchant-list';
-import CurrentCredit from './current-credit';
 import { useBnpl } from '@/hooks/use-bnpl';
 
 type UserInfo = {
@@ -45,7 +44,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [activeService, setActiveService] = useState<ActiveService>(null);
     const [activeAction, setActiveAction] = useState<ActiveAction>('none');
     const { flags } = useFeatureFlags();
-    const { currentCreditBalance } = useBnpl();
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -142,10 +140,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     userInfo={userInfo}
                 />
                 
-                {currentCreditBalance > 0 && userInfo.role === 'user' && (
-                    <CurrentCredit />
-                )}
-
                 <BalanceCards onNavigate={handleCardNavigation} userInfo={userInfo} />
                 <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
             </div>
