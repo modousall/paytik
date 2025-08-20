@@ -6,6 +6,9 @@ import { Button } from "./ui/button";
 import { ArrowLeft, ChevronRight, Share2, Sparkles, Phone, FileCheck, MapPin, Smartphone, ShieldCheck, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "./ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import ChangePinForm from './change-pin-form';
+
 
 type SettingsProps = {
     alias: string;
@@ -18,10 +21,14 @@ type SettingItemProps = {
     text: string;
     onClick?: () => void;
     isDestructive?: boolean;
+    asChild?: boolean;
+    children?: React.ReactNode;
 }
 
-const SettingItem = ({ icon, text, onClick, isDestructive = false }: SettingItemProps) => {
+const SettingItem = ({ icon, text, onClick, isDestructive = false, asChild = false, children }: SettingItemProps) => {
     const { toast } = useToast();
+    const Component = asChild ? "div" : "button";
+
     const handleClick = onClick || (() => {
         toast({
             title: "Fonctionnalité à venir",
@@ -30,14 +37,14 @@ const SettingItem = ({ icon, text, onClick, isDestructive = false }: SettingItem
     });
     
     return (
-        <button
-            onClick={handleClick}
-            className={`w-full flex items-center p-4 text-left ${isDestructive ? 'text-destructive' : 'text-foreground'}`}
+        <Component
+            onClick={asChild ? undefined : handleClick}
+            className={`w-full flex items-center p-4 text-left ${isDestructive ? 'text-destructive' : 'text-foreground'} ${asChild ? '' : 'cursor-pointer'}`}
         >
             {icon}
             <span className="flex-grow">{text}</span>
-            {!onClick && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-        </button>
+            {children ? children : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+        </Component>
     )
 }
 
@@ -69,7 +76,11 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     
     const securitySettings = [
         { icon: <Smartphone className="h-6 w-6 mr-4 text-primary" />, text: "Vos appareils connectés" },
-        { icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, text: "Modifiez votre code secret" },
+        { 
+            icon: <ShieldCheck className="h-6 w-6 mr-4 text-primary" />, 
+            text: "Modifiez votre code secret",
+            asChild: true, // This indicates it will contain a DialogTrigger
+        },
     ];
 
     return (
@@ -104,12 +115,22 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
             
             <h3 className="text-lg font-semibold text-muted-foreground px-4">Sécurité</h3>
              <Card>
-                {securitySettings.map((item, index) => (
-                     <React.Fragment key={item.text}>
-                     <SettingItem {...item} />
-                     {index < securitySettings.length - 1 && <hr className="ml-14"/>}
-                    </React.Fragment>
-                ))}
+                <SettingItem {...securitySettings[0]} />
+                <hr className="ml-14"/>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <SettingItem {...securitySettings[1]}/>
+                    </DialogTrigger>
+                     <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Changer votre code secret</DialogTitle>
+                            <DialogDescription>
+                                Pour des raisons de sécurité, veuillez fournir votre ancien code PIN avant d'en définir un nouveau.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <ChangePinForm alias={alias} />
+                    </DialogContent>
+                </Dialog>
             </Card>
 
              <Card>

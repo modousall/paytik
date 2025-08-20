@@ -140,6 +140,26 @@ export const useUserManagement = () => {
     });
   };
 
+  const changeUserPin = (alias: string, oldPin: string, newPin: string): { success: boolean, message: string } => {
+    const userKey = `paytik_user_${alias}`;
+    const userDataString = localStorage.getItem(userKey);
+    if (userDataString) {
+        try {
+            const userData = JSON.parse(userDataString);
+            if (userData.pincode !== oldPin) {
+                return { success: false, message: "L'ancien code PIN est incorrect." };
+            }
+            userData.pincode = newPin;
+            localStorage.setItem(userKey, JSON.stringify(userData));
+            loadUsers();
+            return { success: true, message: "Code PIN mis à jour avec succès." };
+        } catch (e) {
+            return { success: false, message: "Une erreur est survenue." };
+        }
+    }
+    return { success: false, message: "Utilisateur non trouvé." };
+  };
+
   const updateUserRole = (alias: string, newRole: string) => {
     updateUserProperty(alias, userData => {
       userData.role = newRole;
@@ -172,9 +192,5 @@ export const useUserManagement = () => {
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
-  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserRole, refreshUsers: loadUsers };
+  return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserRole, changeUserPin, refreshUsers: loadUsers };
 };
-
-    
-
-    
