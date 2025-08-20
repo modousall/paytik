@@ -16,7 +16,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
-import { TransactionsProvider } from '@/hooks/use-transactions';
+import { TransactionsContext } from '@/hooks/use-transactions';
 
 const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
     const [newPin, setNewPin] = useState("");
@@ -77,10 +77,7 @@ const StaticTransactionsProvider = ({ transactions, children }: { transactions: 
       addTransaction: () => {}, // No-op in this context
       reverseTransaction: () => {}, // No-op in this context
     };
-    // This requires a bit of a hack since our context isn't designed for this.
-    // In a real app, this would be cleaner.
-    const Context = require('@/hooks/use-transactions').TransactionsContext;
-    return <Context.Provider value={value}>{children}</Context.Provider>;
+    return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
 };
 
 

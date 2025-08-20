@@ -19,7 +19,7 @@ type TransactionsContextType = {
   reverseTransaction: (transactionId: string) => void;
 };
 
-const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
+export const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
 
 const initialTransactions: Transaction[] = [
     {
