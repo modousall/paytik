@@ -20,6 +20,7 @@ import QRCodeScanner from "./qr-code-scanner";
 import { useProductManagement } from "@/hooks/use-product-management";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useTransactions } from "@/hooks/use-transactions";
+import { Html5Qrcode } from "html5-qrcode";
 
 type UserInfo = {
     name: string;
@@ -315,10 +316,27 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
 
     const handleScannedCode = (decodedText: string) => {
         setIsScannerOpen(false);
-        toast({
-            title: "Code Client Scanné !",
-            description: `Code décodé (simulation): ${decodedText}`,
-        });
+        try {
+            const data = JSON.parse(decodedText);
+            if (data.shid) {
+                toast({ 
+                    title: "Code Client Scanné !", 
+                    description: `Alias du client: ${data.shid}. Prêt pour un remboursement ou un transfert.` 
+                });
+            } else {
+                 toast({ 
+                    title: "QR Code Invalide", 
+                    description: "Ce code ne semble pas être un code client PAYTIK valide.", 
+                    variant: "destructive" 
+                });
+            }
+        } catch(e) {
+            toast({ 
+                title: "QR Code Invalide", 
+                description: "Ce code ne semble pas être un code client PAYTIK valide.", 
+                variant: "destructive" 
+            });
+        }
     }
   
     return (
