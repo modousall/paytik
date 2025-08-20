@@ -6,7 +6,6 @@ import type { Transaction as UserTransaction } from './use-transactions';
 import type { Vault } from './use-vaults';
 import type { Tontine } from './use-tontine';
 import type { CardDetails, CardTransaction } from './use-virtual-card';
-import { defaultFlags, type FeatureFlags } from './use-feature-flags';
 
 export type ManagedUser = {
   name: string;
@@ -16,7 +15,6 @@ export type ManagedUser = {
   avatar: string | null;
   isSuspended: boolean;
   role?: string;
-  featureFlags?: FeatureFlags;
 };
 
 // Exporting Transaction type to be used in other components
@@ -88,7 +86,6 @@ export const useUserManagement = () => {
               avatar: avatarDataString || null,
               isSuspended: userData.isSuspended || false,
               role: userData.role || 'user',
-              featureFlags: userData.featureFlags || defaultFlags,
             };
 
             loadedUsersWithTx.push({ ...managedUser, transactions });
@@ -161,7 +158,6 @@ export const useUserManagement = () => {
         pincode: payload.pincode,
         role: payload.role,
         isSuspended: false,
-        featureFlags: defaultFlags, // Assign default flags to new internal users
     };
 
     localStorage.setItem(userKey, JSON.stringify(newUser));
@@ -178,5 +174,7 @@ export const useUserManagement = () => {
 
   return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, addUser, updateUserRole, refreshUsers: loadUsers };
 };
+
+    
 
     

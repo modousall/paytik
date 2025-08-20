@@ -87,9 +87,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if (activeService) {
              switch (activeService) {
                 case 'tontine':
-                    return flags.tontine ? <Tontine onBack={() => setActiveService(null)}/> : null;
+                    return <Tontine onBack={() => setActiveService(null)}/>;
                 case 'ma-carte':
-                    return flags.virtualCards ? <VirtualCard onBack={() => setActiveService(null)}/> : null;
+                    return <VirtualCard onBack={() => setActiveService(null)}/>;
                 case 'coffres':
                      return <Vaults onBack={() => setActiveService(null)} />;
                 default:
@@ -144,3 +144,5 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     </div>
   );
 }
+
+    

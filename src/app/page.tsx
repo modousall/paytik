@@ -20,7 +20,7 @@ import { TontineProvider } from '@/hooks/use-tontine';
 import { TransactionsProvider, useTransactions } from '@/hooks/use-transactions';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
-import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
+import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
 import { ProductProvider } from '@/hooks/use-product-management';
 
 type UserInfo = {
@@ -42,7 +42,6 @@ const ensureSuperAdminExists = () => {
             email: 'modousall1@gmail.com',
             pincode: '1234',
             role: 'superadmin',
-            featureFlags: defaultFlags,
         };
         localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
         // Also set a default balance for the superadmin
@@ -55,7 +54,7 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
     const { addTransaction } = useTransactions();
     return (
         <ProductProvider addSettlementTransaction={addTransaction}>
-            <FeatureFlagProvider alias={alias}>
+            <FeatureFlagProvider>
                 <AvatarProvider alias={alias}>
                     <BalanceProvider alias={alias}>
                         <ContactsProvider alias={alias}>
@@ -142,7 +141,6 @@ export default function AuthenticationGate() {
           email: userInfo.email,
           pincode: '', // PIN will be set at next step
           role: 'user', // Default role for new users
-          featureFlags: defaultFlags, // Assign default flags to new users
       }));
       localStorage.setItem('paytik_active_alias_creation', newAlias);
       setAlias(newAlias);
@@ -301,3 +299,5 @@ export default function AuthenticationGate() {
 
   return <main className="bg-background min-h-screen">{renderContent()}</main>;
 }
+
+    

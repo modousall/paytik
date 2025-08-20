@@ -83,12 +83,12 @@ const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, on
                     />
                 </div>
                 <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={() => setAction(null)}>Retour</Button>
-                    <DialogClose asChild>
+                     <Button type="button" variant="ghost" onClick={() => setAction(null)}>Retour</Button>
+                     <DialogClose asChild>
                         <Button onClick={handleWithdraw} disabled={amount <= 0 || amount > card.balance}>
                             Confirmer
                         </Button>
-                    </DialogClose>
+                     </DialogClose>
                 </DialogFooter>
             </DialogContent>
         )
@@ -295,3 +295,5 @@ export default function VirtualCard({ onBack }: VirtualCardProps) {
     </div>
   );
 }
+
+    

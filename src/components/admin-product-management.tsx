@@ -96,12 +96,12 @@ const ProductDialog = ({
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{product?.id ? 'Modifier' : 'Ajouter'} un produit</DialogTitle>
+                <DialogTitle>{product?.id ? 'Modifier' : 'Ajouter'} un partenaire</DialogTitle>
             </DialogHeader>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                     <FormField control={form.control} name="name" render={({ field }) => (
-                        <FormItem><FormLabel>Nom du produit</FormLabel><FormControl><Input placeholder="ex: SENELEC" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Nom du partenaire</FormLabel><FormControl><Input placeholder="ex: SENELEC" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <div className="grid grid-cols-2 gap-4">
                          <FormField control={form.control} name="fee" render={({ field }) => (
@@ -218,13 +218,13 @@ const ProductTable = ({
                             </TableRow>
                         ))}
                          {products.length === 0 && (
-                            <TableRow><TableCell colSpan={6} className="text-center">Aucun produit configuré.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={6} className="text-center">Aucun partenaire configuré.</TableCell></TableRow>
                         )}
                     </TableBody>
                 </Table>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  {editingProduct !== null && <ProductDialog product={editingProduct} onSave={handleSave} onClose={closeDialog} />}
+                  {<ProductDialog product={editingProduct} onSave={handleSave} onClose={closeDialog} />}
                 </Dialog>
             </CardContent>
         </Card>
@@ -288,8 +288,8 @@ export default function AdminProductManagement() {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-            <CardTitle>Produits et Tarification</CardTitle>
-            <CardDescription>Configurez les services, frais et commissions. Cliquez sur un produit pour voir ses détails.</CardDescription>
+            <CardTitle>Gestion des Partenaires</CardTitle>
+            <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
         </CardHeader>
       </Card>
       
@@ -314,3 +314,5 @@ export default function AdminProductManagement() {
     </div>
   );
 }
+
+    

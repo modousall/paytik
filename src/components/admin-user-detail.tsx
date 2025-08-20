@@ -14,7 +14,7 @@ import { useUserManagement } from "@/hooks/use-user-management";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import TransactionHistory from './transaction-history';
-import { FeatureFlagProvider, defaultFlags } from '@/hooks/use-feature-flags';
+import { FeatureFlagProvider, useFeatureFlags } from '@/hooks/use-feature-flags';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { BalanceProvider } from '@/hooks/use-balance';
 import { TransactionsProvider } from '@/hooks/use-transactions';
@@ -23,7 +23,6 @@ import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { TontineProvider } from '@/hooks/use-tontine';
 import { Switch } from './ui/switch';
-import type { Feature } from '@/hooks/use-feature-flags';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 
@@ -133,9 +132,9 @@ const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClo
     )
 }
 
-const UserServiceProvider = ({ alias, initialFlags, children }: { alias: string, initialFlags?: any, children: React.ReactNode }) => {
+const UserServiceProvider = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
     return (
-        <FeatureFlagProvider alias={alias} initialFlags={initialFlags}>
+        <FeatureFlagProvider>
             <AvatarProvider alias={alias}>
                 <BalanceProvider alias={alias}>
                     <TransactionsProvider alias={alias}>
@@ -170,12 +169,6 @@ const SummaryCard = ({ title, balance, icon, color, onClick }: { title: string, 
         </div>
     </Card>
 );
-
-const featureDetails: Record<Feature, { name: string; icon: JSX.Element; description: string }> = {
-    virtualCards: { name: 'Cartes Virtuelles', icon: <CreditCard />, description: "Activer la création et l'utilisation de cartes de paiement virtuelles." },
-    tontine: { name: 'Tontines', icon: <TontineIcon />, description: "Permettre la création et la participation à des groupes d'épargne." },
-    bnpl: { name: 'Payer Plus Tard (BNPL)', icon: <Clock />, description: "Donner accès aux options de paiement échelonné chez les marchands." },
-};
 
 type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine';
 
@@ -212,8 +205,6 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         onUpdate(); 
     }
     
-    const userFlags = user.featureFlags || defaultFlags;
-
     const renderServiceView = () => {
         switch (activeServiceView) {
             case 'transactions':
@@ -231,7 +222,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
 
 
     return (
-         <UserServiceProvider alias={user.alias} initialFlags={user.featureFlags}>
+         <UserServiceProvider alias={user.alias}>
             <div className="space-y-6">
                 <div className="flex items-center gap-4">
                     <Button onClick={onBack} variant="outline" size="icon">
@@ -364,5 +355,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
+
+    
 
     

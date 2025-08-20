@@ -4,22 +4,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } from 'lucide-react';
+import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminProductManagement from "./admin-product-management";
 import AdminRoleManagement from "./admin-role-management";
+import AdminFeatureManagement from "./admin-feature-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'transactions' | 'roles' | 'products';
+type AdminView = 'dashboard' | 'users' | 'transactions' | 'roles' | 'partners' | 'services';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des utilisateurs", description: "Consulter, modifier, suspendre et gérer les accès.", icon: <Users /> },
     { id: "transactions", title: "Analyse des transactions", description: "Visualiser les statistiques et les flux financiers.", icon: <BarChart3 /> },
-    { id: "products", title: "Produits et Tarification", description: "Configurer les produits et les frais de service.", icon: <Package /> },
+    { id: "partners", title: "Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
+    { id: "services", title: "Produits et Services", description: "Configurer les fonctionnalités de l'application (cartes, tontines...).", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
 
@@ -32,8 +34,10 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminUserManagement />;
             case 'transactions':
                 return <AdminTransactionAnalysis />;
-            case 'products':
+            case 'partners':
                 return <AdminProductManagement />;
+            case 'services':
+                return <AdminFeatureManagement />;
             case 'roles':
                  return <AdminRoleManagement />;
             default:
@@ -84,3 +88,5 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
     </div>
   );
 }
+
+    
