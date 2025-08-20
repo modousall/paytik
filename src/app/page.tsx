@@ -89,14 +89,15 @@ export default function AuthenticationGate() {
              setStep('demo');
         }
     }
-  }, []);
+  }, [toast]);
 
   const handleAliasCreated = (newAlias: string) => {
     if (userInfo) {
       localStorage.setItem(`paytik_user_${newAlias}`, JSON.stringify({
           name: userInfo.name,
           email: userInfo.email,
-          pincode: '' // PIN will be set at next step
+          pincode: '', // PIN will be set at next step
+          role: 'user', // Default role for new users
       }));
       localStorage.setItem('paytik_active_alias_creation', newAlias);
       setAlias(newAlias);

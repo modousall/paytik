@@ -283,5 +283,3 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
         </div>
     )
 }
-
-    

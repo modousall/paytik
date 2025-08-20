@@ -137,5 +137,3 @@ export const useUserManagement = () => {
 
   return { users, usersWithTransactions, toggleUserSuspension, resetUserPin, refreshUsers: loadUsers };
 };
-
-    
