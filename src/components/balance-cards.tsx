@@ -36,14 +36,14 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             icon: <CreditCard className="h-6 w-6 text-white" />,
             color: 'from-sky-500 to-cyan-400'
         }] : []),
-        ...(totalVaultsBalance > 0 ? [{
+        ...(vaults.length > 0 ? [{
             id: 'coffres' as const,
             title: 'Mes Coffres',
             balance: totalVaultsBalance,
             icon: <PiggyBank className="h-6 w-6 text-white" />,
             color: 'from-amber-500 to-yellow-400'
         }] : []),
-        ...(totalTontinesBalance > 0 ? [{
+        ...(tontines.length > 0 ? [{
             id: 'tontine' as const,
             title: 'Mes Tontines',
             balance: totalTontinesBalance,

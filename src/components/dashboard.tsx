@@ -25,17 +25,12 @@ type DashboardProps = {
 
 type View = 'dashboard' | 'profile';
 type ActiveAction = 'none' | 'payer';
-
-const servicesMap: { [key: string]: { name: string; action: 'ma-carte' | 'coffres' | 'tontine' } } = {
-    "ma-carte": { name: "Ma Carte", action: "ma-carte" },
-    "coffres": { name: "Coffres", action: "coffres" },
-    "tontine": { name: "Tontine", action: "tontine" },
-}
+type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
-    const [view, setView] = 'dashboard');
+    const [view, setView] = useState<View>('dashboard');
     const [showAllTransactions, setShowAllTransactions] = useState(false);
-    const [activeService, setActiveService] = useState<'ma-carte' | 'coffres' | 'tontine' | null>(null);
+    const [activeService, setActiveService] = useState<ActiveService>(null);
     const [activeAction, setActiveAction] = useState<ActiveAction>('none');
 
     const handleShowAllTransactions = (show: boolean) => {
@@ -49,25 +44,30 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         setView(newView);
     }
     
-      const handleCardNavigation = (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => {
+    const handleCardNavigation = (destination: 'transactions' | ActiveService) => {
         if (destination === 'transactions') {
             setShowAllTransactions(true);
             setView('dashboard'); 
             setActiveService(null);
             setActiveAction('none');
         } else {
-            setActiveService(destination);
+            setActiveService(destination as ActiveService);
             setView('dashboard');
             setActiveAction('none');
         }
-      };
+    };
+    
+    const handleServiceNavigation = (service: ActiveService) => {
+        setActiveService(service);
+        setView('dashboard');
+        setActiveAction('none');
+    };
 
-      const renderContent = () => {
+    const renderContent = () => {
         if(view === 'profile'){
             return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} onBack={() => onNavigateTo('dashboard')} />;
         }
 
-        // Dashboard view and its sub-states
         if (showAllTransactions) {
             return <TransactionHistory showAll={true} onShowAll={handleShowAllTransactions} />;
         }
@@ -80,7 +80,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 case 'coffres':
                      return <Vaults onBack={() => setActiveService(null)} />;
                 default:
-                    setActiveService(null); // Fallback to reset state
+                    setActiveService(null);
              }
         }
         if (activeAction === 'payer') {
