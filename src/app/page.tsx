@@ -38,7 +38,9 @@ export default function Home() {
     if (onboarded && userAlias && userName && userEmail && pinExists) {
       setAlias(userAlias);
       setUserInfo({name: userName, email: userEmail});
-      setStep('dashboard');
+      // Skip login for already onboarded users for demo purposes
+      // In a real app you'd always show the login form
+      setStep('dashboard'); 
     }
   }, []);
 
@@ -105,11 +107,8 @@ export default function Home() {
   }
 
   const logout = () => {
-    // Keep user info for easier re-login, but clear session state
-    // In a real app, you'd invalidate a token on the server.
-    // For this demo, just clearing the state is enough.
     setAlias(null);
-    setUserInfo(null); // Keep localStorage so they can log back in
+    setUserInfo(null); 
     setStep('demo');
   }
 
