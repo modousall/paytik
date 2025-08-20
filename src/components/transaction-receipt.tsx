@@ -1,7 +1,7 @@
 
 "use client";
 
-import { QRCode } from "react-qrcode-logo";
+import QRCode from "qrcode.react";
 import type { Transaction } from "@/hooks/use-transactions";
 import { Badge } from "./ui/badge";
 
@@ -60,8 +60,7 @@ const TransactionReceipt = ({ transaction }: { transaction: Transaction }) => {
             <QRCode
                 value={transaction.id}
                 size={80}
-                quietZone={0}
-                ecLevel="H"
+                level="H"
             />
         </div>
 
