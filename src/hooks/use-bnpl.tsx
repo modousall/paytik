@@ -92,22 +92,14 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          // The debit for the purchase happens here
-          debit(amount);
           addTransaction({
-              type: 'sent',
-              counterparty: merchantAlias,
-              reason: `Achat BNPL (Crédit Immédiat)`,
+              type: 'received',
+              counterparty: `Crédit BNPL`,
+              reason: `Crédit approuvé pour achat chez ${merchantAlias}`,
               amount,
               date: new Date().toISOString(),
               status: 'Terminé'
           });
-
-          // But the user now owes this money, so we credit it back to a "loan" account (conceptually)
-          // For simplicity in this prototype, we'll credit the main balance back
-          // and the debt is tracked in the BNPL request itself.
-          // In a real system, this would go to a separate BNPL ledger.
-          credit(amount);
       }
 
       return assessmentResult;
@@ -122,17 +114,24 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
       setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
       
-      // If a request under review is approved, execute the transaction
       if (requestToUpdate.status === 'review' && status === 'approved') {
-        const userKey = `paytik_user_${requestToUpdate.alias}`;
-        const merchantKey = `paytik_user_${requestToUpdate.merchantAlias}`;
-        
         try {
-            // No debit/credit here as the loan is an off-balance sheet item for the user in this model.
-            // The merchant gets credited directly from the company's funds.
-            // This is a simplification.
+            // Give the user the loan amount as a transaction
+            const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
+            const userTxStr = localStorage.getItem(userTxKey);
+            const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
+            const userNewTx = {
+                id: `TXN${Date.now()}`,
+                type: 'received',
+                counterparty: 'Crédit BNPL',
+                reason: `Crédit approuvé pour ${requestToUpdate.merchantAlias}`,
+                amount: requestToUpdate.amount,
+                date: new Date().toISOString(),
+                status: 'Terminé'
+            };
+            localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
 
-            // Credit the merchant
+            // Credit the merchant's balance
             const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
             const merchantBalanceStr = localStorage.getItem(merchantBalanceKey);
             const merchantBalance = merchantBalanceStr ? JSON.parse(merchantBalanceStr) : 0;
@@ -154,7 +153,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             };
             localStorage.setItem(merchantTxKey, JSON.stringify([merchantNewTx, ...merchantTxs]));
 
-            toast({ title: "Demande approuvée", description: `Le marchand ${requestToUpdate.merchantAlias} a été crédité.` });
+            toast({ title: "Demande approuvée", description: `Le marchand ${requestToUpdate.merchantAlias} a été crédité et la dette de l'utilisateur a été enregistrée.` });
 
         } catch (error) {
             console.error("Failed to process manual BNPL approval:", error);
@@ -182,7 +181,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
     let remainingRepayment = repaymentAmount;
     const updatedRequests = allRequests.map(req => {
-        if(req.alias === alias && req.status === 'approved' && remainingRepayment > 0) {
+        if(req.alias === alias && req.status === 'approved' && (req.repaidAmount || 0) < req.amount && remainingRepayment > 0) {
             const due = req.amount - (req.repaidAmount || 0);
             const payment = Math.min(remainingRepayment, due);
             

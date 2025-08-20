@@ -12,6 +12,8 @@ import { Check, X, Hourglass, Search } from 'lucide-react';
 import { Input } from './ui/input';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import AdminUserDetail from './admin-user-detail';
+import { useUserManagement, type ManagedUserWithDetails } from '@/hooks/use-user-management';
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
@@ -26,6 +28,8 @@ const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' |
 export default function AdminBnplManagement() {
     const { allRequests, updateRequestStatus } = useBnpl();
     const [searchTerm, setSearchTerm] = useState('');
+    const { users, refreshUsers } = useUserManagement();
+    const [selectedUser, setSelectedUser] = useState<ManagedUserWithDetails | null>(null);
 
     const filteredRequests = useMemo(() => {
         return allRequests.filter(req => 
@@ -37,6 +41,18 @@ export default function AdminBnplManagement() {
     const handleUpdateRequest = (id: string, status: 'approved' | 'rejected') => {
         updateRequestStatus(id, status);
     };
+
+    const handleUserSelect = (alias: string) => {
+        const userToView = users.find(u => u.alias === alias);
+        if (userToView) {
+            setSelectedUser(userToView);
+        }
+    }
+
+    if (selectedUser) {
+        return <AdminUserDetail user={selectedUser} onBack={() => setSelectedUser(null)} onUpdate={refreshUsers} />;
+    }
+
 
     return (
         <Card>
@@ -76,7 +92,11 @@ export default function AdminBnplManagement() {
                         {filteredRequests.map(req => (
                             <TableRow key={req.id}>
                                 <TableCell>{formatDate(req.requestDate)}</TableCell>
-                                <TableCell className="font-medium">{req.alias}</TableCell>
+                                <TableCell>
+                                    <Button variant="link" className="p-0 h-auto" onClick={() => handleUserSelect(req.alias)}>
+                                       {req.alias}
+                                    </Button>
+                                </TableCell>
                                 <TableCell>{req.merchantAlias}</TableCell>
                                 <TableCell>{formatCurrency(req.amount)}</TableCell>
                                 <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
