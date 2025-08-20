@@ -83,14 +83,23 @@ export default function Home() {
     const storedName = localStorage.getItem('paytik_username');
     const storedEmail = localStorage.getItem('paytik_useremail');
   
-    if (loginAlias === storedAlias && pin === storedPin && storedName && storedEmail) {
-      setAlias(loginAlias);
-      setUserInfo({ name: storedName, email: storedEmail });
-      setStep('dashboard');
-      toast({
-        title: `Bienvenue, ${storedName} !`,
-        description: "Connexion réussie.",
-      });
+    if (loginAlias === storedAlias && pin === storedPin) {
+      if (storedName && storedEmail) {
+        setAlias(loginAlias);
+        setUserInfo({ name: storedName, email: storedEmail });
+        setStep('dashboard');
+        toast({
+          title: `Bienvenue, ${storedName} !`,
+          description: "Connexion réussie.",
+        });
+      } else {
+        // This case should not happen in normal flow, but it's a good safeguard
+        toast({
+          title: "Erreur de compte",
+          description: "Les informations de votre compte sont incomplètes. Veuillez vous réinscrire.",
+          variant: "destructive",
+        });
+      }
     } else if (loginAlias === storedAlias && pin !== storedPin) {
         toast({
             title: "Code PIN incorrect",
@@ -107,6 +116,8 @@ export default function Home() {
   }
 
   const logout = () => {
+    // We don't clear localStorage here so the user can log back in.
+    // In a real app, you might want to clear it depending on security requirements.
     setAlias(null);
     setUserInfo(null); 
     setStep('demo');
