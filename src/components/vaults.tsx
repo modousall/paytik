@@ -101,7 +101,7 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
 
 const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: string, currentBalance: number, vaultName: string }) => {
     const { deposit, withdraw } = useVaults();
-    const { card, withdrawFromCard } = useVirtualCard();
+    const { card, withdrawFromCard: withdrawFromVirtualCard } = useVirtualCard();
     const { balance: mainBalance, debit, credit } = useBalance();
     const { addTransaction } = useTransactions();
     const { toast } = useToast();
@@ -131,7 +131,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                 toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
                 return;
             }
-            withdrawFromCard(amount);
+            withdrawFromVirtualCard(amount);
         }
         
         deposit(vaultId, amount);
