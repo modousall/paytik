@@ -26,7 +26,7 @@ import { TransactionsProvider } from '@/hooks/use-transactions';
 import { AvatarProvider } from '@/hooks/use-avatar';
 import { ContactsProvider } from '@/hooks/use-contacts';
 
-const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClose: () => void }) => {
+const ResetPinDialog = ({ user, onClose, onUpdate }: { user: ManagedUserWithDetails, onClose: () => void, onUpdate: () => void }) => {
     const [newPin, setNewPin] = useState("");
     const { resetUserPin } = useUserManagement();
     const { toast } = useToast();
@@ -45,6 +45,7 @@ const ResetPinDialog = ({ user, onClose }: { user: ManagedUserWithDetails, onClo
             title: "Code PIN réinitialisé",
             description: `Le code PIN pour ${user.name} a été mis à jour.`
         });
+        onUpdate();
         onClose();
     }
     
@@ -111,7 +112,7 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
 
 type TransactionFilter = 'all' | 'main' | 'card' | 'vaults' | 'tontine';
 
-export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWithDetails, onBack: () => void }) {
+export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
     const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
@@ -201,7 +202,7 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
                                         <KeyRound className="mr-2"/> Réinitialiser PIN
                                     </Button>
                                 </DialogTrigger>
-                                {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)}/>}
+                                {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)} onUpdate={onUpdate} />}
                             </Dialog>
                             <Button variant="destructive" onClick={handleToggleSuspension} disabled={user.role === 'superadmin'}>
                                 {user.isSuspended ? <UserCheck className="mr-2"/> : <UserX className="mr-2"/>}

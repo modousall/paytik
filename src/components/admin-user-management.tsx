@@ -51,7 +51,7 @@ export default function AdminUserManagement() {
     }
 
     if (selectedUser) {
-        return <AdminUserDetail user={selectedUser} onBack={handleBackToList} />
+        return <AdminUserDetail user={selectedUser} onBack={handleBackToList} onUpdate={refreshUsers} />
     }
 
     return (
@@ -81,7 +81,7 @@ export default function AdminUserManagement() {
                                 </DialogTrigger>
                                 <DialogContent className="max-w-md">
                                     <DialogHeader>
-                                        <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+                                        <DialogTitle>Créer un nouvel utilisateur interne</DialogTitle>
                                     </DialogHeader>
                                     <AdminCreateUserForm onUserCreated={handleUserCreated} />
                                 </DialogContent>

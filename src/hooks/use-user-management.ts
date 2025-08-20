@@ -35,7 +35,7 @@ export type NewUserPayload = {
     email: string;
     alias: string;
     pincode: string;
-    role: 'user' | 'merchant' | 'agent' | 'support' | 'admin';
+    role: 'support' | 'admin';
 }
 
 export const useUserManagement = () => {
@@ -136,7 +136,7 @@ export const useUserManagement = () => {
             const userData = JSON.parse(userDataString);
             userData.pincode = newPin;
             localStorage.setItem(userKey, JSON.stringify(userData));
-            loadUsers();
+            loadUsers(); // Force reload of all users to reflect change
         } catch(e) {
              console.error(`Failed to reset PIN for user ${alias}`, e);
         }
@@ -165,7 +165,7 @@ export const useUserManagement = () => {
     localStorage.setItem(`paytik_vaults_${payload.alias}`, '[]');
     localStorage.setItem(`paytik_tontines_${payload.alias}`, '[]');
     
-    loadUsers();
+    loadUsers(); // Force reload of all users to reflect change
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
