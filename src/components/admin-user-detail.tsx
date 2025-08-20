@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from "./ui/button";
-import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase } from "lucide-react";
+import { ArrowLeft, User, TrendingUp, CreditCard, ShieldCheck, KeyRound, UserX, UserCheck, Ban, Wallet, Settings, Users as TontineIcon, Clock, Briefcase, PiggyBank } from "lucide-react";
 import type { ManagedUserWithDetails, Transaction } from "@/hooks/use-user-management";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -100,6 +100,19 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
     )
 };
 
+const SummaryCard = ({ title, balance, icon, color }: { title: string, balance: number, icon: JSX.Element, color: string }) => (
+    <Card className={`text-white shadow-lg p-3 flex flex-col justify-between bg-gradient-to-br ${color} border-none`}>
+        <div className="flex justify-between items-start">
+            <p className="font-semibold text-sm">{title}</p>
+            {icon}
+        </div>
+        <div className="text-right mt-2">
+            <p className="text-xl font-bold tracking-tight">{balance.toLocaleString()}</p>
+            <p className="text-xs opacity-80">Fcfa</p>
+        </div>
+    </Card>
+);
+
 export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
     const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
@@ -116,6 +129,10 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
          const today = new Date().toISOString().split('T')[0];
         return user.transactions.filter(tx => tx.type === 'received' && tx.date.startsWith(today)).length;
     }, [user.transactions]);
+
+    const totalVaultsBalance = useMemo(() => user.vaults.reduce((acc, vault) => acc + vault.balance, 0), [user.vaults]);
+    const totalTontinesBalance = useMemo(() => user.tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0), [user.tontines]);
+    const virtualCardBalance = useMemo(() => user.virtualCard?.balance ?? 0, [user.virtualCard]);
 
     const handleToggleSuspension = () => {
         toggleUserSuspension(user.alias, !user.isSuspended);
@@ -195,6 +212,19 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                 </CardContent>
                             </Card>
                         )}
+
+                        {user.role === 'user' && (
+                             <Card>
+                                <CardHeader><CardTitle>Aperçu des soldes</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-3">
+                                    <SummaryCard title="Solde Principal" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-primary to-blue-400" />
+                                    <SummaryCard title="Carte Virtuelle" balance={virtualCardBalance} icon={<CreditCard className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" />
+                                    <SummaryCard title="Mes Coffres" balance={totalVaultsBalance} icon={<PiggyBank className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" />
+                                    <SummaryCard title="Mes Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" />
+                                </CardContent>
+                            </Card>
+                        )}
+                        
 
                         <Card>
                             <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
