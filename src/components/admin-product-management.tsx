@@ -2,110 +2,263 @@
 "use client";
 
 import { useState } from 'react';
-import { useProductManagement } from '@/hooks/use-product-management';
+import { useProductManagement, type ProductItem } from '@/hooks/use-product-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Trash2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark } from 'lucide-react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormMessage } from './ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Badge } from './ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
+import { Switch } from './ui/switch';
+import { toast } from '@/hooks/use-toast';
+import { Separator } from './ui/separator';
 
-const newItemSchema = z.object({
+const productSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1, "Le nom est requis."),
+  fee: z.coerce.number().min(0, "Les frais ne peuvent être négatifs."),
+  commission: z.coerce.number().min(0, "La commission ne peut être négative."),
+  isActive: z.boolean(),
 });
-type NewItemFormValues = z.infer<typeof newItemSchema>;
+type ProductFormValues = z.infer<typeof productSchema>;
+
+
+const SettlementDialog = ({ product, onSettle }: { product: ProductItem, onSettle: (id: string, amount: number) => void}) => {
+    const [settlementAmount, setSettlementAmount] = useState(product.balance);
+
+    const handleSettle = () => {
+        onSettle(product.id, settlementAmount);
+    }
+    
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Règlement pour {product.name}</DialogTitle>
+                <DialogDescription>
+                    Confirmez le montant à régler pour ce partenaire. Cette action simulera un virement et réinitialisera le solde dû.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="py-4 space-y-4">
+                 <div className="p-4 rounded-lg bg-secondary">
+                    <p className="text-sm text-muted-foreground">Solde actuel dû</p>
+                    <p className="text-2xl font-bold">{product.balance.toLocaleString()} Fcfa</p>
+                </div>
+                <FormItem>
+                    <FormLabel>Montant du règlement</FormLabel>
+                    <Input 
+                        type="number" 
+                        value={settlementAmount} 
+                        onChange={(e) => setSettlementAmount(Number(e.target.value))}
+                    />
+                </FormItem>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="ghost">Annuler</Button></DialogClose>
+                <DialogClose asChild><Button onClick={handleSettle}><Landmark className="mr-2"/> Confirmer le règlement</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
+
+const ProductDialog = ({ 
+    product, 
+    onSave, 
+    onClose 
+}: { 
+    product: Partial<ProductItem> | null, 
+    onSave: (data: ProductFormValues) => void,
+    onClose: () => void 
+}) => {
+    const form = useForm<ProductFormValues>({
+        resolver: zodResolver(productSchema),
+        defaultValues: { 
+            id: product?.id, 
+            name: product?.name || "", 
+            fee: product?.fee || 0,
+            commission: product?.commission || 0,
+            isActive: product?.isActive === undefined ? true : product.isActive,
+        },
+    });
+
+    const onSubmit = (values: ProductFormValues) => {
+        onSave(values);
+        onClose();
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{product?.id ? 'Modifier' : 'Ajouter'} un produit</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                        <FormItem><FormLabel>Nom du produit</FormLabel><FormControl><Input placeholder="ex: SENELEC" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <div className="grid grid-cols-2 gap-4">
+                         <FormField control={form.control} name="fee" render={({ field }) => (
+                            <FormItem><FormLabel>Frais client (Fcfa)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                         <FormField control={form.control} name="commission" render={({ field }) => (
+                            <FormItem><FormLabel>Commission PAYTIK (Fcfa)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    </div>
+                     <FormField control={form.control} name="isActive" render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5"><FormLabel>Statut</FormLabel></div>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                    )}/>
+
+                    <DialogFooter className="pt-4">
+                         <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+                         <Button type="submit">{product?.id ? 'Sauvegarder' : 'Ajouter'}</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+    );
+};
+
+
+const ProductTable = ({ 
+    title, 
+    products, 
+    onAdd,
+    onUpdate,
+    onDelete,
+    onSettle
+}: { 
+    title: string, 
+    products: ProductItem[], 
+    onAdd: (data: ProductFormValues) => void, 
+    onUpdate: (data: ProductFormValues) => void,
+    onDelete: (id: string) => void,
+    onSettle: (id: string, amount: number) => void
+}) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Partial<ProductItem> | null>(null);
+
+    const openDialog = (product: Partial<ProductItem> | null = null) => {
+        setEditingProduct(product);
+        setIsDialogOpen(true);
+    };
+    
+    const closeDialog = () => {
+        setEditingProduct(null);
+        setIsDialogOpen(false);
+    }
+    
+    const handleSave = (data: ProductFormValues) => {
+        if(data.id) {
+            onUpdate(data);
+        } else {
+            onAdd(data);
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle>{title}</CardTitle>
+                    <Button onClick={() => openDialog()}>
+                        <PlusCircle className="mr-2"/> Ajouter
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Statut</TableHead>
+                            <TableHead>Nom</TableHead>
+                            <TableHead>Frais Client</TableHead>
+                            <TableHead>Commission</TableHead>
+                            <TableHead>Solde à régler</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {products.map(p => (
+                            <TableRow key={p.id}>
+                                <TableCell>
+                                    <Badge variant={p.isActive ? 'default' : 'secondary'} className={p.isActive ? 'bg-green-100 text-green-800' : ''}>
+                                        {p.isActive ? <Power size={14} className="mr-1"/> : <PowerOff size={14} className="mr-1"/>}
+                                        {p.isActive ? 'Actif' : 'Inactif'}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">{p.name}</TableCell>
+                                <TableCell>{p.fee.toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{p.commission.toLocaleString()} Fcfa</TableCell>
+                                <TableCell>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="link" className="p-0 h-auto text-base" disabled={p.balance <= 0}>
+                                                {p.balance.toLocaleString()} Fcfa
+                                            </Button>
+                                        </DialogTrigger>
+                                        <SettlementDialog product={p} onSettle={onSettle}/>
+                                     </Dialog>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => openDialog(p)}><Edit size={16}/></Button>
+                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => onDelete(p.id)}><Trash2 size={16}/></Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                         {products.length === 0 && (
+                            <TableRow><TableCell colSpan={6} className="text-center">Aucun produit configuré.</TableCell></TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+
+                {isDialogOpen && <ProductDialog product={editingProduct} onSave={handleSave} onClose={closeDialog} />}
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function AdminProductManagement() {
-  const { billers, addBiller, removeBiller, mobileMoneyOperators, addMobileMoneyOperator, removeMobileMoneyOperator } = useProductManagement();
+  const { 
+      billers, addBiller, removeBiller, updateBiller, settleBiller,
+      mobileMoneyOperators, addMobileMoneyOperator, removeMobileMoneyOperator, updateMobileMoneyOperator, settleMobileMoneyOperator
+  } = useProductManagement();
 
-  const billerForm = useForm<NewItemFormValues>({ resolver: zodResolver(newItemSchema), defaultValues: { name: "" } });
-  const operatorForm = useForm<NewItemFormValues>({ resolver: zodResolver(newItemSchema), defaultValues: { name: "" } });
-
-  const onAddBiller = (values: NewItemFormValues) => {
-    addBiller({ name: values.name });
-    billerForm.reset();
-  };
-
-  const onAddOperator = (values: NewItemFormValues) => {
-    addMobileMoneyOperator({ name: values.name });
-    operatorForm.reset();
-  };
 
   return (
-    <div className="grid md:grid-cols-2 gap-8">
+    <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle>Gestion des Facturiers</CardTitle>
-          <CardDescription>Ajoutez ou supprimez les services de paiement de factures disponibles.</CardDescription>
+            <CardTitle>Produits et Tarification</CardTitle>
+            <CardDescription>Configurez les services, frais et commissions. Gérez les règlements avec les partenaires.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3 mb-6">
-            {billers.map(biller => (
-              <div key={biller.id} className="flex items-center justify-between p-2 bg-secondary rounded-md">
-                <span>{biller.name}</span>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => removeBiller(biller.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          <Form {...billerForm}>
-            <form onSubmit={billerForm.handleSubmit(onAddBiller)} className="flex items-start gap-2">
-              <FormField
-                control={billerForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="flex-grow">
-                    <FormControl>
-                      <Input placeholder="Nom du nouveau facturier" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Ajouter</Button>
-            </form>
-          </Form>
-        </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Gestion des Opérateurs Mobile Money</CardTitle>
-          <CardDescription>Ajoutez ou supprimez les opérateurs pour les rechargements.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 mb-6">
-            {mobileMoneyOperators.map(op => (
-              <div key={op.id} className="flex items-center justify-between p-2 bg-secondary rounded-md">
-                <span>{op.name}</span>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => removeMobileMoneyOperator(op.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-          <Form {...operatorForm}>
-            <form onSubmit={operatorForm.handleSubmit(onAddOperator)} className="flex items-start gap-2">
-              <FormField
-                control={operatorForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="flex-grow">
-                    <FormControl>
-                      <Input placeholder="Nom du nouvel opérateur" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Ajouter</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <ProductTable 
+        title="Facturiers"
+        products={billers}
+        onAdd={(data) => addBiller(data)}
+        onUpdate={(data) => updateBiller(data.id!, data)}
+        onDelete={(id) => removeBiller(id)}
+        onSettle={(id, amount) => settleBiller(id, amount)}
+      />
+       <ProductTable 
+        title="Opérateurs Mobile Money"
+        products={mobileMoneyOperators}
+        onAdd={(data) => addMobileMoneyOperator(data)}
+        onUpdate={(data) => updateMobileMoneyOperator(data.id!, data)}
+        onDelete={(id) => removeMobileMoneyOperator(id)}
+        onSettle={(id, amount) => settleMobileMoneyOperator(id, amount)}
+      />
     </div>
   );
 }
+
+    
