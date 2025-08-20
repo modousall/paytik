@@ -92,6 +92,9 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
+          // Add the credit amount to the user's main balance.
+          credit(amount);
+          
           addTransaction({
               type: 'received',
               counterparty: `Crédit BNPL`,
@@ -116,7 +119,8 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       
       if (requestToUpdate.status === 'review' && status === 'approved') {
         try {
-            // Give the user the loan amount as a transaction
+            // Give the user the loan amount as a transaction. They now "owe" this.
+            // This is simulated by adding a transaction to their history. The actual debt is tracked in the request itself.
             const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
             const userTxStr = localStorage.getItem(userTxKey);
             const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
@@ -131,21 +135,21 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             };
             localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
 
-            // Credit the merchant's balance
+            // Credit the merchant's balance for the sale
             const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
             const merchantBalanceStr = localStorage.getItem(merchantBalanceKey);
             const merchantBalance = merchantBalanceStr ? JSON.parse(merchantBalanceStr) : 0;
             const newMerchantBalance = merchantBalance + requestToUpdate.amount;
             localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
 
-            // Add transaction for merchant
+            // Add transaction for merchant to see the sale
             const merchantTxKey = `paytik_transactions_${requestToUpdate.merchantAlias}`;
             const merchantTxStr = localStorage.getItem(merchantTxKey);
             const merchantTxs = merchantTxStr ? JSON.parse(merchantTxStr) : [];
              const merchantNewTx = {
                 id: `TXN${Date.now()+1}`,
                 type: 'received',
-                counterparty: `Paiement BNPL de ${requestToUpdate.alias}`,
+                counterparty: `${requestToUpdate.alias}`,
                 reason: `Paiement pour Achat BNPL`,
                 amount: requestToUpdate.amount,
                 date: new Date().toISOString(),
