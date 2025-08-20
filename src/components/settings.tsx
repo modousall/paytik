@@ -51,6 +51,10 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
         });
         onLogout();
     }
+    
+    const handleCallSupport = () => {
+        window.location.href = "tel:+221705000505";
+    }
 
     const mainSettings = [
         { icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK" },
@@ -58,9 +62,9 @@ export default function Settings({ alias, onBack, onLogout }: SettingsProps) {
     ];
     
     const supportSettings = [
-        { icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client" },
+        { icon: <Phone className="h-6 w-6 mr-4 text-primary" />, text: "Contactez le service client", onClick: handleCallSupport },
         { icon: <FileCheck className="h-6 w-6 mr-4 text-primary" />, text: "Vérifiez votre plafond" },
-        { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Trouvez les agents à proximité" },
+        { icon: <MapPin className="h-6 w-6 mr-4 text-primary" />, text: "Marchands à proximité" },
     ];
     
     const securitySettings = [
