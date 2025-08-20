@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Check, X, Hourglass, Search } from 'lucide-react';
+import { Check, X, Hourglass, Search, Percent, Landmark } from 'lucide-react';
 import { Input } from './ui/input';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -26,7 +26,7 @@ const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' |
 
 
 export default function AdminBnplManagement() {
-    const { allRequests, updateRequestStatus } = useBnpl();
+    const { allRequests, updateRequestStatus, kpis } = useBnpl();
     const [searchTerm, setSearchTerm] = useState('');
     const { users, refreshUsers } = useUserManagement();
     const [selectedUser, setSelectedUser] = useState<ManagedUserWithDetails | null>(null);
@@ -55,78 +55,111 @@ export default function AdminBnplManagement() {
 
 
     return (
-        <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center">
-                    <div>
-                        <CardTitle>Gestion des Demandes de Crédit (BNPL)</CardTitle>
-                        <CardDescription>
-                            Examinez, approuvez ou rejetez les demandes de paiement échelonné des utilisateurs.
-                        </CardDescription>
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Gestion des Demandes de Crédit (BNPL)</CardTitle>
+                    <CardDescription>
+                        Examinez, approuvez ou rejetez les demandes de paiement échelonné des utilisateurs.
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2"><Landmark/>Montant Total Approuvé</CardTitle>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{formatCurrency(kpis.totalApprovedAmount)}</div></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2"><Hourglass/>Demandes en Attente</CardTitle>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{kpis.pendingRequests}</div></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2"><Percent/>Taux d'Approbation</CardTitle>
+                    </CardHeader>
+                    <CardContent><div className="text-2xl font-bold">{kpis.approvalRate.toFixed(1)}%</div></CardContent>
+                </Card>
+            </div>
+
+
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>Toutes les demandes</CardTitle>
+                            <CardDescription>
+                                Liste complète de toutes les demandes de crédit.
+                            </CardDescription>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Rechercher par alias..." 
+                                className="pl-8 w-48"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
-                     <div className="relative">
-                        <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Rechercher par alias..." 
-                            className="pl-8 w-48"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Alias Utilisateur</TableHead>
-                            <TableHead>Alias Marchand</TableHead>
-                            <TableHead>Montant</TableHead>
-                            <TableHead>Raison IA</TableHead>
-                            <TableHead>Statut</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredRequests.map(req => (
-                            <TableRow key={req.id}>
-                                <TableCell>{formatDate(req.requestDate)}</TableCell>
-                                <TableCell>
-                                    <Button variant="link" className="p-0 h-auto" onClick={() => handleUserSelect(req.alias)}>
-                                       {req.alias}
-                                    </Button>
-                                </TableCell>
-                                <TableCell>{req.merchantAlias}</TableCell>
-                                <TableCell>{formatCurrency(req.amount)}</TableCell>
-                                <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
-                                <TableCell>
-                                    <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
-                                        {statusConfig[req.status].icon} {statusConfig[req.status].text}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {req.status === 'review' && (
-                                        <div className="flex gap-2 justify-end">
-                                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req.id, 'approved')}>
-                                                <Check className="mr-1" size={16}/> Approuver
-                                            </Button>
-                                            <Button size="sm" variant="destructive" onClick={() => handleUpdateRequest(req.id, 'rejected')}>
-                                                <X className="mr-1" size={16}/> Rejeter
-                                            </Button>
-                                        </div>
-                                    )}
-                                </TableCell>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Alias Utilisateur</TableHead>
+                                <TableHead>Alias Marchand</TableHead>
+                                <TableHead>Montant</TableHead>
+                                <TableHead>Raison IA</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                {filteredRequests.length === 0 && (
-                    <div className="text-center p-8">
-                        <p>Aucune demande de crédit à afficher.</p>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredRequests.map(req => (
+                                <TableRow key={req.id}>
+                                    <TableCell>{formatDate(req.requestDate)}</TableCell>
+                                    <TableCell>
+                                        <Button variant="link" className="p-0 h-auto" onClick={() => handleUserSelect(req.alias)}>
+                                        {req.alias}
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell>{req.merchantAlias}</TableCell>
+                                    <TableCell>{formatCurrency(req.amount)}</TableCell>
+                                    <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
+                                            {statusConfig[req.status].icon} {statusConfig[req.status].text}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {req.status === 'review' && (
+                                            <div className="flex gap-2 justify-end">
+                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req.id, 'approved')}>
+                                                    <Check className="mr-1" size={16}/> Approuver
+                                                </Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleUpdateRequest(req.id, 'rejected')}>
+                                                    <X className="mr-1" size={16}/> Rejeter
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    {filteredRequests.length === 0 && (
+                        <div className="text-center p-8">
+                            <p>Aucune demande de crédit à afficher.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 }

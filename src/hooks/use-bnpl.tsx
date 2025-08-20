@@ -13,6 +13,11 @@ type BnplContextType = {
   allRequests: BnplRequest[];
   myRequests: BnplRequest[];
   currentCreditBalance: number;
+  kpis: {
+    totalApprovedAmount: number;
+    pendingRequests: number;
+    approvalRate: number;
+  };
   submitRequest: (merchantAlias: string, amount: number) => Promise<BnplAssessmentOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
   repayCredit: (amount: number) => void;
@@ -65,6 +70,25 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         .filter(req => req.status === 'approved')
         .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
   }, [myRequests]);
+  
+  const kpis = useMemo(() => {
+    const totalApprovedAmount = allRequests
+      .filter(r => r.status === 'approved')
+      .reduce((sum, r) => sum + r.amount, 0);
+
+    const pendingRequests = allRequests.filter(r => r.status === 'review').length;
+
+    const decidedRequests = allRequests.filter(r => r.status === 'approved' || r.status === 'rejected').length;
+    const approvedRequestsCount = allRequests.filter(r => r.status === 'approved').length;
+    const approvalRate = decidedRequests > 0 ? (approvedRequestsCount / decidedRequests) * 100 : 0;
+    
+    return {
+      totalApprovedAmount,
+      pendingRequests,
+      approvalRate
+    };
+
+  }, [allRequests]);
 
 
   const submitRequest = async (merchantAlias: string, amount: number): Promise<BnplAssessmentOutput> => {
@@ -114,12 +138,17 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         console.error("BNPL request not found");
         return;
       }
+      
+      const wasInReview = requestToUpdate.status === 'review';
 
       setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
       
-      if (requestToUpdate.status === 'review' && status === 'approved') {
+      if (wasInReview && status === 'approved') {
         try {
-            // Give the user the loan amount as a transaction. They now "owe" this.
+            // This is a simulation since we can't reliably update other users' localStorage.
+            // In a real app, this logic would be handled by a backend service.
+            
+            // 1. Give the user the loan amount as a transaction. They now "owe" this.
             // This is simulated by adding a transaction to their history. The actual debt is tracked in the request itself.
             const userTxKey = `paytik_transactions_${requestToUpdate.alias}`;
             const userTxStr = localStorage.getItem(userTxKey);
@@ -135,14 +164,14 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             };
             localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
 
-            // Credit the merchant's balance for the sale
+            // 2. Credit the merchant's balance for the sale
             const merchantBalanceKey = `paytik_balance_${requestToUpdate.merchantAlias}`;
             const merchantBalanceStr = localStorage.getItem(merchantBalanceKey);
             const merchantBalance = merchantBalanceStr ? JSON.parse(merchantBalanceStr) : 0;
             const newMerchantBalance = merchantBalance + requestToUpdate.amount;
             localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
 
-            // Add transaction for merchant to see the sale
+            // 3. Add transaction for merchant to see the sale
             const merchantTxKey = `paytik_transactions_${requestToUpdate.merchantAlias}`;
             const merchantTxStr = localStorage.getItem(merchantTxKey);
             const merchantTxs = merchantTxStr ? JSON.parse(merchantTxStr) : [];
@@ -211,7 +240,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
     toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${repaymentAmount.toLocaleString()} Fcfa.` });
   }
 
-  const value = { allRequests, myRequests, submitRequest, updateRequestStatus, currentCreditBalance, repayCredit };
+  const value = { allRequests, myRequests, submitRequest, updateRequestStatus, currentCreditBalance, repayCredit, kpis };
 
   return (
     <BnplContext.Provider value={value}>
