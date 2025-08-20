@@ -165,7 +165,7 @@ export const useUserManagement = () => {
     localStorage.setItem(`paytik_vaults_${payload.alias}`, '[]');
     localStorage.setItem(`paytik_tontines_${payload.alias}`, '[]');
     
-    refreshUsers();
+    loadUsers();
     return { success: true, message: "Utilisateur créé avec succès." };
   };
 
