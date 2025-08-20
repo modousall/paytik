@@ -8,6 +8,7 @@ import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } f
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminProductManagement from "./admin-product-management";
+import AdminRoleManagement from "./admin-role-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
@@ -34,7 +35,7 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
             case 'products':
                 return <AdminProductManagement />;
             case 'roles':
-                 return <div className="text-center p-8 bg-card rounded-lg"><p>Cette fonctionnalité est en cours de développement.</p></div>;
+                 return <AdminRoleManagement />;
             default:
                 return (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
