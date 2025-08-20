@@ -83,7 +83,7 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
     
     toast({
       title: "Numéro vérifié!",
-      description: `Votre alias sera "${phoneValue}".`,
+      description: `Votre alias sera "${phoneValue}". Prochaine étape : sécurisez votre compte avec un code PIN.`,
     });
     onAliasCreated(phoneValue);
   };
@@ -91,7 +91,7 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
   const handleSuggestionClick = (suggestion: string) => {
     toast({
         title: "Alias choisi !",
-        description: `Vous avez choisi "${suggestion}" comme alias.`,
+        description: `Vous avez choisi "${suggestion}" comme alias. Prochaine étape : sécurisez votre compte avec un code PIN.`,
     });
     onAliasCreated(suggestion);
   }

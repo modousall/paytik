@@ -51,7 +51,7 @@ export default function PinCreation({ onPinCreated }: PinCreationProps) {
                         <KeyRound className="h-8 w-8" />
                     </div>
                     <CardTitle>Sécurisez votre compte</CardTitle>
-                    <CardDescription>Créez un code PIN à 4 chiffres pour protéger votre compte.</CardDescription>
+                    <CardDescription>Créez un code PIN à 4 chiffres. Vous l'utiliserez pour vous connecter.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
