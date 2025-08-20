@@ -58,7 +58,7 @@ export default function Tontine({ onBack }: TontineProps) {
             <ArrowLeft />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-primary">Mes Tontines / Tirelires</h2>
+            <h2 className="text-2xl font-bold text-primary">Mes Tontines</h2>
             <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
           </div>
         </div>
