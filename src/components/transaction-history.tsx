@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -70,6 +70,12 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
                     <AvatarFallback className="bg-green-100 text-green-600"><ArrowDown /></AvatarFallback>
                 </Avatar>
             );
+        case 'card_recharge':
+             return (
+                <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-blue-100 text-blue-600"><CreditCard /></AvatarFallback>
+                </Avatar>
+            );
         default:
              return (
                 <Avatar className="h-10 w-10">
@@ -105,7 +111,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             <div className="space-y-4 py-4 border-y">
                 <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Montant</span>
-                    <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.type === 'sent' ? '-' : '+'}
                         {transaction.amount.toLocaleString()} Fcfa
                     </span>
@@ -216,6 +222,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                     <DropdownMenuRadioItem value="all">Toutes</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="sent">Envoyées</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="received">Reçues</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="card_recharge">Recharges Carte</DropdownMenuRadioItem>
                                     <DropdownMenuRadioItem value="tontine">Tontine</DropdownMenuRadioItem>
                                 </DropdownMenuRadioGroup>
                             </DropdownMenuContent>
@@ -238,7 +245,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' ? 'text-green-600' : 'text-red-600'}`}>
+                                            <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
                                                 {tx.type === 'sent' ? '-' : '+'}
                                                 {tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
                                             </div>

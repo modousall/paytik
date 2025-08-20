@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export type Transaction = {
   id: string;
-  type: "sent" | "received" | "tontine";
+  type: "sent" | "received" | "tontine" | "card_recharge";
   counterparty: string;
   reason: string;
   date: string;
