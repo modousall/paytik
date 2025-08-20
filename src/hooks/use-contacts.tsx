@@ -35,21 +35,20 @@ export const ContactsProvider = ({ children, alias }: ContactsProviderProps) => 
   const storageKey = `paytik_contacts_${alias}`;
 
   useEffect(() => {
+    if (!alias) return;
+
     try {
       const storedContacts = localStorage.getItem(storageKey);
       if (storedContacts) {
         setContacts(JSON.parse(storedContacts));
       } else {
-        // Set initial contacts only for a specific demo user if needed, or start empty
-        if (alias === 'demouser') { // Example logic
-            setContacts(initialContacts);
-        } else {
-            setContacts([]);
-        }
+        // If no contacts are stored for this alias, set the initial default ones.
+        // A truly new user would start empty, but for demo purposes this is better.
+        setContacts(initialContacts);
       }
     } catch (error) {
         console.error("Failed to parse contacts from localStorage", error);
-        setContacts([]);
+        setContacts(initialContacts); // Fallback to initial contacts on error
     }
     setIsInitialized(true);
   }, [storageKey, alias]);
