@@ -29,7 +29,7 @@ type UserInfo = {
   role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support' | 'agent';
 };
 
-type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'merchant_dashboard';
+type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'merchant_dashboard' | 'admin_dashboard';
 
 // Function to ensure the superadmin exists in localStorage
 const ensureSuperAdminExists = () => {
@@ -45,8 +45,35 @@ const ensureSuperAdminExists = () => {
             featureFlags: defaultFlags,
         };
         localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
+        // Also set a default balance for the superadmin
+        localStorage.setItem(`paytik_balance_${adminAlias}`, '1000000');
     }
 };
+
+// A wrapper for all providers needed for a logged-in user experience
+const UserSessionProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
+    return (
+        <ProductProvider>
+            <FeatureFlagProvider alias={alias}>
+                <AvatarProvider alias={alias}>
+                    <BalanceProvider alias={alias}>
+                    <TransactionsProvider alias={alias}>
+                        <ContactsProvider alias={alias}>
+                        <VirtualCardProvider alias={alias}>
+                            <VaultsProvider alias={alias}>
+                            <TontineProvider alias={alias}>
+                                {children}
+                            </TontineProvider>
+                            </VaultsProvider>
+                        </VirtualCardProvider>
+                        </ContactsProvider>
+                    </TransactionsProvider>
+                    </BalanceProvider>
+                </AvatarProvider>
+            </FeatureFlagProvider>
+      </ProductProvider>
+    )
+}
 
 export default function AuthenticationGate() {
   const [step, setStep] = useState<AppStep>('demo');
@@ -83,8 +110,11 @@ export default function AuthenticationGate() {
             
             if (userRole === 'merchant') {
                 setStep('merchant_dashboard');
+            } else if (['admin', 'superadmin', 'support'].includes(userRole)) {
+                // For privileged users, go to the main dashboard first, which contains the backoffice link.
+                setStep('dashboard');
             } else {
-                setStep('dashboard'); // All other roles go to the main dashboard first
+                setStep('dashboard'); 
             }
             
         } else {
@@ -224,6 +254,17 @@ export default function AuthenticationGate() {
   }
   
   const renderContent = () => {
+    if (alias && userInfo) {
+        // If a user is logged in, wrap the appropriate dashboard with all necessary providers
+        return (
+            <UserSessionProviders alias={alias}>
+                {step === 'dashboard' && <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />}
+                {step === 'merchant_dashboard' && <MerchantDashboard userInfo={userInfo} alias={alias} onLogout={handleLogout} />}
+            </UserSessionProviders>
+        )
+    }
+
+    // If no user is logged in, show the public onboarding/login flow
     switch (step) {
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
@@ -237,50 +278,9 @@ export default function AuthenticationGate() {
         return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo as {name: string, email: string}} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
-       case 'merchant_dashboard':
-         if(alias && userInfo) {
-            return (
-                <ProductProvider>
-                    <AvatarProvider alias={alias}>
-                        <BalanceProvider alias={alias}>
-                            <TransactionsProvider alias={alias}>
-                                <MerchantDashboard userInfo={userInfo} alias={alias} onLogout={handleLogout} />
-                            </TransactionsProvider>
-                        </BalanceProvider>
-                    </AvatarProvider>
-                </ProductProvider>
-            );
-        }
-        setStep('demo'); // Fallback
-        return null;
-      case 'dashboard':
-        if(alias && userInfo) {
-            return (
-              <ProductProvider>
-                <FeatureFlagProvider alias={alias}>
-                    <AvatarProvider alias={alias}>
-                      <BalanceProvider alias={alias}>
-                        <TransactionsProvider alias={alias}>
-                          <ContactsProvider alias={alias}>
-                            <VirtualCardProvider alias={alias}>
-                              <VaultsProvider alias={alias}>
-                                <TontineProvider alias={alias}>
-                                    <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
-                                </TontineProvider>
-                              </VaultsProvider>
-                            </VirtualCardProvider>
-                          </ContactsProvider>
-                        </TransactionsProvider>
-                      </BalanceProvider>
-                    </AvatarProvider>
-                </FeatureFlagProvider>
-              </ProductProvider>
-            )
-        }
-        // Fallback if state is dashboard but data is missing
-        setStep('demo');
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
       default:
+         // Fallback for any state inconsistency
+        setStep('demo');
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
   };

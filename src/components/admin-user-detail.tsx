@@ -100,7 +100,7 @@ const UserServiceProvider = ({ alias, children }: { alias: string, children: Rea
     )
 };
 
-export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWithDetails, onBack: () => void }) {
+export default function AdminUserDetail({ user, onBack, onUpdate }: { user: ManagedUserWithDetails, onBack: () => void, onUpdate: () => void }) {
     const { toggleUserSuspension } = useUserManagement();
     const { toast } = useToast();
     const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
@@ -123,108 +123,108 @@ export default function AdminUserDetail({ user, onBack }: { user: ManagedUserWit
             title: `Utilisateur ${!user.isSuspended ? 'suspendu' : 'réactivé'}`,
             description: `${user.name} a été ${!user.isSuspended ? 'suspendu' : 'réactivé'}.`
         });
-        onBack(); // Go back to the list to see the updated status
+        onUpdate(); 
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button onClick={onBack} variant="outline" size="icon">
-                    <ArrowLeft />
-                </Button>
-                <div>
-                    <h2 className="text-2xl font-bold">Détail de l'utilisateur</h2>
-                    <p className="text-muted-foreground">Vue d'ensemble du compte de {user.name}</p>
+         <UserServiceProvider alias={user.alias}>
+            <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <Button onClick={onBack} variant="outline" size="icon">
+                        <ArrowLeft />
+                    </Button>
+                    <div>
+                        <h2 className="text-2xl font-bold">Détail de l'utilisateur</h2>
+                        <p className="text-muted-foreground">Vue d'ensemble du compte de {user.name}</p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center gap-4">
-                             <Avatar className="h-16 w-16">
-                                <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <CardTitle className="text-xl">{user.name}</CardTitle>
-                                <CardDescription>{user.alias}</CardDescription>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm">
-                           <div className="flex justify-between">
-                                <span className="text-muted-foreground">Email</span>
-                                <span>{user.email}</span>
-                           </div>
-                           <div className="flex justify-between">
-                                <span className="text-muted-foreground">Rôle</span>
-                                <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role}</Badge>
-                           </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1 space-y-6">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
+                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-xl">{user.name}</CardTitle>
+                                    <CardDescription>{user.alias}</CardDescription>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Statut</span>
-                                <Badge variant={user.isSuspended ? "destructive" : "default"} className={!user.isSuspended ? "bg-green-100 text-green-800" : ""}>
-                                    {user.isSuspended ? "Suspendu" : "Actif"}
-                                </Badge>
-                           </div>
-                           <div className="flex justify-between">
-                                <span className="text-muted-foreground">Solde Principal</span>
-                                <span className="font-semibold">{user.balance.toLocaleString()} Fcfa</span>
-                           </div>
-                        </CardContent>
-                    </Card>
-
-                    {user.role === 'merchant' && (
-                        <Card>
-                             <CardHeader><CardTitle>Statistiques Marchand (Jour)</CardTitle></CardHeader>
-                             <CardContent className="space-y-4">
-                                 <div className="flex items-center gap-4">
-                                     <div className="p-3 bg-green-100 rounded-lg"><TrendingUp className="h-6 w-6 text-green-700"/></div>
-                                     <div>
-                                         <p className="text-muted-foreground text-sm">Chiffre d'affaires</p>
-                                         <p className="font-bold text-lg">{todaysRevenue.toLocaleString()} Fcfa</p>
-                                     </div>
-                                 </div>
-                                  <div className="flex items-center gap-4">
-                                     <div className="p-3 bg-blue-100 rounded-lg"><Briefcase className="h-6 w-6 text-blue-700"/></div>
-                                     <div>
-                                         <p className="text-muted-foreground text-sm">Transactions</p>
-                                         <p className="font-bold text-lg">{todaysTransactionsCount}</p>
-                                     </div>
-                                 </div>
-                             </CardContent>
+                                    <span className="text-muted-foreground">Email</span>
+                                    <span>{user.email}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Rôle</span>
+                                    <Badge variant={user.role === 'superadmin' ? 'destructive' : 'secondary'}>{user.role}</Badge>
+                            </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Statut</span>
+                                    <Badge variant={user.isSuspended ? "destructive" : "default"} className={!user.isSuspended ? "bg-green-100 text-green-800" : ""}>
+                                        {user.isSuspended ? "Suspendu" : "Actif"}
+                                    </Badge>
+                            </div>
+                            <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Solde Principal</span>
+                                    <span className="font-semibold">{user.balance.toLocaleString()} Fcfa</span>
+                            </div>
+                            </CardContent>
                         </Card>
-                    )}
 
-                    <Card>
-                        <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-2">
-                             <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline" disabled={user.role === 'superadmin'}>
-                                        <KeyRound className="mr-2"/> Réinitialiser PIN
-                                    </Button>
-                                </DialogTrigger>
-                                {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)} />}
-                            </Dialog>
-                            <Button variant="destructive" onClick={handleToggleSuspension} disabled={user.role === 'superadmin'}>
-                                {user.isSuspended ? <UserCheck className="mr-2"/> : <UserX className="mr-2"/>}
-                                {user.isSuspended ? 'Réactiver' : 'Suspendre'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
+                        {user.role === 'merchant' && (
+                            <Card>
+                                <CardHeader><CardTitle>Statistiques Marchand (Jour)</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-green-100 rounded-lg"><TrendingUp className="h-6 w-6 text-green-700"/></div>
+                                        <div>
+                                            <p className="text-muted-foreground text-sm">Chiffre d'affaires</p>
+                                            <p className="font-bold text-lg">{todaysRevenue.toLocaleString()} Fcfa</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-blue-100 rounded-lg"><Briefcase className="h-6 w-6 text-blue-700"/></div>
+                                        <div>
+                                            <p className="text-muted-foreground text-sm">Transactions</p>
+                                            <p className="font-bold text-lg">{todaysTransactionsCount}</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
-                <div className="lg:col-span-2 space-y-6">
-                    <UserServiceProvider alias={user.alias}>
                         <Card>
-                             <CardHeader><CardTitle>Historique des transactions de l'utilisateur</CardTitle></CardHeader>
-                             <CardContent>
-                                <TransactionHistory showAll={true} onShowAll={() => {}} />
-                             </CardContent>
+                            <CardHeader><CardTitle>Actions de gestion</CardTitle></CardHeader>
+                            <CardContent className="grid grid-cols-2 gap-2">
+                                <Dialog open={isPinDialogOpen} onOpenChange={setIsPinDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" disabled={user.role === 'superadmin'}>
+                                            <KeyRound className="mr-2"/> Réinitialiser PIN
+                                        </Button>
+                                    </DialogTrigger>
+                                    {isPinDialogOpen && <ResetPinDialog user={user} onClose={() => setIsPinDialogOpen(false)} />}
+                                </Dialog>
+                                <Button variant="destructive" onClick={handleToggleSuspension} disabled={user.role === 'superadmin'}>
+                                    {user.isSuspended ? <UserCheck className="mr-2"/> : <UserX className="mr-2"/>}
+                                    {user.isSuspended ? 'Réactiver' : 'Suspendre'}
+                                </Button>
+                            </CardContent>
                         </Card>
-                    </UserServiceProvider>
+                    </div>
+
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card>
+                                <CardHeader><CardTitle>Historique des transactions de l'utilisateur</CardTitle></CardHeader>
+                                <CardContent>
+                                    <TransactionHistory showAll={true} onShowAll={() => {}} />
+                                </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
-        </div>
+        </UserServiceProvider>
     )
 }
