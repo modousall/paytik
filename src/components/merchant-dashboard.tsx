@@ -58,7 +58,7 @@ export default function MerchantDashboard({ onLogout, userInfo }: MerchantDashbo
             <div className="container mx-auto p-4 flex justify-between items-center">
                  <h1 className="text-xl font-bold text-primary">Backoffice Marchand</h1>
                  <Button variant="ghost" onClick={onLogout}>
-                    <LogOut className="mr-2" /> Déconnexion
+                    <ArrowLeft className="mr-2" /> Retour à l'application
                 </Button>
             </div>
         </header>

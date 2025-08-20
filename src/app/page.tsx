@@ -26,6 +26,7 @@ import { ProductProvider } from '@/hooks/use-product-management';
 type UserInfo = {
   name: string;
   email: string;
+  role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
 };
 
 type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creation' | 'dashboard' | 'admin' | 'merchant_dashboard';
@@ -75,17 +76,11 @@ export default function AuthenticationGate() {
                 setStep('demo');
                 return;
             }
-            setUserInfo({ name: userData.name, email: userData.email });
+            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
             setAlias(lastAlias);
+            // All roles now go to the dashboard first
+            setStep('dashboard');
             
-            // Redirect based on role
-            if(userData.role === 'superadmin' || userData.role === 'admin' || userData.role === 'support') {
-                setStep('admin');
-            } else if (userData.role === 'merchant') {
-                setStep('merchant_dashboard');
-            } else {
-                setStep('dashboard');
-            }
         } else {
              // Data mismatch, clear and go to demo
              localStorage.removeItem('paytik_last_alias');
@@ -127,6 +122,7 @@ export default function AuthenticationGate() {
             localStorage.setItem('paytik_last_alias', aliasForPin);
             localStorage.removeItem('paytik_active_alias_creation');
             setAlias(aliasForPin);
+            setUserInfo(prev => prev ? { ...prev, role: userData.role || 'user' } : null);
             setStep('dashboard');
         }
     } else {
@@ -152,12 +148,12 @@ export default function AuthenticationGate() {
   };
 
   const handleAdminStart = () => {
-    // This is now handled by the login form checking roles
     setStep('login');
   }
   
-  const handleKycComplete = (info: UserInfo) => {
-    setUserInfo(info);
+  const handleKycComplete = (info: Omit<UserInfo, 'role'>) => {
+    // KYC form only collects name and email, role is defaulted to 'user'
+    setUserInfo({ ...info, role: 'user' });
     setStep('alias');
   };
   
@@ -189,21 +185,16 @@ export default function AuthenticationGate() {
 
         if (userData.pincode === pin) {
             localStorage.setItem('paytik_last_alias', loginAlias);
-            setUserInfo({ name: userData.name, email: userData.email });
+            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
             setAlias(loginAlias);
             toast({
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
             });
             
-            // Redirect based on role
-            if(userData.role === 'superadmin' || userData.role === 'admin' || userData.role === 'support') {
-                setStep('admin');
-            } else if (userData.role === 'merchant') {
-                setStep('merchant_dashboard');
-            } else {
-                setStep('dashboard');
-            }
+            // ALL roles now go to the dashboard first.
+            // The dashboard will then decide whether to show a button to a backoffice.
+            setStep('dashboard');
 
         } else {
              toast({
@@ -220,8 +211,10 @@ export default function AuthenticationGate() {
       });
     }
   }
-
+  
   const renderContent = () => {
+    // This function can be simplified as most paths lead to the dashboard now
+    // But we keep it for clarity of the onboarding flow.
     switch (step) {
       case 'demo':
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
@@ -232,13 +225,16 @@ export default function AuthenticationGate() {
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'alias':
-        return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo} />;
+        // The user info from KYC doesn't have a role, so we cast it.
+        return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo as {name: string, email: string}} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'admin':
+         // This case is no longer directly reachable, flow goes through dashboard
         return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
        case 'merchant_dashboard':
-        if(alias && userInfo) {
+        // This case is no longer directly reachable, flow goes through dashboard
+         if(alias && userInfo) {
             return (
               <FeatureFlagProvider>
                 <ProductProvider>

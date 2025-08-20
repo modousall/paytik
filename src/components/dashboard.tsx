@@ -14,10 +14,15 @@ import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
 import PICASH from './picash';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
+import { Button } from './ui/button';
+import { LayoutDashboard } from 'lucide-react';
+import AdminDashboard from './admin-dashboard';
+import MerchantDashboard from './merchant-dashboard';
 
 type UserInfo = {
     name: string;
     email: string;
+    role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
 };
 
 type DashboardProps = {
@@ -26,7 +31,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type View = 'dashboard' | 'profile';
+type View = 'dashboard' | 'profile' | 'backoffice';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
 type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
@@ -60,10 +65,23 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             setActiveAction('none');
         }
     };
+
+    const renderBackoffice = () => {
+        if(userInfo.role === 'admin' || userInfo.role === 'superadmin' || userInfo.role === 'support') {
+            return <AdminDashboard onExit={() => onNavigateTo('dashboard')} />
+        }
+        if(userInfo.role === 'merchant') {
+            return <MerchantDashboard userInfo={userInfo} onLogout={() => onNavigateTo('dashboard')} />
+        }
+        return null;
+    }
     
     const renderContent = () => {
         if(view === 'profile'){
             return <Profile userInfo={userInfo} alias={alias} onLogout={onLogout} onBack={() => onNavigateTo('dashboard')} />;
+        }
+        if(view === 'backoffice') {
+            return renderBackoffice();
         }
 
         if (showAllTransactions) {
@@ -91,9 +109,20 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             return <PICASH onBack={() => setActiveAction('none')} />
         }
         
+        const isPrivilegedUser = userInfo.role !== 'user';
+
         return (
             <div className="space-y-8">
                 <DashboardHeader userInfo={userInfo} alias={alias} onProfileClick={() => onNavigateTo('profile')} />
+                
+                {isPrivilegedUser && (
+                    <div className="text-center">
+                         <Button onClick={() => onNavigateTo('backoffice')}>
+                            <LayoutDashboard className="mr-2"/> Accéder au Backoffice
+                         </Button>
+                    </div>
+                )}
+                
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
