@@ -103,7 +103,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
-            <div className='space-y-3'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <FeatureCard 
                     {...menuItems[0]}
                     onClick={() => setState('send')}
@@ -115,8 +115,8 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                 
                 <Dialog>
                     <DialogTrigger asChild>
-                        <div>
-                            <FeatureCard 
+                        <div className="w-full">
+                             <FeatureCard 
                                 {...menuItems[2]}
                                 onClick={() => {}} // onClick is handled by DialogTrigger
                             />
