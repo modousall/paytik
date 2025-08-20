@@ -70,14 +70,28 @@ const initialAds: Ad[] = [
     }
 ]
 
+const DISMISSED_ADS_STORAGE_KEY = 'paytik_dismissed_ads';
+
 export default function AdBanner() {
-  const [ads, setAds] = React.useState(initialAds);
+  const [ads, setAds] = React.useState<Ad[]>([]);
   const plugin = React.useRef(
     Autoplay({ delay: 5000, stopOnInteraction: true })
   )
 
+  React.useEffect(() => {
+    const dismissedAds = JSON.parse(localStorage.getItem(DISMISSED_ADS_STORAGE_KEY) || '[]');
+    const activeAds = initialAds.filter(ad => !dismissedAds.includes(ad.id));
+    setAds(activeAds);
+  }, []);
+
   const handleDismiss = (id: number, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent carousel interaction
+    
+    // Update local storage
+    const dismissedAds = JSON.parse(localStorage.getItem(DISMISSED_ADS_STORAGE_KEY) || '[]');
+    localStorage.setItem(DISMISSED_ADS_STORAGE_KEY, JSON.stringify([...dismissedAds, id]));
+    
+    // Update state to remove ad from UI
     setAds(currentAds => currentAds.filter(ad => ad.id !== id));
   }
 
@@ -121,6 +135,7 @@ export default function AdBanner() {
                                 fill
                                 className="object-cover"
                                 data-ai-hint={ad.imageHint}
+                                unoptimized
                             />
                         ) : (
                             <video
