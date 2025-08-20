@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark, PiggyBank, Wallet } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -33,6 +33,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import TransactionReceipt from './transaction-receipt';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type TransactionHistoryProps = {
   showAll: boolean;
@@ -113,6 +116,8 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
 const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction }) => {
     const { reverseTransaction } = useTransactions();
     const { toast } = useToast();
+    const receiptRef = useRef<HTMLDivElement>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const handleReverse = () => {
         reverseTransaction(transaction.id);
@@ -122,10 +127,42 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
         });
     }
 
+    const handleDownload = async () => {
+        setIsDownloading(true);
+        if (receiptRef.current) {
+            try {
+                const canvas = await html2canvas(receiptRef.current, { scale: 3 });
+                const imgData = canvas.toDataURL('image/png');
+                
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`recu-transaction-${transaction.id}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                toast({ title: "Erreur de téléchargement", description: "Impossible de générer le reçu PDF.", variant: "destructive" });
+            } finally {
+                setIsDownloading(false);
+            }
+        }
+    };
+
+
     const canBeReversed = transaction.type !== 'tontine' && transaction.status !== 'Retourné' && transaction.type !== 'versement';
 
     return (
         <DialogContent>
+             {/* Hidden receipt for rendering */}
+            <div style={{ position: 'fixed', left: '-9999px', top: '-9999px' }}>
+                <div ref={receiptRef} style={{ width: '400px', padding: '20px', background: 'white' }}>
+                    <TransactionReceipt transaction={transaction} />
+                </div>
+            </div>
+
             <DialogHeader>
                 <DialogTitle>Détails de la transaction</DialogTitle>
                 <DialogDescription>
@@ -161,7 +198,10 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                 </div>
             </div>
             <DialogFooter className="sm:justify-between gap-2 flex-wrap">
-                 <Button variant="ghost"><Download className="mr-2" /> Télécharger le reçu</Button>
+                 <Button variant="ghost" onClick={handleDownload} disabled={isDownloading}>
+                    <Download className={`mr-2 ${isDownloading ? 'animate-pulse' : ''}`} /> 
+                    {isDownloading ? "Génération..." : "Télécharger le reçu"}
+                </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="outline" disabled={!canBeReversed}>
