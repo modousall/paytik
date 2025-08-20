@@ -14,6 +14,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { useBalance } from '@/hooks/use-balance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useProductManagement } from '@/hooks/use-product-management';
 
 const rechargeFormSchema = z.object({
   operator: z.string().min(1, { message: "L'opérateur est requis." }),
@@ -22,13 +23,6 @@ const rechargeFormSchema = z.object({
 });
 
 type RechargeFormValues = z.infer<typeof rechargeFormSchema>;
-
-const operators = [
-    { id: "Wave", name: "Wave" },
-    { id: "Orange Money", name: "Orange Money" },
-    { id: "Free Money", name: "Free Money" },
-    { id: "Wizall", name: "Wizall Money" },
-];
 
 type MobileMoneyRechargeFormProps = {
     onRechargeSuccess: () => void;
@@ -39,6 +33,7 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
   const { toast } = useToast();
   const { addTransaction } = useTransactions();
   const { credit } = useBalance();
+  const { mobileMoneyOperators } = useProductManagement();
 
   const form = useForm<RechargeFormValues>({
     resolver: zodResolver(rechargeFormSchema),
@@ -98,8 +93,8 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {operators.map(b => (
-                                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                {mobileMoneyOperators.map(op => (
+                                    <SelectItem key={op.id} value={op.name}>{op.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -144,4 +139,3 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
     </Card>
   );
 }
-

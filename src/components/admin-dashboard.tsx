@@ -8,6 +8,7 @@ import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } f
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminFeatureControl from "./admin-feature-control";
+import AdminProductManagement from "./admin-product-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
@@ -34,8 +35,9 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminTransactionAnalysis />;
             case 'services':
                  return <AdminFeatureControl />;
-            case 'roles':
             case 'products':
+                return <AdminProductManagement />;
+            case 'roles':
                  return <div className="text-center p-8 bg-card rounded-lg"><p>Cette fonctionnalité est en cours de développement.</p></div>;
             default:
                 return (

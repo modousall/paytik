@@ -10,3 +10,4 @@ export * from './use-vaults';
 export * from './use-virtual-card';
 export * from './use-user-management';
 export * from './use-feature-flags';
+export * from './use-product-management';

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useProductManagement } from '@/hooks/use-product-management';
 
 // Define Zod schemas and types here
 export const BillPaymentAssistantInputSchema = z.object({
@@ -48,15 +49,6 @@ const paymentFormSchema = z.object({
 
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
-const billers = [
-    { id: "SENELEC", name: "SENELEC - Électricité" },
-    { id: "SDE", name: "SDE - Eau" },
-    { id: "Orange", name: "Orange - Internet / Mobile" },
-    { id: "Free", name: "Free - Internet / Mobile" },
-    { id: "Canal+", name: "Canal+ - TV" },
-];
-
-
 type BillPaymentFormProps = {
     onBack: () => void;
 }
@@ -68,6 +60,7 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const { addTransaction } = useTransactions();
+  const { billers } = useProductManagement();
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
@@ -150,7 +143,7 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
                     </FormControl>
                     <SelectContent>
                         {billers.map(b => (
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                            <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>

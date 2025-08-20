@@ -20,6 +20,7 @@ import { TransactionsProvider } from '@/hooks/use-transactions';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
 import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
+import { ProductProvider } from '@/hooks/use-product-management';
 
 type UserInfo = {
   name: string;
@@ -221,26 +222,28 @@ export default function AuthenticationGate() {
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
       case 'admin':
-        return <AdminDashboard onExit={handleLogout} />;
+        return <FeatureFlagProvider><ProductProvider><AdminDashboard onExit={handleLogout} /></ProductProvider></FeatureFlagProvider>;
       case 'dashboard':
         if(alias && userInfo) {
             return (
               <FeatureFlagProvider>
-                <AvatarProvider alias={alias}>
-                  <BalanceProvider alias={alias}>
-                    <TransactionsProvider alias={alias}>
-                      <ContactsProvider alias={alias}>
-                        <VirtualCardProvider alias={alias}>
-                          <VaultsProvider alias={alias}>
-                            <TontineProvider alias={alias}>
-                                <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
-                            </TontineProvider>
-                          </VaultsProvider>
-                        </VirtualCardProvider>
-                      </ContactsProvider>
-                    </TransactionsProvider>
-                  </BalanceProvider>
-                </AvatarProvider>
+                <ProductProvider>
+                  <AvatarProvider alias={alias}>
+                    <BalanceProvider alias={alias}>
+                      <TransactionsProvider alias={alias}>
+                        <ContactsProvider alias={alias}>
+                          <VirtualCardProvider alias={alias}>
+                            <VaultsProvider alias={alias}>
+                              <TontineProvider alias={alias}>
+                                  <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+                              </TontineProvider>
+                            </VaultsProvider>
+                          </VirtualCardProvider>
+                        </ContactsProvider>
+                      </TransactionsProvider>
+                    </BalanceProvider>
+                  </AvatarProvider>
+                </ProductProvider>
               </FeatureFlagProvider>
             )
         }
