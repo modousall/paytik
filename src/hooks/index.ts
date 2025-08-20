@@ -8,3 +8,4 @@ export * from './use-tontine';
 export * from './use-transactions';
 export * from './use-vaults';
 export * from './use-virtual-card';
+export * from './use-user-management';
