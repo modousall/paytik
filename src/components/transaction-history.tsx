@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -52,9 +53,7 @@ const formatDate = (dateString: string) => {
 
 const TransactionIcon = ({ tx }: { tx: Transaction }) => {
     const initial = tx.counterparty.charAt(0).toUpperCase();
-    const avatarUrl = `https://i.pravatar.cc/150?u=${tx.counterparty}${tx.id}`;
-
-    // Specific icons for internal service transfers
+    
     if (tx.reason.includes('Approvisionnement Carte') || tx.reason.includes('Retrait depuis Carte')) {
         return (
             <Avatar className="h-10 w-10">
@@ -81,7 +80,6 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
         case 'sent':
             return (
                 <Avatar className="h-10 w-10">
-                     <AvatarImage src={avatarUrl} alt={tx.counterparty} data-ai-hint="person face" />
                     <AvatarFallback className="bg-red-100 text-red-600"><ArrowUp /></AvatarFallback>
                 </Avatar>
             );
@@ -94,7 +92,6 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
         case 'received':
             return (
                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={avatarUrl} alt={tx.counterparty} data-ai-hint="person face" />
                     <AvatarFallback className="bg-green-100 text-green-600"><ArrowDown /></AvatarFallback>
                 </Avatar>
             );
@@ -107,7 +104,6 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
         default:
              return (
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${tx.counterparty}`} alt={tx.counterparty} data-ai-hint="company logo" />
                     <AvatarFallback className="bg-muted text-muted-foreground">{initial}</AvatarFallback>
                 </Avatar>
             );
