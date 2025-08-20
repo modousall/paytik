@@ -130,7 +130,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     alias={alias}
                     userInfo={userInfo}
                 />
-                <BalanceCards onNavigate={handleCardNavigation} />
+                <BalanceCards onNavigate={handleCardNavigation} userInfo={userInfo} />
                 <TransactionHistory showAll={false} onShowAll={handleShowAllTransactions} />
             </div>
         )

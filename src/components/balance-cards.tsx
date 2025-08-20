@@ -9,16 +9,23 @@ import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
+type UserInfo = {
+    role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
+};
+
 type BalanceCardsProps = {
     onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => void;
+    userInfo: UserInfo;
 }
 
-export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
+export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
     const { tontines } = useTontine();
     const { flags } = useFeatureFlags();
+
+    const isMerchant = userInfo.role === 'merchant';
 
     const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
     const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
@@ -26,7 +33,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
     const allCards = [
         {
             id: 'transactions' as const,
-            title: 'Solde Principal',
+            title: isMerchant ? 'Solde Marchand' : 'Solde Principal',
             balance: balance,
             icon: <Wallet className="h-5 w-5 text-white" />,
             color: 'from-primary to-blue-400',
@@ -38,7 +45,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             balance: card?.balance ?? 0,
             icon: <CreditCard className="h-5 w-5 text-white" />,
             color: 'from-sky-500 to-cyan-400',
-            enabled: flags.virtualCards
+            enabled: flags.virtualCards && !isMerchant
         },
         {
             id: 'coffres' as const,
@@ -46,7 +53,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             balance: totalVaultsBalance,
             icon: <PiggyBank className="h-5 w-5 text-white" />,
             color: 'from-amber-500 to-yellow-400',
-            enabled: true // Coffres are always enabled for now
+            enabled: !isMerchant // Coffres are always enabled for now
         },
         {
             id: 'tontine' as const,
@@ -54,7 +61,7 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
             balance: totalTontinesBalance,
             icon: <Users className="h-5 w-5 text-white" />,
             color: 'from-emerald-500 to-green-400',
-            enabled: flags.tontine
+            enabled: flags.tontine && !isMerchant
         }
     ];
 
