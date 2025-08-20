@@ -22,8 +22,8 @@ const adminFeatures: {id: AdminView, title: string, description: string, icon: J
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
     { id: "merchants", title: "Gestion des Marchands", description: "Gérer les comptes et les profils des marchands.", icon: <Building /> },
     { id: "transactions", title: "Centre d'Analyse Business", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
-    { id: "partners", title: "Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
-    { id: "services", title: "Produits et Services", description: "Configurer les fonctionnalités (cartes, BNPL, tontines...).", icon: <Blocks /> },
+    { id: "partners", title: "Gestion des Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
+    { id: "services", title: "Gestion des Services", description: "Configurer les fonctionnalités (cartes, BNPL, tontines...).", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
 
