@@ -7,6 +7,7 @@ import { useVirtualCard } from "@/hooks/use-virtual-card";
 import { CreditCard, Wallet, PiggyBank, Users } from 'lucide-react';
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type BalanceCardsProps = {
     onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => void;
@@ -17,40 +18,47 @@ export default function BalanceCards({ onNavigate }: BalanceCardsProps) {
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
     const { tontines } = useTontine();
+    const { flags } = useFeatureFlags();
 
     const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
     const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
 
-    const cardsData = [
+    const allCards = [
         {
             id: 'transactions' as const,
             title: 'Solde Principal',
             balance: balance,
             icon: <Wallet className="h-5 w-5 text-white" />,
-            color: 'from-primary to-blue-400'
+            color: 'from-primary to-blue-400',
+            enabled: true
         },
         {
             id: 'ma-carte' as const,
             title: 'Carte Virtuelle',
             balance: card?.balance ?? 0,
             icon: <CreditCard className="h-5 w-5 text-white" />,
-            color: 'from-sky-500 to-cyan-400'
+            color: 'from-sky-500 to-cyan-400',
+            enabled: flags.virtualCards
         },
         {
             id: 'coffres' as const,
             title: 'Mes Coffres',
             balance: totalVaultsBalance,
             icon: <PiggyBank className="h-5 w-5 text-white" />,
-            color: 'from-amber-500 to-yellow-400'
+            color: 'from-amber-500 to-yellow-400',
+            enabled: true // Coffres are always enabled for now
         },
         {
             id: 'tontine' as const,
             title: 'Mes Tontines',
             balance: totalTontinesBalance,
             icon: <Users className="h-5 w-5 text-white" />,
-            color: 'from-emerald-500 to-green-400'
+            color: 'from-emerald-500 to-green-400',
+            enabled: flags.tontine
         }
     ];
+
+    const cardsData = allCards.filter(c => c.enabled);
 
     return (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">

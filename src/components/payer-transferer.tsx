@@ -13,6 +13,7 @@ import { Button } from './ui/button';
 import { ArrowLeft, ArrowUp, Handshake, Receipt, ShoppingCart, Users } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type PayerTransfererState = 'menu' | 'send' | 'split' | 'bills' | 'merchants';
 type MerchantSubService = 'pico' | 'picash' | 'bnpl';
@@ -24,19 +25,22 @@ type PayerTransfererProps = {
 export default function PayerTransferer({ onBack }: PayerTransfererProps) {
     const [state, setState] = useState<PayerTransfererState>('menu');
     const [merchantService, setMerchantService] = useState<MerchantSubService | null>(null);
+    const { flags } = useFeatureFlags();
 
-    const menuItems = [
-        { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un numéro ou un marchand.", icon: <ArrowUp /> },
-        { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users /> },
-        { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt /> },
-        { id: 'merchants', title: "Services Marchands", description: "PICO, PICASH, BNPL et plus.", icon: <ShoppingCart /> },
+    const allMenuItems = [
+        { id: 'send', title: "Envoyer de l'argent", description: "À un alias, un numéro ou un marchand.", icon: <ArrowUp />, enabled: true },
+        { id: 'split', title: "Partager une dépense", description: "Divisez une facture avec vos contacts.", icon: <Users />, enabled: true },
+        { id: 'bills', title: "Payer une facture", description: "Réglez vos factures SENELEC, SDE, etc.", icon: <Receipt />, enabled: true },
+        { id: 'merchants', title: "Services Marchands", description: "PICO, PICASH, BNPL et plus.", icon: <ShoppingCart />, enabled: flags.bnpl }, // Example: link merchants to BNPL flag
     ];
     
+    const menuItems = allMenuItems.filter(item => item.enabled);
+
     if (merchantService) {
         const onMerchantBack = () => setMerchantService(null);
         if (merchantService === 'pico') return <PICO onBack={onMerchantBack} />;
         if (merchantService === 'picash') return <PICASH onBack={onMerchantBack} />;
-        if (merchantService === 'bnpl') return <BNPL onBack={onMerchantBack} />;
+        if (merchantService === 'bnpl' && flags.bnpl) return <BNPL onBack={onMerchantBack} />;
     }
 
     if (state !== 'menu') {

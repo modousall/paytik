@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
+import AdminFeatureControl from "./admin-feature-control";
 
 type AdminDashboardProps = {
     onExit: () => void;
@@ -31,8 +32,8 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminUserManagement />;
             case 'transactions':
                 return <AdminTransactionAnalysis />;
-            // Add other cases here for future features
             case 'services':
+                 return <AdminFeatureControl />;
             case 'roles':
             case 'products':
                  return <div className="text-center p-8 bg-card rounded-lg"><p>Cette fonctionnalité est en cours de développement.</p></div>;

@@ -13,6 +13,7 @@ import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
 import PICASH from './picash';
+import { useFeatureFlags } from '@/hooks/use-feature-flags';
 
 type UserInfo = {
     name: string;
@@ -34,6 +35,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [activeService, setActiveService] = useState<ActiveService>(null);
     const [activeAction, setActiveAction] = useState<ActiveAction>('none');
+    const { flags } = useFeatureFlags();
 
     const handleShowAllTransactions = (show: boolean) => {
         setShowAllTransactions(show);
@@ -70,9 +72,9 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         if (activeService) {
              switch (activeService) {
                 case 'tontine':
-                    return <Tontine onBack={() => setActiveService(null)}/>;
+                    return flags.tontine ? <Tontine onBack={() => setActiveService(null)}/> : null;
                 case 'ma-carte':
-                    return <VirtualCard onBack={() => setActiveService(null)}/>;
+                    return flags.virtualCards ? <VirtualCard onBack={() => setActiveService(null)}/> : null;
                 case 'coffres':
                      return <Vaults onBack={() => setActiveService(null)} />;
                 default:

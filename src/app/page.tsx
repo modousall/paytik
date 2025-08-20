@@ -19,6 +19,7 @@ import { TontineProvider } from '@/hooks/use-tontine';
 import { TransactionsProvider } from '@/hooks/use-transactions';
 import { VaultsProvider } from '@/hooks/use-vaults';
 import { VirtualCardProvider } from '@/hooks/use-virtual-card';
+import { FeatureFlagProvider } from '@/hooks/use-feature-flags';
 
 type UserInfo = {
   name: string;
@@ -158,20 +159,20 @@ export default function AuthenticationGate() {
   }
 
   const handleLogin = (loginAlias: string, pin: string) => {
+    const adminAlias = '+221775478575';
+    const adminDataString = localStorage.getItem(`paytik_user_${adminAlias}`);
+    
     // Super admin login check
-    if (loginAlias === '+221775478575' && pin === '1234') {
-        const adminDataString = localStorage.getItem('paytik_user_+221775478575');
-        if (adminDataString) {
-            const adminData = JSON.parse(adminDataString);
-            if(adminData.role === 'superadmin') {
-                localStorage.setItem('paytik_is_admin', 'true');
-                toast({
-                  title: `Bienvenue, Admin ${adminData.name} !`,
-                  description: "Connexion au backoffice réussie.",
-                });
-                setStep('admin');
-                return;
-            }
+    if (adminDataString && loginAlias === adminAlias) {
+        const adminData = JSON.parse(adminDataString);
+        if(adminData.role === 'superadmin' && adminData.pincode === pin) {
+            localStorage.setItem('paytik_is_admin', 'true');
+            toast({
+              title: `Bienvenue, Admin ${adminData.name} !`,
+              description: "Connexion au backoffice réussie.",
+            });
+            setStep('admin');
+            return;
         }
     }
 
@@ -224,21 +225,23 @@ export default function AuthenticationGate() {
       case 'dashboard':
         if(alias && userInfo) {
             return (
-              <AvatarProvider alias={alias}>
-                <BalanceProvider alias={alias}>
-                  <TransactionsProvider alias={alias}>
-                    <ContactsProvider alias={alias}>
-                      <VirtualCardProvider alias={alias}>
-                        <VaultsProvider alias={alias}>
-                          <TontineProvider alias={alias}>
-                              <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
-                          </TontineProvider>
-                        </VaultsProvider>
-                      </VirtualCardProvider>
-                    </ContactsProvider>
-                  </TransactionsProvider>
-                </BalanceProvider>
-              </AvatarProvider>
+              <FeatureFlagProvider>
+                <AvatarProvider alias={alias}>
+                  <BalanceProvider alias={alias}>
+                    <TransactionsProvider alias={alias}>
+                      <ContactsProvider alias={alias}>
+                        <VirtualCardProvider alias={alias}>
+                          <VaultsProvider alias={alias}>
+                            <TontineProvider alias={alias}>
+                                <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />
+                            </TontineProvider>
+                          </VaultsProvider>
+                        </VirtualCardProvider>
+                      </ContactsProvider>
+                    </TransactionsProvider>
+                  </BalanceProvider>
+                </AvatarProvider>
+              </FeatureFlagProvider>
             )
         }
         // Fallback if state is dashboard but data is missing

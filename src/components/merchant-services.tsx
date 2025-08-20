@@ -4,34 +4,45 @@
 import { Button } from "./ui/button";
 import { ArrowLeft, ShoppingBag, Landmark, Clock } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type MerchantServicesProps = {
     onBack: () => void;
     onServiceClick: (service: 'pico' | 'picash' | 'bnpl') => void;
 }
 
-const merchantServicesList = [
-    {
-        id: 'pico',
-        icon: <ShoppingBag className="h-6 w-6 text-primary" />,
-        title: "PICO (Achat + Retrait)",
-        description: "Payez vos achats et retirez du cash en même temps chez un marchand partenaire. Idéal pour faire d'une pierre deux coups."
-    },
-    {
-        id: 'picash',
-        icon: <Landmark className="h-6 w-6 text-primary" />,
-        title: "PICASH (Retrait seul)",
-        description: "Retirez de l'argent facilement depuis n'importe quel point marchand agréé, sans avoir à effectuer d'achat."
-    },
-    {
-        id: 'bnpl',
-        icon: <Clock className="h-6 w-6 text-primary" />,
-        title: "BNPL (Payer plus tard)",
-        description: "Achetez maintenant et payez plus tard grâce à nos solutions de paiement échelonné flexibles chez les commerçants participants."
-    }
-] as const;
+
 
 export default function MerchantServices({ onBack, onServiceClick }: MerchantServicesProps) {
+    const { flags } = useFeatureFlags();
+
+    const allServices = [
+        {
+            id: 'pico',
+            icon: <ShoppingBag className="h-6 w-6 text-primary" />,
+            title: "PICO (Achat + Retrait)",
+            description: "Payez vos achats et retirez du cash en même temps chez un marchand partenaire. Idéal pour faire d'une pierre deux coups.",
+            enabled: true,
+        },
+        {
+            id: 'picash',
+            icon: <Landmark className="h-6 w-6 text-primary" />,
+            title: "PICASH (Retrait seul)",
+            description: "Retirez de l'argent facilement depuis n'importe quel point marchand agréé, sans avoir à effectuer d'achat.",
+            enabled: true,
+        },
+        {
+            id: 'bnpl',
+            icon: <Clock className="h-6 w-6 text-primary" />,
+            title: "BNPL (Payer plus tard)",
+            description: "Achetez maintenant et payez plus tard grâce à nos solutions de paiement échelonné flexibles chez les commerçants participants.",
+            enabled: flags.bnpl,
+        }
+    ] as const;
+
+    const merchantServicesList = allServices.filter(s => s.enabled);
+
+
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
