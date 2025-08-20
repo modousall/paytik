@@ -50,17 +50,29 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const TransactionIcon = ({ type, counterparty }: { type: string, counterparty: string }) => {
-    const initial = counterparty.charAt(0).toUpperCase();
-    switch (type) {
+const TransactionIcon = ({ tx }: { tx: Transaction }) => {
+    const initial = tx.counterparty.charAt(0).toUpperCase();
+    const avatarUrl = `https://i.pravatar.cc/150?u=${tx.counterparty}${tx.id}`;
+
+    switch (tx.type) {
         case 'sent':
-            return <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center"><ArrowUp className="text-red-600" /></div>;
+            return (
+                <Avatar className="h-10 w-10">
+                     <AvatarImage src={avatarUrl} alt={tx.counterparty} data-ai-hint="person face" />
+                    <AvatarFallback className="bg-red-100 text-red-600"><ArrowUp /></AvatarFallback>
+                </Avatar>
+            );
         case 'received':
-            return <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center"><ArrowDown className="text-green-600" /></div>;
+            return (
+                 <Avatar className="h-10 w-10">
+                    <AvatarImage src={avatarUrl} alt={tx.counterparty} data-ai-hint="person face" />
+                    <AvatarFallback className="bg-green-100 text-green-600"><ArrowDown /></AvatarFallback>
+                </Avatar>
+            );
         default:
              return (
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${counterparty}`} alt={counterparty} data-ai-hint="person face" />
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${tx.counterparty}`} alt={tx.counterparty} data-ai-hint="company logo" />
                     <AvatarFallback className="bg-muted text-muted-foreground">{initial}</AvatarFallback>
                 </Avatar>
             );
@@ -216,7 +228,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                             <Dialog key={tx.id}>
                                 <DialogTrigger asChild>
                                     <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary cursor-pointer">
-                                        <TransactionIcon type={tx.type} counterparty={tx.counterparty}/>
+                                        <TransactionIcon tx={tx}/>
                                         <div className="flex-grow">
                                             <p className="font-semibold">{tx.counterparty}</p>
                                             <p className="text-sm text-muted-foreground">
