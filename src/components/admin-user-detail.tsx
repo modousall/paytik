@@ -197,8 +197,9 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
     const { allRequests } = useBnpl();
     
     const merchantCreditBalance = useMemo(() => {
+        // This is the total outstanding amount that customers owe to THIS merchant.
         return allRequests
-            .filter(req => req.alias === user.alias && req.status === 'approved')
+            .filter(req => req.merchantAlias === user.alias && req.status === 'approved')
             .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
     }, [allRequests, user.alias]);
 
