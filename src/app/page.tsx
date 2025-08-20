@@ -8,6 +8,7 @@ import Dashboard from '@/components/dashboard';
 import PermissionsRequest from '@/components/permissions-request';
 import LoginForm from '@/components/login-form';
 import KYCForm from '@/components/kyc-form';
+import { useToast } from '@/hooks/use-toast';
 
 
 type UserInfo = {
@@ -23,6 +24,7 @@ export default function Home() {
   const [alias, setAlias] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsClient(true);
@@ -66,17 +68,25 @@ export default function Home() {
     setStep('alias');
   };
 
-  const handleLoginSuccess = (loggedInAlias: string) => {
-    const userName = localStorage.getItem('paytik_username');
-    const userEmail = localStorage.getItem('paytik_useremail');
-    if (userName && userEmail) {
-      setAlias(loggedInAlias);
-      setUserInfo({name: userName, email: userEmail});
+  const handleLogin = (loginAlias: string) => {
+    const storedAlias = localStorage.getItem('paytik_alias');
+    const storedName = localStorage.getItem('paytik_username');
+    const storedEmail = localStorage.getItem('paytik_useremail');
+  
+    if (storedAlias && loginAlias === storedAlias && storedName && storedEmail) {
+      setAlias(loginAlias);
+      setUserInfo({ name: storedName, email: storedEmail });
       setStep('dashboard');
+      toast({
+        title: `Bienvenue, ${storedName} !`,
+        description: "Connexion réussie.",
+      });
     } else {
-        // This case can happen if localStorage is cleared between login and here
-        // We'll treat it as a new user flow
-        setStep('kyc');
+      toast({
+        title: "Alias non trouvé",
+        description: "Cet alias n'existe pas. Veuillez vérifier l'alias ou créer un nouveau compte.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -97,7 +107,7 @@ export default function Home() {
       case 'permissions':
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
-        return <LoginForm onLoginSuccess={handleLoginSuccess} onBack={() => setStep('demo')} />;
+        return <LoginForm onLogin={handleLogin} onBack={() => setStep('demo')} />;
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'alias':

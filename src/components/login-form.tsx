@@ -6,36 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from "@/hooks/use-toast";
 
 type LoginFormProps = {
-    onLoginSuccess: (alias: string) => void;
+    onLogin: (alias: string) => void;
     onBack: () => void;
 };
 
-export default function LoginForm({ onLoginSuccess, onBack }: LoginFormProps) {
+export default function LoginForm({ onLogin, onBack }: LoginFormProps) {
     const [alias, setAlias] = useState('');
-    const { toast } = useToast();
   
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      // Simulate checking if alias exists in localStorage
-      const storedAlias = localStorage.getItem('paytik_alias');
-      const storedName = localStorage.getItem('paytik_username') || "l'utilisateur";
-  
-      if (storedAlias && alias === storedAlias) {
-        toast({
-          title: `Bienvenue, ${storedName} !`,
-          description: "Connexion réussie.",
-        });
-        onLoginSuccess(alias);
-      } else {
-        toast({
-          title: "Alias non trouvé",
-          description: "Cet alias n'existe pas. Veuillez vérifier l'alias ou créer un nouveau compte.",
-          variant: "destructive",
-        });
-      }
+      if (!alias) return;
+      onLogin(alias);
     };
   
     return (
