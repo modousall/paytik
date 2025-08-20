@@ -32,7 +32,7 @@ type CreateTontineFormProps = {
 const ParticipantsLabel = () => {
     const { error } = useFormField();
     return (
-        <FormLabel className={cn("text-base", error && "text-destructive")}>Inviter des participants</FormLabel>
+        <FormLabel className={cn(error && "text-destructive")}>Inviter des participants</FormLabel>
     );
 };
 
