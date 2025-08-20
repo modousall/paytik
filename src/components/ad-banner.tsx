@@ -20,28 +20,28 @@ const initialAds = [
     {
         id: 1,
         image: "https://placehold.co/800x400.png",
-        imageHint: "woman smiling",
-        title: "Transférez sans frais vers l'international",
-        description: "Envoyez de l'argent à vos proches à l'étranger avec zéro frais jusqu'à la fin du mois.",
-        cta: "En savoir plus",
+        imageHint: "friends sharing money",
+        title: "Parrainez un ami, gagnez 500 Fcfa !",
+        description: "Invitez vos amis à rejoindre PAYTIK et recevez une récompense pour chaque ami qui crée un compte.",
+        cta: "Inviter maintenant",
         color: "from-blue-500 to-indigo-600"
     },
     {
         id: 2,
         image: "https://placehold.co/800x400.png",
-        imageHint: "delivery service",
-        title: "Payez vos livraisons en un clic",
-        description: "Réglez vos livreurs partenaires directement depuis l'application PAYTIK.",
-        cta: "Voir les partenaires",
+        imageHint: "supermarket checkout",
+        title: "Vos courses moins chères avec PAYTIK",
+        description: "Bénéficiez de 5% de réduction dans tous les supermarchés partenaires en payant avec votre QR code PAYTIK.",
+        cta: "Voir les offres",
         color: "from-amber-500 to-orange-600"
     },
     {
         id: 3,
         image: "https://placehold.co/800x400.png",
-        imageHint: "mobile phone",
-        title: "Besoin de crédit téléphonique ?",
-        description: "Rechargez votre crédit ou celui d'un proche instantanément.",
-        cta: "Recharger maintenant",
+        imageHint: "bank credit card",
+        title: "Connectez votre compte bancaire",
+        description: "Rechargez votre solde PAYTIK instantanément et en toute sécurité depuis votre compte bancaire.",
+        cta: "Lier mon compte",
         color: "from-emerald-500 to-green-600"
     }
 ]
@@ -104,8 +104,12 @@ export default function AdBanner() {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="hidden sm:flex left-2" />
-      <CarouselNext className="hidden sm:flex right-2" />
+      {ads.length > 1 && (
+        <>
+            <CarouselPrevious className="hidden sm:flex left-2" />
+            <CarouselNext className="hidden sm:flex right-2" />
+        </>
+      )}
     </Carousel>
   )
 }
