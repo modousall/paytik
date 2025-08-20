@@ -74,13 +74,17 @@ export const ProductProvider = ({ children, addSettlementTransaction }: ProductP
 
   useEffect(() => {
     if (isInitialized) {
+      try {
         localStorage.setItem(billersStorageKey, JSON.stringify(billers));
+      } catch(e) { console.error(e); }
     }
   }, [billers, isInitialized]);
   
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem(operatorsStorageKey, JSON.stringify(mobileMoneyOperators));
+        try {
+            localStorage.setItem(operatorsStorageKey, JSON.stringify(mobileMoneyOperators));
+        } catch(e) { console.error(e); }
     }
   }, [mobileMoneyOperators, isInitialized]);
 
@@ -106,8 +110,6 @@ export const ProductProvider = ({ children, addSettlementTransaction }: ProductP
       const product = products.find(p => p.id === id);
       if (!product) return;
       
-      // We don't change the state here, we just add a settlement transaction.
-      // The balance will be recalculated automatically by the component.
       addSettlementTransaction({
         type: 'versement',
         counterparty: `Règlement Partenaire`,

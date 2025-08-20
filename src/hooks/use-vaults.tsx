@@ -19,15 +19,6 @@ type VaultsContextType = {
 
 const VaultsContext = createContext<VaultsContextType | undefined>(undefined);
 
-const initialVaults: Vault[] = [
-    {
-        id: 'vault1',
-        name: 'Économies Vacances',
-        balance: 125000,
-        targetAmount: 500000,
-    }
-];
-
 type VaultsProviderProps = {
     children: ReactNode;
     alias: string;
@@ -45,7 +36,6 @@ export const VaultsProvider = ({ children, alias }: VaultsProviderProps) => {
       if (storedVaults) {
         setVaults(JSON.parse(storedVaults));
       } else {
-        // New user starts with no vaults
         setVaults([]);
       }
     } catch (error) {
@@ -57,7 +47,11 @@ export const VaultsProvider = ({ children, alias }: VaultsProviderProps) => {
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem(storageKey, JSON.stringify(vaults));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(vaults));
+        } catch (error) {
+            console.error("Failed to write vaults to localStorage", error);
+        }
     }
   }, [vaults, isInitialized, storageKey]);
 

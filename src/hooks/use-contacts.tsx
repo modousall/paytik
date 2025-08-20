@@ -42,20 +42,22 @@ export const ContactsProvider = ({ children, alias }: ContactsProviderProps) => 
       if (storedContacts) {
         setContacts(JSON.parse(storedContacts));
       } else {
-        // If no contacts are stored for this alias, set the initial default ones.
-        // A truly new user would start empty, but for demo purposes this is better.
         setContacts(initialContacts);
       }
     } catch (error) {
         console.error("Failed to parse contacts from localStorage", error);
-        setContacts(initialContacts); // Fallback to initial contacts on error
+        setContacts(initialContacts);
     }
     setIsInitialized(true);
   }, [storageKey, alias]);
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem(storageKey, JSON.stringify(contacts));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(contacts));
+        } catch (error) {
+            console.error("Failed to write contacts to localStorage", error);
+        }
     }
   }, [contacts, isInitialized, storageKey]);
 

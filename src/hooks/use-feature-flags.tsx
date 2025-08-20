@@ -46,7 +46,11 @@ export const FeatureFlagProvider = ({ children }: FeatureFlagProviderProps) => {
 
     useEffect(() => {
         if(isInitialized) {
-            localStorage.setItem(featureFlagsStorageKey, JSON.stringify(flags));
+            try {
+                localStorage.setItem(featureFlagsStorageKey, JSON.stringify(flags));
+            } catch (e) {
+                console.error("Failed to write feature flags to localStorage", e);
+            }
         }
     }, [flags, isInitialized]);
     
@@ -72,5 +76,3 @@ export const useFeatureFlags = () => {
     }
     return context;
 };
-
-    

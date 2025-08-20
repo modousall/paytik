@@ -39,7 +39,6 @@ export const TontineProvider = ({ children, alias }: TontineProviderProps) => {
       if (storedTontines) {
         setTontines(JSON.parse(storedTontines));
       } else {
-        // New user starts with no tontines
         setTontines([]);
       }
     } catch (error) {
@@ -51,7 +50,11 @@ export const TontineProvider = ({ children, alias }: TontineProviderProps) => {
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem(storageKey, JSON.stringify(tontines));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(tontines));
+        } catch (error) {
+            console.error("Failed to write tontines to localStorage", error);
+        }
     }
   }, [tontines, isInitialized, storageKey]);
 

@@ -21,8 +21,6 @@ export const AvatarProvider = ({ children, alias }: { children: ReactNode, alias
       const storedAvatar = localStorage.getItem(storageKey);
       if (storedAvatar) {
         setAvatarState(storedAvatar);
-      } else {
-        setAvatarState(null); // Reset for new user
       }
     } catch (error) {
         console.error("Failed to read avatar from localStorage", error);
@@ -32,17 +30,20 @@ export const AvatarProvider = ({ children, alias }: { children: ReactNode, alias
 
   useEffect(() => {
     if (isInitialized) {
-        if (avatar) {
-            localStorage.setItem(storageKey, avatar);
-        } else {
-            localStorage.removeItem(storageKey);
+        try {
+            if (avatar) {
+                localStorage.setItem(storageKey, avatar);
+            } else {
+                localStorage.removeItem(storageKey);
+            }
+        } catch (error) {
+            console.error("Failed to write avatar to localStorage", error);
         }
     }
   }, [avatar, isInitialized, storageKey]);
 
   const setAvatar = (avatarDataUrl: string) => {
     setAvatarState(avatarDataUrl);
-    localStorage.setItem(storageKey, avatarDataUrl);
   };
 
   return (

@@ -82,7 +82,11 @@ export const RoleProvider = ({ children }: RoleProviderProps) => {
 
   useEffect(() => {
     if (isInitialized) {
-        localStorage.setItem(rolesStorageKey, JSON.stringify(roles));
+        try {
+            localStorage.setItem(rolesStorageKey, JSON.stringify(roles));
+        } catch (error) {
+            console.error("Failed to write roles to localStorage", error);
+        }
     }
   }, [roles, isInitialized]);
 

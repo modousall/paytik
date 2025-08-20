@@ -41,17 +41,8 @@ const generateCardDetails = (): CardDetails => ({
     expiry: `${String(Math.floor(1 + Math.random() * 12)).padStart(2, '0')}/${new Date().getFullYear() % 100 + 3}`,
     cvv: `${Math.floor(100 + Math.random() * 900)}`,
     isFrozen: false,
-    balance: 0, // New cards start with 0 balance
+    balance: 0,
 });
-
-const initialCreditTransaction = (balance: number): CardTransaction => ({
-    id: 'vtx0',
-    type: 'credit',
-    amount: balance,
-    merchant: 'Crédit Initial',
-    date: new Date().toISOString(),
-});
-
 
 export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, alias: string }) => {
   const [card, setCard] = useState<CardDetails | null>(null);
@@ -89,12 +80,16 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
 
   useEffect(() => {
     if (isInitialized) {
-        if(card) {
-            localStorage.setItem(cardStorageKey, JSON.stringify(card));
-            localStorage.setItem(txStorageKey, JSON.stringify(transactions));
-        } else {
-            localStorage.removeItem(cardStorageKey);
-            localStorage.removeItem(txStorageKey);
+        try {
+            if(card) {
+                localStorage.setItem(cardStorageKey, JSON.stringify(card));
+                localStorage.setItem(txStorageKey, JSON.stringify(transactions));
+            } else {
+                localStorage.removeItem(cardStorageKey);
+                localStorage.removeItem(txStorageKey);
+            }
+        } catch (error) {
+            console.error("Failed to write virtual card data to localStorage", error);
         }
     }
   }, [card, transactions, isInitialized, cardStorageKey, txStorageKey]);
@@ -104,7 +99,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
     if (!card) {
       const newCard = generateCardDetails();
       setCard(newCard);
-      setTransactions([]); // Start with no transactions
+      setTransactions([]);
       toast({ title: "Carte créée !", description: "Votre carte virtuelle est prête à être utilisée. N'oubliez pas de l'approvisionner." });
     }
   };
@@ -119,7 +114,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
 
   const deleteCard = () => {
     if(card && card.balance > 0) {
-        creditMain(card.balance); // Refund remaining balance
+        creditMain(card.balance);
         addTransaction({
             type: 'received',
             counterparty: 'Carte Virtuelle',

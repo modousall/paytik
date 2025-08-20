@@ -21,37 +21,6 @@ type TransactionsContextType = {
 
 export const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
 
-const initialTransactions: Transaction[] = [
-    {
-      id: "TXN746382",
-      type: "received",
-      counterparty: "+221776543210",
-      reason: "Remboursement",
-      date: "2024-07-25T14:30:00Z",
-      amount: 5000,
-      status: "Terminé",
-    },
-    {
-      id: "TXN927481",
-      type: "sent",
-      counterparty: "BoutiqueEnLigne Merch",
-      reason: "Facture SENELEC - Électricité - 123456",
-      date: "2024-07-24T18:05:00Z",
-      amount: 12500,
-      status: "Retourné",
-    },
-    {
-      id: "TXN102938",
-      type: "tontine",
-      counterparty: "Tontine Familiale",
-      reason: "Contribution mensuelle",
-      date: "2024-07-23T10:00:00Z",
-      amount: 20000,
-      status: "Terminé",
-    }
-];
-
-// This context can now be used for any user, including the 'superadmin' account for logging settlements
 type TransactionsProviderProps = {
     children: ReactNode;
     alias: string;
@@ -69,7 +38,6 @@ export const TransactionsProvider = ({ children, alias }: TransactionsProviderPr
       if (storedTransactions) {
         setTransactions(JSON.parse(storedTransactions));
       } else {
-        // New user starts with no transactions
         setTransactions([]);
       }
     } catch (error) {
@@ -81,7 +49,11 @@ export const TransactionsProvider = ({ children, alias }: TransactionsProviderPr
 
   useEffect(() => {
     if(isInitialized) {
-        localStorage.setItem(storageKey, JSON.stringify(transactions));
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(transactions));
+        } catch (error) {
+            console.error("Failed to write transactions to localStorage", error);
+        }
     }
   }, [transactions, isInitialized, storageKey]);
 

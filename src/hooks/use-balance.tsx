@@ -32,9 +32,8 @@ export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
       if (storedBalance !== null) {
         setBalance(JSON.parse(storedBalance));
       } else {
-        // Set initial balance only for a new user
-        setBalance(initialBalance);
         localStorage.setItem(storageKey, JSON.stringify(initialBalance));
+        setBalance(initialBalance);
       }
     } catch (error) {
         console.error("Failed to parse balance from localStorage", error);
@@ -45,7 +44,11 @@ export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
 
   useEffect(() => {
     if (isInitialized && alias) {
+      try {
         localStorage.setItem(storageKey, JSON.stringify(balance));
+      } catch (error) {
+        console.error("Failed to write balance to localStorage", error);
+      }
     }
   }, [balance, isInitialized, storageKey, alias]);
 
