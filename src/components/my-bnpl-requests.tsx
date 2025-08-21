@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -13,8 +14,8 @@ import { fr } from 'date-fns/locale';
 import type { BnplRequest, BnplStatus } from '@/lib/types';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import CreditRequestDetails from './credit-request-details';
+import { formatCurrency } from '@/lib/utils';
 
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'd MMM yyyy, HH:mm', { locale: fr });
 
 const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: JSX.Element }> = {
@@ -95,3 +96,4 @@ export default function MyBnplRequests({ onBack }: MyBnplRequestsProps) {
         </div>
     );
 }
+

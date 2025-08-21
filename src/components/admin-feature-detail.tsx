@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -12,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import AdminUserDetail from './admin-user-detail';
 import { Input } from './ui/input';
+import { formatCurrency } from '@/lib/utils';
 
 type Feature = 'mainBalance' | 'vaults' | 'virtualCards' | 'tontine';
 
@@ -46,8 +48,6 @@ const featureConfig = {
         getBalance: (u: ManagedUserWithDetails) => u.tontines.reduce((sum, t) => sum + t.amount * t.participants.length, 0),
     }
 }
-
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
 export default function AdminFeatureDetail({ feature, onBack }: AdminFeatureDetailProps) {
     const { users, refreshUsers } = useUserManagement();
@@ -185,3 +185,4 @@ export default function AdminFeatureDetail({ feature, onBack }: AdminFeatureDeta
         </div>
     )
 }
+

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -14,6 +15,7 @@ import { Button } from './ui/button';
 import { Download } from 'lucide-react';
 import type { ProductWithBalance } from './admin-product-management';
 import AdminProductDetail from './admin-product-detail';
+import { formatCurrency } from '@/lib/utils';
 
 export default function AdminTransactionAnalysis() {
   const { usersWithTransactions } = useUserManagement();
@@ -110,8 +112,6 @@ export default function AdminTransactionAnalysis() {
     link.click();
     document.body.removeChild(link);
   }
-
-  const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
   if (selectedProduct) {
       return <AdminProductDetail product={selectedProduct} allTransactions={allTransactions} onBack={() => setSelectedProduct(null)} />
@@ -236,7 +236,7 @@ export default function AdminTransactionAnalysis() {
                     </TableCell>
                     <TableCell>{tx.counterparty}</TableCell>
                     <TableCell>{tx.reason}</TableCell>
-                    <TableCell className="text-right font-medium">{tx.amount.toLocaleString()} Fcfa</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(tx.amount)}</TableCell>
                     <TableCell>
                         <Badge variant={tx.status === 'Terminé' ? 'default' : 'destructive'} className={tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
                             {tx.status}
@@ -256,3 +256,4 @@ export default function AdminTransactionAnalysis() {
     </div>
   );
 }
+

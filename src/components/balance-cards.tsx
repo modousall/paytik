@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 type UserInfo = {
     role: 'user' | 'merchant' | 'admin' | 'superadmin' | 'support';
@@ -48,10 +50,10 @@ const RepayCreditDialog = () => {
             <div className="py-4 space-y-4">
                 <p className="text-sm text-muted-foreground">
                     Le montant sera déduit de votre solde principal.
-                    Solde disponible: {mainBalance.toLocaleString()} Fcfa.
+                    Solde disponible: {formatCurrency(mainBalance)}.
                 </p>
                 <div>
-                    <Label htmlFor="repayment-amount">Montant à rembourser (Fcfa)</Label>
+                    <Label htmlFor="repayment-amount">Montant à rembourser</Label>
                     <Input
                         id="repayment-amount"
                         type="number"
@@ -142,14 +144,13 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                         {c.icon}
                     </div>
                     <div className="text-right mt-2 sm:mt-4">
-                        <p className="text-lg font-bold tracking-tight">{c.balance.toLocaleString()}</p>
-                        <p className="text-xs opacity-80">Fcfa</p>
+                        <p className="text-lg font-bold tracking-tight">{formatCurrency(c.balance)}</p>
                     </div>
                      {c.creditBalance && c.creditBalance > 0 && (
                         <Dialog>
                             <DialogTrigger asChild>
                                 <div className="mt-2 pt-2 border-t border-white/20 text-left text-xs flex justify-between items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                                    <span>Credit Marchands: -{c.creditBalance.toLocaleString()} Fcfa</span>
+                                    <span>Credit: -{formatCurrency(c.creditBalance)}</span>
                                     <Info className="h-3 w-3"/>
                                 </div>
                             </DialogTrigger>
@@ -161,3 +162,4 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
         </div>
     );
 }
+

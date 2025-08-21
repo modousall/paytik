@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -16,9 +17,9 @@ import AdminUserDetail from './admin-user-detail';
 import { useUserManagement, type ManagedUserWithDetails } from '@/hooks/use-user-management';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import CreditRequestDetails from './credit-request-details';
+import { formatCurrency } from '@/lib/utils';
 
 
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
 
 const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: JSX.Element }> = {
@@ -173,3 +174,4 @@ export default function AdminBnplManagement() {
         </div>
     );
 }
+

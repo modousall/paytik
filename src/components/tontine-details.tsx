@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import { useContacts } from "@/hooks/use-contacts";
 import type { Tontine } from "@/hooks/use-tontine";
 import { ArrowDown, ArrowUp, CheckCircle, Clock } from "lucide-react";
 import type { Contact } from "@/hooks/use-contacts";
+import { formatCurrency } from "@/lib/utils";
 
 type TontineDetailsProps = {
     tontine: Tontine;
@@ -102,7 +104,7 @@ export default function TontineDetails({ tontine }: TontineDetailsProps) {
                                 </TableCell>
                                 <TableCell>{item.user}</TableCell>
                                 <TableCell className={`text-right font-medium ${item.type === 'contribution' ? 'text-green-600' : 'text-red-600'}`}>
-                                    {item.amount.toLocaleString()} Fcfa
+                                    {formatCurrency(item.amount)}
                                 </TableCell>
                              </TableRow>
                            ))}
@@ -113,3 +115,4 @@ export default function TontineDetails({ tontine }: TontineDetailsProps) {
         </div>
     );
 }
+

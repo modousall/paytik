@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -33,6 +34,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { useVirtualCard } from '@/hooks/use-virtual-card';
 import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
+import { formatCurrency } from '@/lib/utils';
 
 type VaultsProps = {
   onBack: () => void;
@@ -82,7 +84,7 @@ const CreateVaultForm = ({ onVaultCreated }: { onVaultCreated: () => void }) => 
                     name="targetAmount"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Objectif de montant (Fcfa, optionnel)</FormLabel>
+                            <FormLabel>Objectif de montant (optionnel)</FormLabel>
                             <FormControl><Input type="number" placeholder="ex: 500000" {...field} value={field.value ?? ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
@@ -135,7 +137,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
         }
         
         deposit(vaultId, amount);
-        toast({ title: "Dépôt effectué", description: `${amount.toLocaleString()} Fcfa ont été ajoutés à votre tirelire "${vaultName}".`});
+        toast({ title: "Dépôt effectué", description: `${formatCurrency(amount)} ont été ajoutés à votre tirelire "${vaultName}".`});
         setAction(null);
         setAmount(0);
     }
@@ -156,7 +158,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
             amount: amount,
             status: 'Terminé',
         });
-        toast({ title: "Retrait effectué", description: `${amount.toLocaleString()} Fcfa ont été retirés de la tirelire "${vaultName}".`});
+        toast({ title: "Retrait effectué", description: `${formatCurrency(amount)} ont été retirés de la tirelire "${vaultName}".`});
         setAction(null);
         setAmount(0);
     }
@@ -168,7 +170,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                     <DialogTitle>Approvisionner "{vaultName}"</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                    <Label htmlFor="deposit-amount">Montant (Fcfa)</Label>
+                    <Label htmlFor="deposit-amount">Montant</Label>
                     <Input id="deposit-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 10000" />
 
                     <Label>Depuis</Label>
@@ -177,7 +179,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                             <RadioGroupItem value="main" id="main" />
                             <Label htmlFor="main" className="flex-grow cursor-pointer">
                                 Solde Principal
-                                <span className='block text-xs text-muted-foreground'>Disponible: {mainBalance.toLocaleString()} Fcfa</span>
+                                <span className='block text-xs text-muted-foreground'>Disponible: {formatCurrency(mainBalance)}</span>
                             </Label>
                         </div>
                         {card && (
@@ -185,7 +187,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                                 <RadioGroupItem value="card" id="card" />
                                 <Label htmlFor="card" className="flex-grow cursor-pointer">
                                     Carte Virtuelle
-                                    <span className='block text-xs text-muted-foreground'>Disponible: {(card.balance || 0).toLocaleString()} Fcfa</span>
+                                    <span className='block text-xs text-muted-foreground'>Disponible: {formatCurrency(card.balance)}</span>
                                 </Label>
                             </div>
                         )}
@@ -207,7 +209,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal.</p>
-                    <Label htmlFor="withdraw-amount">Montant (Fcfa)</Label>
+                    <Label htmlFor="withdraw-amount">Montant</Label>
                     <Input id="withdraw-amount" type="number" value={amount || ''} onChange={(e) => setAmount(Number(e.target.value))} placeholder="ex: 5000" />
                 </div>
                 <ModalFooter>
@@ -273,12 +275,12 @@ export default function Vaults({ onBack }: VaultsProps) {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                        <div className="text-xl font-bold mb-2">{vault.balance.toLocaleString()} Fcfa</div>
+                        <div className="text-xl font-bold mb-2">{formatCurrency(vault.balance)}</div>
                         {vault.targetAmount && (
                             <div>
                                 <div className="flex justify-between text-sm text-muted-foreground mb-1">
                                     <span>Objectif</span>
-                                    <span>{vault.targetAmount.toLocaleString()} Fcfa</span>
+                                    <span>{formatCurrency(vault.targetAmount)}</span>
                                 </div>
                                 <Progress value={(vault.balance / vault.targetAmount) * 100} />
                             </div>
@@ -318,3 +320,4 @@ export default function Vaults({ onBack }: VaultsProps) {
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { BnplRequest, BnplStatus } from "@/lib/types";
@@ -10,8 +11,8 @@ import { Progress } from "./ui/progress";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { formatCurrency } from "@/lib/utils";
 
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'd MMMM yyyy, HH:mm', { locale: fr });
 
 const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: JSX.Element }> = {
@@ -116,3 +117,4 @@ export default function CreditRequestDetails({ request }: { request: BnplRequest
         </>
     )
 }
+

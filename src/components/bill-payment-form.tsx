@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -25,6 +26,7 @@ import {
 import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useProductManagement } from '@/hooks/use-product-management';
+import { formatCurrency } from '@/lib/utils';
 
 // Define Zod schemas and types here
 export const BillPaymentAssistantInputSchema = z.object({
@@ -108,7 +110,7 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
         });
         toast({
             title: "Paiement de facture effectué !",
-            description: `Votre facture ${paymentDetails.biller} de ${paymentDetails.amount.toLocaleString()} Fcfa a été réglée.`,
+            description: `Votre facture ${paymentDetails.biller} de ${formatCurrency(paymentDetails.amount)} a été réglée.`,
         });
       }
 
@@ -170,7 +172,7 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant (Fcfa)</FormLabel>
+                <FormLabel>Montant</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="5000" {...field} />
                 </FormControl>
@@ -203,7 +205,7 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Montant:</span>
-                        <span className="font-medium text-lg text-primary">{paymentDetails.amount.toLocaleString()} Fcfa</span>
+                        <span className="font-medium text-lg text-primary">{formatCurrency(paymentDetails.amount)}</span>
                     </div>
                 </div>
 
@@ -235,3 +237,4 @@ export default function BillPaymentForm({ onBack }: BillPaymentFormProps) {
     </>
   );
 }
+

@@ -1,9 +1,11 @@
 
+
 "use client";
 
 import QRCode from "qrcode.react";
 import type { Transaction } from "@/hooks/use-transactions";
 import { Badge } from "./ui/badge";
+import { formatCurrency } from "@/lib/utils";
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -23,7 +25,7 @@ const TransactionDetailRow = ({ label, value, isAmount = false, type }: { label:
     if (isAmount && typeof value === 'number') {
         const amountPrefix = type === 'sent' || type === 'versement' ? '- ' : '+ ';
         valueClass += type === 'sent' || type === 'versement' ? ' text-red-600' : ' text-green-600';
-        formattedValue = `${amountPrefix}${value.toLocaleString()} Fcfa`;
+        formattedValue = `${amountPrefix}${formatCurrency(value)}`;
     } else {
         formattedValue = value.toString();
     }
@@ -73,3 +75,4 @@ const TransactionReceipt = ({ transaction }: { transaction: Transaction }) => {
 };
 
 export default TransactionReceipt;
+

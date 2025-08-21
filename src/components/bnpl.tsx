@@ -9,7 +9,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon, Calculator, Banknote } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon, Calculator, Banknote, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from './ui/dialog';
@@ -19,7 +19,7 @@ import type { BnplAssessmentOutput } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from './ui/card';
@@ -100,13 +100,13 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any, onCo
             </DialogHeader>
             <div className="space-y-4 py-4 text-sm">
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{values.amount.toLocaleString()} Fcfa</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{(values.downPayment || 0).toLocaleString()} Fcfa</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer</span><span className="font-medium">{(values.financedAmount).toLocaleString()} Fcfa</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer</span><span className="font-medium">{formatCurrency(values.financedAmount)}</span></div>
                  <hr/>
-                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{values.installmentAmount.toLocaleString('fr-FR', {maximumFractionDigits: 2})} Fcfa</span></div>
+                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total du crédit</span><span className="font-medium">{values.totalCost.toLocaleString('fr-FR', {maximumFractionDigits: 2})} Fcfa</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total du crédit</span><span className="font-medium">{formatCurrency(values.totalCost)}</span></div>
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
@@ -120,7 +120,8 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [formValuesForConfirmation, setFormValuesForConfirmation] = useState<any>(null);
   const { toast } = useToast();
   const { submitRequest } = useBnpl();
 
@@ -137,21 +138,25 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
     },
   });
   
-  const formValues = form.watch();
+  const watchedFormValues = form.watch();
 
   const calculatedValues = useMemo(() => {
-    const { amount, downPayment, installmentsCount, marginRate } = formValues;
-    if (amount > 0 && installmentsCount > 0 && marginRate > 0) {
+    const { amount, downPayment, installmentsCount, marginRate } = watchedFormValues;
+    if (amount > 0 && installmentsCount > 0 && marginRate >= 0) { // marginRate can be 0
         const financedAmount = amount - (downPayment || 0);
+        // Standard formula for annuity payment
         const weeklyRate = marginRate / 100;
-        const installmentAmount = (financedAmount * weeklyRate) / (1 - Math.pow(1 + weeklyRate, -installmentsCount));
+        const installmentAmount = weeklyRate > 0 
+            ? (financedAmount * weeklyRate) / (1 - Math.pow(1 + weeklyRate, -installmentsCount))
+            : financedAmount / installmentsCount;
+            
         const totalRepaid = installmentAmount * installmentsCount;
         const totalCost = totalRepaid - financedAmount;
 
-        return { financedAmount, installmentAmount, totalCost };
+        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost };
     }
     return { financedAmount: 0, installmentAmount: 0, totalCost: 0};
-  }, [formValues]);
+  }, [watchedFormValues]);
 
 
   useEffect(() => {
@@ -172,13 +177,20 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
     }
   }, [prefillData, form, toast]);
 
+  const handleFormSubmit = (values: BnplFormValues) => {
+    setFormValuesForConfirmation({ ...values, ...calculatedValues });
+    setShowConfirmation(true);
+  }
+
   const onConfirmSubmit = async () => {
-    setIsConfirming(false);
+    if (!formValuesForConfirmation) return;
+    
+    setShowConfirmation(false);
     setIsLoading(true);
     try {
       const result = await submitRequest({
-          ...form.getValues(),
-          firstInstallmentDate: form.getValues('firstInstallmentDate').toISOString(),
+          ...formValuesForConfirmation,
+          firstInstallmentDate: formValuesForConfirmation.firstInstallmentDate.toISOString(),
       });
       setAssessmentResult(result);
     } catch(e) {
@@ -190,6 +202,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
       });
     } finally {
       setIsLoading(false);
+      setFormValuesForConfirmation(null);
     }
   };
   
@@ -224,7 +237,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(() => setIsConfirming(true))} className="space-y-6 max-w-lg mx-auto">
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 max-w-lg mx-auto">
           <Alert>
             <Info className="h-4 w-4" />
             <AlertTitle>Information</AlertTitle>
@@ -266,7 +279,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant total de l'achat (Fcfa)</FormLabel>
+                <FormLabel>Montant total de l'achat</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex: 150000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
                 </FormControl>
@@ -279,7 +292,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             name="downPayment"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Avance (Fcfa, optionnel)</FormLabel>
+                <FormLabel>Avance (optionnel)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex: 30000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''}/>
                 </FormControl>
@@ -382,7 +395,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                             <div>
                                 <p className="text-sm text-muted-foreground">Montant par échéance</p>
                                 <p className="text-lg font-bold text-primary">
-                                    {calculatedValues.installmentAmount.toLocaleString('fr-FR', {maximumFractionDigits: 2})} Fcfa
+                                    {formatCurrency(calculatedValues.installmentAmount)}
                                 </p>
                             </div>
                             <Banknote className="h-8 w-8 text-primary/70" />
@@ -397,15 +410,18 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             Soumettre la demande
           </Button>
 
-          <Dialog open={isConfirming} onOpenChange={setIsConfirming}>
-            <ConfirmationDialog 
-                values={{...form.getValues(), ...calculatedValues}}
-                onConfirm={onConfirmSubmit}
-                onCancel={() => setIsConfirming(false)}
-            />
+          <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+            {formValuesForConfirmation && (
+              <ConfirmationDialog 
+                  values={formValuesForConfirmation}
+                  onConfirm={onConfirmSubmit}
+                  onCancel={() => setShowConfirmation(false)}
+              />
+            )}
           </Dialog>
         </form>
       </Form>
     </div>
   );
 }
+

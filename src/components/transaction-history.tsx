@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import { useState, useMemo, useRef } from 'react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark, PiggyBank, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Download, RotateCcw, Filter, Search, Receipt, CreditCard, Landmark, PiggyBank, Wallet, Phone } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -19,23 +20,13 @@ import {
     DialogClose
   } from "@/components/ui/dialog";
 import type { Transaction } from '@/hooks/use-transactions';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-  } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import TransactionReceipt from './transaction-receipt';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { cn, formatCurrency } from '@/lib/utils';
 
 type TransactionHistoryProps = {
   showAll: boolean;
@@ -114,17 +105,12 @@ const TransactionIcon = ({ tx }: { tx: Transaction }) => {
 };
 
 const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction }) => {
-    const { reverseTransaction } = useTransactions();
     const { toast } = useToast();
     const receiptRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const handleReverse = () => {
-        reverseTransaction(transaction.id);
-        toast({
-            title: "Transaction retournée",
-            description: `Le paiement de ${transaction.amount.toLocaleString()} Fcfa a été retourné.`,
-        });
+    const handleCallSupport = () => {
+        window.location.href = "tel:+221705000505";
     }
 
     const handleDownload = async () => {
@@ -172,9 +158,11 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             <div className="space-y-3 py-4 border-y">
                 <div className="flex justify-between items-center">
                     <span className="text-muted-foreground text-sm">Montant</span>
-                    <span className={`font-semibold text-base ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={cn('font-semibold text-base',
+                        transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'
+                    )}>
                         {transaction.type === 'sent' || transaction.type === 'versement' ? '-' : '+'}
-                        {transaction.amount.toLocaleString()} Fcfa
+                        {formatCurrency(transaction.amount)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
@@ -199,30 +187,37 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             </div>
             <DialogFooter className="sm:justify-between gap-2 flex-wrap">
                  <Button variant="ghost" onClick={handleDownload} disabled={isDownloading}>
-                    <Download className={`mr-2 ${isDownloading ? 'animate-pulse' : ''}`} /> 
+                    <Download className={cn("mr-2", isDownloading && 'animate-pulse')} /> 
                     {isDownloading ? "Génération..." : "Reçu"}
                 </Button>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                <Dialog>
+                    <DialogTrigger asChild>
                         <Button variant="outline" disabled={!canBeReversed}>
                             <RotateCcw className="mr-2" /> Retourner
                         </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer le retour</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Voulez-vous vraiment retourner cette transaction ? Une nouvelle transaction sera créée pour annuler celle-ci. Cette action est irréversible.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Demande d'annulation</DialogTitle>
+                            <DialogDescription>
+                                Pour des raisons de sécurité, toute demande d'annulation doit être validée par notre service client.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <p className="text-sm text-muted-foreground">
+                                Veuillez contacter notre support pour finaliser votre demande. Un agent vérifiera les détails de la transaction avec vous.
+                            </p>
+                        </div>
+                        <DialogFooter>
                             <DialogClose asChild>
-                                <AlertDialogAction onClick={handleReverse}>Confirmer</AlertDialogAction>
+                                <Button variant="ghost">Fermer</Button>
                             </DialogClose>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                            <Button onClick={handleCallSupport}>
+                                <Phone className="mr-2"/> Appeler le Support
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </DialogFooter>
         </DialogContent>
     )
@@ -310,9 +305,9 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <div className={`font-medium text-sm ${tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
+                                            <div className={cn('font-medium text-sm', tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600')}>
                                                 {tx.type === 'sent' || tx.type === 'versement' ? '-' : '+'}
-                                                {tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
+                                                {formatCurrency(tx.amount)}
                                             </div>
                                             {showAll && <Badge variant={tx.status === 'Terminé' ? 'default' : tx.status === 'Retourné' ? 'secondary' : 'destructive'} className={`${tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''} text-xs`}>{tx.status}</Badge>}
                                         </div>
@@ -340,3 +335,4 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
         </Card>
     );
 }
+

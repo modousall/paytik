@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -15,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
 import { DialogClose } from './ui/dialog';
+import { formatCurrency } from '@/lib/utils';
 
 const splitBillSchema = z.object({
   totalAmount: z.coerce.number().positive({ message: "Le montant total doit être positif." }),
@@ -54,7 +56,7 @@ export default function SplitBill() {
     // Simulate sending payment requests
     toast({
       title: "Demandes envoyées",
-      description: `Des demandes de paiement de ${amountPerPerson.toLocaleString()} Fcfa ont été envoyées à ${participants.length} personne(s).`,
+      description: `Des demandes de paiement de ${formatCurrency(amountPerPerson)} ont été envoyées à ${participants.length} personne(s).`,
     });
     form.reset();
   };
@@ -157,7 +159,7 @@ export default function SplitBill() {
                 <Separator />
                 <div className="flex justify-between items-baseline">
                   <span className="text-muted-foreground">Montant par personne:</span>
-                  <span className="font-bold text-xl text-primary">{amountPerPerson.toLocaleString('fr-FR', {maximumFractionDigits: 2})} Fcfa</span>
+                  <span className="font-bold text-xl text-primary">{formatCurrency(amountPerPerson)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -173,3 +175,4 @@ export default function SplitBill() {
     </div>
   );
 }
+

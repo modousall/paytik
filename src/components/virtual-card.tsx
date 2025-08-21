@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useBalance } from '@/hooks/use-balance';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
+import { formatCurrency } from '@/lib/utils';
 
 type VirtualCardProps = {
     onBack: () => void;
@@ -43,8 +45,8 @@ const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, on
                     <DialogTitle>Approvisionner la carte</DialogTitle>
                 </DialogHeader>
                  <div className='space-y-4 py-4'>
-                    <p className='text-sm text-muted-foreground'>Les fonds seront prélevés de votre solde principal. Solde disponible: {mainBalance.toLocaleString()} Fcfa.</p>
-                    <Label htmlFor="recharge-amount">Montant à recharger (Fcfa)</Label>
+                    <p className='text-sm text-muted-foreground'>Les fonds seront prélevés de votre solde principal. Solde disponible: {formatCurrency(mainBalance)}.</p>
+                    <Label htmlFor="recharge-amount">Montant à recharger</Label>
                     <Input 
                         id="recharge-amount" 
                         type="number" 
@@ -72,8 +74,8 @@ const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, on
                     <DialogTitle>Retirer de la carte</DialogTitle>
                 </DialogHeader>
                 <div className='space-y-4 py-4'>
-                    <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal. Solde disponible sur la carte: {card.balance.toLocaleString()} Fcfa.</p>
-                    <Label htmlFor="withdraw-amount">Montant à retirer (Fcfa)</Label>
+                    <p className='text-sm text-muted-foreground'>Les fonds seront versés sur votre solde principal. Solde disponible sur la carte: {formatCurrency(card.balance)}.</p>
+                    <Label htmlFor="withdraw-amount">Montant à retirer</Label>
                     <Input 
                         id="withdraw-amount" 
                         type="number" 
@@ -211,7 +213,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
             <Card>
                 <CardContent className="p-4 flex justify-between items-center">
                     <p className="text-muted-foreground">Solde de la carte</p>
-                    <p className="text-xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
+                    <p className="text-xl font-bold text-primary">{formatCurrency(card.balance)}</p>
                 </CardContent>
             </Card>
 
@@ -281,7 +283,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
                                     <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
                                 </div>
                                 <p className={`ml-auto font-semibold text-sm ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
-                                    {tx.type === 'debit' ? '-' : '+'} {tx.amount.toLocaleString()} Fcfa
+                                    {tx.type === 'debit' ? '-' : '+'} {formatCurrency(tx.amount)}
                                 </p>
                             </div>
                         ))}
@@ -294,3 +296,4 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
     </div>
   );
 }
+

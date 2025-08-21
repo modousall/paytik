@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
+import { formatCurrency } from '@/lib/utils';
 
 const picoFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -73,7 +75,7 @@ export default function PICO({ onBack }: PicoProps) {
 
       toast({
         title: 'Opération PICO initiée',
-        description: `Un paiement de ${totalAmount.toLocaleString()} Fcfa à ${values.merchantAlias} a été effectué.`,
+        description: `Un paiement de ${formatCurrency(totalAmount)} à ${values.merchantAlias} a été effectué.`,
       });
       setIsLoading(false);
       form.reset();
@@ -163,9 +165,9 @@ export default function PICO({ onBack }: PicoProps) {
                 <CardTitle className="text-lg">Total de l'opération</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="font-bold text-2xl text-primary">{totalAmount.toLocaleString()} Fcfa</p>
+                <p className="font-bold text-2xl text-primary">{formatCurrency(totalAmount)}</p>
                 <p className="text-sm text-muted-foreground">
-                    {(Number(purchaseAmount) || 0).toLocaleString()} Fcfa (Achat) + {(Number(cashOutAmount) || 0).toLocaleString()} Fcfa (Retrait)
+                    {formatCurrency(Number(purchaseAmount) || 0)} (Achat) + {formatCurrency(Number(cashOutAmount) || 0)} (Retrait)
                 </p>
               </CardContent>
             </Card>
@@ -180,3 +182,4 @@ export default function PICO({ onBack }: PicoProps) {
     </div>
   );
 }
+

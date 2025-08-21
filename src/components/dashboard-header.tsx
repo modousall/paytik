@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import { useVaults } from '@/hooks/use-vaults';
 import { useTontine } from '@/hooks/use-tontine';
 import { useAvatar } from '@/hooks/use-avatar';
 import { useMonthlyBudget } from '@/hooks/use-monthly-budget';
+import { formatCurrency } from '@/lib/utils';
 
 type UserInfo = {
     name: string;
@@ -67,7 +69,7 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
                 <div className="flex items-center justify-center gap-2">
                      {isBalanceVisible ? (
                         <p className="text-2xl font-bold tracking-tight text-primary">
-                            {totalBalance.toLocaleString()} <span className="text-base font-normal">Fcfa</span>
+                            {formatCurrency(totalBalance)}
                         </p>
                     ) : (
                         <p className="text-2xl font-bold tracking-tight text-primary">
@@ -84,7 +86,7 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
                 <div className='mt-4 max-w-sm mx-auto'>
                     <div className='text-xs flex justify-between text-muted-foreground mb-1'>
                         <span>Dépenses ce mois-ci</span>
-                        <span>{spentAmount.toLocaleString()} / {monthlyBudget.toLocaleString()} Fcfa</span>
+                        <span>{formatCurrency(spentAmount)} / {formatCurrency(monthlyBudget)}</span>
                     </div>
                     <Progress value={progress} className="h-2" />
                 </div>
@@ -93,3 +95,4 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
         </header>
     );
 }
+

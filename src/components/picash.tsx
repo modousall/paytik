@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
+import { formatCurrency } from '@/lib/utils';
 
 const picashFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -70,7 +72,7 @@ export default function PICASH({ onBack }: PicashProps) {
       setGeneratedCode(code);
       toast({
         title: 'Code de retrait généré',
-        description: `Présentez ce code au marchand ${values.merchantAlias} pour retirer ${values.amount.toLocaleString()} Fcfa.`,
+        description: `Présentez ce code au marchand ${values.merchantAlias} pour retirer ${formatCurrency(values.amount)}.`,
       });
       setIsLoading(false);
     }, 1500);
@@ -167,7 +169,7 @@ export default function PICASH({ onBack }: PicashProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant à retirer (Fcfa)</FormLabel>
+                <FormLabel>Montant à retirer</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex: 20000" {...field} />
                 </FormControl>
@@ -185,3 +187,4 @@ export default function PICASH({ onBack }: PicashProps) {
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -12,8 +13,7 @@ import AdminFeatureDetail from './admin-feature-detail';
 import AdminBnplManagement from './admin-bnpl-management';
 import { Button } from './ui/button';
 import { useBnpl } from '@/hooks/use-bnpl';
-
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
+import { formatCurrency } from '@/lib/utils';
 
 const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey, onClick }: { title: string, value: string, icon: JSX.Element, isEnabled?: boolean, onToggle?: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature, onClick?: () => void }) => (
     <Card className={`flex flex-col ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`} onClick={onClick}>
@@ -144,3 +144,4 @@ export default function AdminFeatureManagement() {
     </div>
   );
 }
+

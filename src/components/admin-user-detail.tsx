@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useMemo, useRef } from 'react';
@@ -29,6 +30,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import CreditRequestDetails from './credit-request-details';
+import { formatCurrency } from '@/lib/utils';
 
 // Import product components
 import Vaults from './vaults';
@@ -170,8 +172,7 @@ const SummaryCard = ({ title, balance, icon, color, onClick, isCurrency = true }
             {icon}
         </div>
         <div className="text-right mt-2">
-            <p className="text-xl font-bold tracking-tight">{balance.toLocaleString()}</p>
-            {isCurrency && <p className="text-xs opacity-80">Fcfa</p>}
+            <p className="text-xl font-bold tracking-tight">{isCurrency ? formatCurrency(balance) : balance.toLocaleString()}</p>
         </div>
     </Card>
 );
@@ -179,7 +180,6 @@ const SummaryCard = ({ title, balance, icon, color, onClick, isCurrency = true }
 type ActiveServiceView = 'transactions' | 'ma-carte' | 'coffres' | 'tontine' | 'credit-details';
 
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const statusConfig: Record<BnplStatus, { text: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: JSX.Element }> = {
     'review': { text: "En attente", badgeVariant: "outline", icon: <Clock className="h-4 w-4" /> },
     'approved': { text: "Approuvée", badgeVariant: "default", icon: <Check className="h-4 w-4" /> },
@@ -353,7 +353,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                             </div>
                             <div className="flex justify-between">
                                     <span className="text-muted-foreground">Solde Principal</span>
-                                    <span className="font-semibold">{user.balance.toLocaleString()} Fcfa</span>
+                                    <span className="font-semibold">{formatCurrency(user.balance)}</span>
                             </div>
                             </CardContent>
                         </Card>

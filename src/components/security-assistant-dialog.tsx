@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -13,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 type SecurityAssistantDialogProps = {
   isOpen: boolean;
@@ -53,7 +55,7 @@ export default function SecurityAssistantDialog({
             </div>
             <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Montant:</span>
-                <span className="font-medium text-lg text-primary">{paymentDetails.amount.toLocaleString()} Fcfa</span>
+                <span className="font-medium text-lg text-primary">{formatCurrency(paymentDetails.amount)}</span>
             </div>
             {paymentDetails.reason && (
                  <div className="flex justify-between items-start gap-4">
@@ -89,3 +91,4 @@ export default function SecurityAssistantDialog({
     </AlertDialog>
   );
 }
+

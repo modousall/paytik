@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useMemo } from 'react';
@@ -9,16 +10,10 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from './ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ArrowLeft, Package } from 'lucide-react';
 import { Badge } from './ui/badge';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatCurrency } from '@/lib/utils';
 
-type AdminProductDetailProps = {
-    product: ProductWithBalance;
-    allTransactions: Transaction[];
-    onBack: () => void;
-}
-
-const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
 
 export default function AdminProductDetail({ product, allTransactions, onBack }: AdminProductDetailProps) {
@@ -74,7 +69,7 @@ export default function AdminProductDetail({ product, allTransactions, onBack }:
                     <CardTitle>Nb. de Transactions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{kpis.totalTransactions}</div>
+                    <div className="text-2xl font-bold">{kpis.totalTransactions.toLocaleString()}</div>
                 </CardContent>
                 </Card>
                 <Card>
@@ -115,7 +110,7 @@ export default function AdminProductDetail({ product, allTransactions, onBack }:
                             </TableCell>
                             <TableCell>{tx.counterparty}</TableCell>
                             <TableCell>{tx.reason}</TableCell>
-                            <TableCell className="text-right font-medium">{tx.amount.toLocaleString()} Fcfa</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(tx.amount)}</TableCell>
                             <TableCell>
                                 <Badge variant={tx.status === 'Terminé' ? 'default' : 'destructive'} className={tx.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
                                     {tx.status}
@@ -135,3 +130,4 @@ export default function AdminProductDetail({ product, allTransactions, onBack }:
         </div>
     )
 }
+

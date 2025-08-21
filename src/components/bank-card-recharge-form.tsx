@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import { Loader2, CreditCard } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useBalance } from '@/hooks/use-balance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { formatCurrency } from '@/lib/utils';
 
 const cardRechargeSchema = z.object({
   cardNumber: z.string().regex(/^\d{4} \d{4} \d{4} \d{4}$/, { message: "Le numéro de carte doit être au format XXXX XXXX XXXX XXXX." }),
@@ -59,7 +61,7 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
 
         toast({
             title: "Rechargement réussi !",
-            description: `Votre compte a été crédité de ${values.amount.toLocaleString()} Fcfa.`,
+            description: `Votre compte a été crédité de ${formatCurrency(values.amount)}.`,
         });
 
         setIsLoading(false);
@@ -83,7 +85,7 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
                     name="amount"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Montant (Fcfa)</FormLabel>
+                        <FormLabel>Montant</FormLabel>
                         <FormControl>
                         <Input type="number" placeholder="10000" {...field} />
                         </FormControl>
@@ -136,7 +138,7 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
                 
                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 py-6 text-lg" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-                    Payer {form.getValues('amount') > 0 ? `${form.getValues('amount').toLocaleString()} Fcfa` : ''}
+                    Payer {form.getValues('amount') > 0 ? formatCurrency(form.getValues('amount')) : ''}
                 </Button>
                 </form>
             </Form>
@@ -144,3 +146,4 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
     </Card>
   );
 }
+

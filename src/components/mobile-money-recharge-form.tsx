@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -15,6 +16,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useProductManagement } from '@/hooks/use-product-management';
+import { formatCurrency } from '@/lib/utils';
 
 const rechargeFormSchema = z.object({
   operator: z.string().min(1, { message: "L'opérateur est requis." }),
@@ -61,7 +63,7 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
 
         toast({
             title: "Rechargement initié",
-            description: `Veuillez confirmer le paiement de ${values.amount.toLocaleString()} Fcfa sur votre téléphone.`,
+            description: `Veuillez confirmer le paiement de ${formatCurrency(values.amount)} sur votre téléphone.`,
         });
 
         setIsLoading(false);
@@ -121,7 +123,7 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
                     name="amount"
                     render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Montant (Fcfa)</FormLabel>
+                        <FormLabel>Montant</FormLabel>
                         <FormControl>
                         <Input type="number" placeholder="10000" {...field} />
                         </FormControl>
@@ -139,3 +141,4 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
     </Card>
   );
 }
+

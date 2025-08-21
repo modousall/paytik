@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,14 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { CalendarIcon, QrCode } from 'lucide-react';
+import { CalendarIcon, QrCode, Banknote } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import QrCodeDisplay from './qr-code-display';
+import { Card, CardContent } from './ui/card';
 
 const proposalFormSchema = z.object({
   clientAlias: z.string().min(1, { message: "L'alias du client est requis." }),
@@ -50,6 +52,23 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
     },
   });
 
+  const watchedFormValues = form.watch();
+
+  const calculatedValues = useMemo(() => {
+    const { amount, downPayment, installmentsCount } = watchedFormValues;
+    const marginRate = 0.2856; // Fixed rate
+    if (amount > 0 && installmentsCount > 0 && marginRate >= 0) {
+        const financedAmount = amount - (downPayment || 0);
+        const weeklyRate = marginRate / 100;
+        const installmentAmount = weeklyRate > 0 
+            ? (financedAmount * weeklyRate) / (1 - Math.pow(1 + weeklyRate, -installmentsCount))
+            : financedAmount / installmentsCount;
+            
+        return { installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount };
+    }
+    return { installmentAmount: 0 };
+  }, [watchedFormValues]);
+
   const onSubmit = (values: ProposalFormValues) => {
     setProposalData(values);
     setIsQrGenerated(true);
@@ -65,7 +84,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
         repaymentFrequency: proposalData.repaymentFrequency,
         installmentsCount: proposalData.installmentsCount,
         firstInstallmentDate: proposalData.firstInstallmentDate.toISOString(),
-        marginRate: 0.2856, // Add fixed margin rate to the proposal
+        marginRate: 0.2856,
     }
     return (
         <DialogContent>
@@ -110,14 +129,14 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
             )}/>
              <FormField control={form.control} name="amount" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Montant total de l'achat (Fcfa)</FormLabel>
+                    <FormLabel>Montant total de l'achat</FormLabel>
                     <FormControl><Input type="number" placeholder="ex: 150000" {...field} /></FormControl>
                     <FormMessage />
                 </FormItem>
             )}/>
             <FormField control={form.control} name="downPayment" render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Avance (Fcfa, optionnel)</FormLabel>
+                    <FormLabel>Avance (optionnel)</FormLabel>
                     <FormControl><Input type="number" placeholder="ex: 30000" {...field} /></FormControl>
                     <FormMessage />
                 </FormItem>
@@ -167,6 +186,23 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
                     <FormMessage />
                 </FormItem>
             )}/>
+
+             {calculatedValues.installmentAmount > 0 && (
+                <Card className="bg-secondary/50">
+                    <CardContent className="p-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Montant par échéance (estimation)</p>
+                                <p className="text-lg font-bold text-primary">
+                                    {formatCurrency(calculatedValues.installmentAmount)}
+                                </p>
+                            </div>
+                            <Banknote className="h-8 w-8 text-primary/70" />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
           <DialogFooter className="pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="ghost">Annuler</Button>
@@ -178,3 +214,4 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
     </DialogContent>
   );
 }
+

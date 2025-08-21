@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { useState } from "react";
 import TontineDetails from "./tontine-details";
 import type { Tontine as TontineType } from "@/hooks/use-tontine";
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
+import { formatCurrency } from "@/lib/utils";
 
 type TontineProps = {
     onBack: () => void;
@@ -92,11 +94,11 @@ export default function Tontine({ onBack }: TontineProps) {
                 <div>
                   <div className="flex justify-between items-baseline mb-1">
                     <span className="text-sm font-medium">Montant total</span>
-                    <span className="font-bold text-base text-primary">{(tontine.amount * tontine.participants.length).toLocaleString()} Fcfa</span>
+                    <span className="font-bold text-base text-primary">{formatCurrency(tontine.amount * tontine.participants.length)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Votre part</span>
-                    <span>{tontine.amount.toLocaleString()} Fcfa</span>
+                    <span>{formatCurrency(tontine.amount)}</span>
                   </div>
                 </div>
                 <div>
@@ -138,3 +140,4 @@ export default function Tontine({ onBack }: TontineProps) {
     </div>
   );
 }
+

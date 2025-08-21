@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useUserManagement, type ManagedUserWithDetails } from "@/hooks/use-user-management";
@@ -14,6 +15,7 @@ import AdminUserDetail from "./admin-user-detail";
 import { TransactionsProvider } from "@/hooks/use-transactions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import AdminCreateUserForm from "./admin-create-user-form";
+import { formatCurrency } from "@/lib/utils";
 
 const roleVariantMap: {[key: string]: 'default' | 'secondary' | 'destructive' | 'outline'} = {
     merchant: 'default',
@@ -116,7 +118,7 @@ export default function AdminMerchantManagement() {
                                         </div>
                                     </TableCell>
                                     <TableCell>{user.alias}</TableCell>
-                                    <TableCell>{user.balance.toLocaleString()} Fcfa</TableCell>
+                                    <TableCell>{formatCurrency(user.balance)}</TableCell>
                                     <TableCell>
                                         <Badge variant={user.isSuspended ? "destructive" : "default"} className={!user.isSuspended ? "bg-green-100 text-green-800" : ""}>
                                             {user.isSuspended ? "Suspendu" : "Actif"}
@@ -136,3 +138,4 @@ export default function AdminMerchantManagement() {
         </TransactionsProvider>
     )
 }
+

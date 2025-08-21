@@ -19,6 +19,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import BNPL from './bnpl';
+import { formatCurrency } from '@/lib/utils';
 
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
@@ -102,7 +103,7 @@ export default function PaymentForm() {
         });
         toast({
             title: "Paiement Envoyé!",
-            description: `Envoyé avec succès ${paymentDetails.amount.toLocaleString()} Fcfa à ${paymentDetails.recipientAlias}.`,
+            description: `Envoyé avec succès ${formatCurrency(paymentDetails.amount)} à ${paymentDetails.recipientAlias}.`,
         });
       }
 
@@ -192,7 +193,7 @@ export default function PaymentForm() {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant (Fcfa)</FormLabel>
+                <FormLabel>Montant</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="5000" {...field} />
                 </FormControl>
@@ -232,3 +233,4 @@ export default function PaymentForm() {
     </>
   );
 }
+

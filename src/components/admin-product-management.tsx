@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark, Calculator } from 'lucide-react';
+import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from './ui/switch';
 import { toast } from '@/hooks/use-toast';
 import AdminProductDetail from './admin-product-detail';
-import AdminTegSimulator from './admin-teg-simulator';
+import { formatCurrency } from '@/lib/utils';
 
 const productSchema = z.object({
   id: z.string().optional(),
@@ -49,7 +50,7 @@ const SettlementDialog = ({ product, onSettle }: { product: ProductWithBalance, 
              <div className="py-4 space-y-4">
                  <div className="p-4 rounded-lg bg-secondary">
                     <p className="text-sm text-muted-foreground">Solde actuel dû</p>
-                    <p className="text-2xl font-bold">{(product.balance || 0).toLocaleString()} Fcfa</p>
+                    <p className="text-2xl font-bold">{formatCurrency(product.balance)}</p>
                 </div>
                 <FormItem>
                     <FormLabel>Montant du règlement</FormLabel>
@@ -106,10 +107,10 @@ const ProductDialog = ({
                     )}/>
                     <div className="grid grid-cols-2 gap-4">
                          <FormField control={form.control} name="fee" render={({ field }) => (
-                            <FormItem><FormLabel>Frais client (Fcfa)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Frais client</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                          <FormField control={form.control} name="commission" render={({ field }) => (
-                            <FormItem><FormLabel>Commission PAYTIK (Fcfa)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Commission PAYTIK</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                     </div>
                      <FormField control={form.control} name="isActive" render={({ field }) => (
@@ -200,13 +201,13 @@ const ProductTable = ({
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="font-medium">{p.name}</TableCell>
-                                <TableCell>{(p.fee ?? 0).toLocaleString()} Fcfa</TableCell>
-                                <TableCell>{(p.commission ?? 0).toLocaleString()} Fcfa</TableCell>
+                                <TableCell>{formatCurrency(p.fee)}</TableCell>
+                                <TableCell>{formatCurrency(p.commission)}</TableCell>
                                 <TableCell>
                                      <Dialog>
                                         <DialogTrigger asChild>
                                             <Button variant="link" className="p-0 h-auto text-base" disabled={(p.balance || 0) <= 0} onClick={(e) => e.stopPropagation()}>
-                                                {(p.balance || 0).toLocaleString()} Fcfa
+                                                {formatCurrency(p.balance)}
                                             </Button>
                                         </DialogTrigger>
                                         <SettlementDialog product={p} onSettle={onSettle}/>
@@ -288,19 +289,9 @@ export default function AdminProductManagement() {
   return (
     <div className="space-y-8">
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-            <div>
-                <CardTitle>Gestion des Partenaires</CardTitle>
-                <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
-            </div>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="secondary">
-                        <Calculator className="mr-2"/> Simulateur TEG
-                    </Button>
-                </DialogTrigger>
-                <AdminTegSimulator />
-            </Dialog>
+        <CardHeader>
+            <CardTitle>Gestion des Partenaires</CardTitle>
+            <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
         </CardHeader>
       </Card>
       
@@ -325,3 +316,4 @@ export default function AdminProductManagement() {
     </div>
   );
 }
+
