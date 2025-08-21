@@ -205,7 +205,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
                             <div>
                                 <p className="text-sm text-muted-foreground">Montant par échéance (estimation)</p>
                                 <p className="text-lg font-bold text-primary">
-                                    {formatCurrency(calculatedValues.installmentAmount)}
+                                    {formatCurrency(Math.ceil(calculatedValues.installmentAmount))}
                                 </p>
                             </div>
                             <Banknote className="h-8 w-8 text-primary/70" />
@@ -216,7 +216,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
 
           <DialogFooter className="pt-4">
             <DialogClose asChild>
-                <Button type="button" variant="ghost">Annuler</Button>
+                <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
             </DialogClose>
             <Button type="submit">Générer le QR Code</Button>
           </DialogFooter>
