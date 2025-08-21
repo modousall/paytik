@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AdminTegSimulator from './admin-teg-simulator';
-import type { CreditProposal } from './payment-form';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -36,9 +35,13 @@ const bnplFormSchema = z.object({
 
 type BnplFormValues = z.infer<typeof bnplFormSchema>;
 
+type CreditProposalPrefill = Omit<BnplFormValues, 'firstInstallmentDate'> & {
+    firstInstallmentDate: string;
+};
+
 type BnplProps = {
   onBack: () => void;
-  prefillData?: CreditProposal | null;
+  prefillData?: CreditProposalPrefill | null;
 };
 
 const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput, onBack: () => void }) => {

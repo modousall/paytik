@@ -22,6 +22,7 @@ import BNPL from './bnpl';
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
   merchantAlias: z.string(),
+  clientAlias: z.string(),
   amount: z.number(),
   downPayment: z.number().optional(),
   repaymentFrequency: z.string(),
@@ -42,7 +43,7 @@ export default function PaymentForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [securityAnalysis, setSecurityAnalysis] = useState<PaymentSecurityAssistantOutput | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
-  const [creditProposal, setCreditProposal] = useState<CreditProposal | null>(null);
+  const [creditProposal, setCreditProposal] = useState<Omit<CreditProposal, 'type' | 'clientAlias'> | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
@@ -124,7 +125,8 @@ export default function PaymentForm() {
         // Check for BNPL proposal
         const proposalResult = creditProposalSchema.safeParse(data);
         if (proposalResult.success) {
-            setCreditProposal(proposalResult.data);
+            const { type, clientAlias, ...proposal } = proposalResult.data;
+            setCreditProposal(proposal);
             setIsScannerOpen(false);
             return;
         }
