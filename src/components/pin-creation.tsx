@@ -36,10 +36,8 @@ export default function PinCreation({ onPinCreated }: PinCreationProps) {
             });
             return;
         }
-        toast({
-            title: "Compte créé et sécurisé !",
-            description: "Votre compte est maintenant prêt à être utilisé.",
-        });
+        // L'appel au toast est supprimé ici pour éviter les conflits de rendu.
+        // La redirection vers le tableau de bord sert de confirmation.
         onPinCreated(pin);
     };
 
