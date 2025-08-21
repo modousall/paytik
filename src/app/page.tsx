@@ -54,47 +54,46 @@ const ensureSuperAdminExists = () => {
     }
 };
 
-// A wrapper for all providers needed for a logged-in user experience
-const UserSessionProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
-    const { addTransaction } = useTransactions();
-    return (
-      <TreasuryProvider>
-        <ProductProvider addSettlementTransaction={addTransaction}>
-            <FeatureFlagProvider>
-                <RoleProvider>
-                    <MonthlyBudgetProvider>
-                         <BalanceProvider alias={alias}>
-                            <BnplProvider alias={alias}>
-                                <IslamicFinancingProvider alias={alias}>
-                                    <AvatarProvider alias={alias}>
-                                        <ContactsProvider alias={alias}>
-                                        <VirtualCardProvider alias={alias}>
-                                            <VaultsProvider alias={alias}>
-                                            <TontineProvider alias={alias}>
-                                                {children}
-                                            </TontineProvider>
-                                            </VaultsProvider>
-                                        </VirtualCardProvider>
-                                        </ContactsProvider>
-                                    </AvatarProvider>
-                                </IslamicFinancingProvider>
-                            </BnplProvider>
-                        </BalanceProvider>
-                    </MonthlyBudgetProvider>
-                </RoleProvider>
-            </FeatureFlagProvider>
-      </ProductProvider>
-    </TreasuryProvider>
-    )
+const ProductProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { addTransaction } = useTransactions();
+  return (
+    <ProductProvider addSettlementTransaction={addTransaction}>
+      {children}
+    </ProductProvider>
+  )
 }
 
-// Higher-level provider that includes Transactions
-const AppProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
+// A single wrapper for all providers
+const AppProviders = ({ alias, children }: { alias: string, children: React.ReactNode }) => {
     return (
         <TransactionsProvider alias={alias}>
-            <UserSessionProviders alias={alias}>
-                {children}
-            </UserSessionProviders>
+            <TreasuryProvider>
+                <ProductProviderWrapper>
+                    <FeatureFlagProvider>
+                        <RoleProvider>
+                            <MonthlyBudgetProvider>
+                                <BalanceProvider alias={alias}>
+                                    <BnplProvider alias={alias}>
+                                        <IslamicFinancingProvider alias={alias}>
+                                            <AvatarProvider alias={alias}>
+                                                <ContactsProvider alias={alias}>
+                                                    <VirtualCardProvider alias={alias}>
+                                                        <VaultsProvider alias={alias}>
+                                                            <TontineProvider alias={alias}>
+                                                                {children}
+                                                            </TontineProvider>
+                                                        </VaultsProvider>
+                                                    </VirtualCardProvider>
+                                                </ContactsProvider>
+                                            </AvatarProvider>
+                                        </IslamicFinancingProvider>
+                                    </BnplProvider>
+                                </BalanceProvider>
+                            </MonthlyBudgetProvider>
+                        </RoleProvider>
+                    </FeatureFlagProvider>
+                </ProductProviderWrapper>
+            </TreasuryProvider>
         </TransactionsProvider>
     )
 }
