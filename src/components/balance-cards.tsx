@@ -1,11 +1,10 @@
 
-
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useBalance } from "@/hooks/use-balance";
 import { useVirtualCard } from "@/hooks/use-virtual-card";
-import { CreditCard, Wallet, PiggyBank, Users, Info } from 'lucide-react';
+import { CreditCard, Wallet, PiggyBank, Users, Info, HandCoins } from 'lucide-react';
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
@@ -23,7 +22,7 @@ type UserInfo = {
 };
 
 type BalanceCardsProps = {
-    onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine') => void;
+    onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine' | 'financement') => void;
     userInfo: UserInfo;
 }
 
@@ -92,6 +91,7 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
 
     const totalVaultsBalance = vaults.reduce((acc, vault) => acc + vault.balance, 0);
     const totalTontinesBalance = tontines.reduce((acc, tontine) => acc + (tontine.amount * tontine.participants.length), 0);
+    const totalEpargne = totalVaultsBalance + totalTontinesBalance;
 
     const allCards = [
         {
@@ -101,7 +101,6 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
             icon: <Wallet className="h-5 w-5 text-white" />,
             color: 'from-primary to-blue-400',
             enabled: true,
-            creditBalance: currentCreditBalance,
         },
         {
             id: 'ma-carte' as const,
@@ -113,19 +112,20 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
         },
         {
             id: 'coffres' as const,
-            title: 'Mes Coffres',
-            balance: totalVaultsBalance,
+            title: 'Épargne',
+            balance: totalEpargne,
             icon: <PiggyBank className="h-5 w-5 text-white" />,
             color: 'from-amber-500 to-yellow-400',
-            enabled: !isMerchant // Coffres are always enabled for now
+            enabled: !isMerchant
         },
         {
-            id: 'tontine' as const,
-            title: 'Tontines',
-            balance: totalTontinesBalance,
-            icon: <Users className="h-5 w-5 text-white" />,
+            id: 'financement' as const,
+            title: 'Financement',
+            balance: currentCreditBalance,
+            icon: <HandCoins className="h-5 w-5 text-white" />,
             color: 'from-emerald-500 to-green-400',
-            enabled: flags.tontine && !isMerchant
+            enabled: flags.bnpl && !isMerchant,
+            isDebt: true,
         }
     ];
 
@@ -144,19 +144,10 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                         {c.icon}
                     </div>
                     <div className="text-right mt-2 sm:mt-4">
-                        <p className="text-lg font-bold tracking-tight">{formatCurrency(c.balance)}</p>
+                        <p className="text-lg font-bold tracking-tight">
+                          {c.isDebt && c.balance > 0 ? `- ${formatCurrency(c.balance)}` : formatCurrency(c.balance)}
+                        </p>
                     </div>
-                     {c.creditBalance && c.creditBalance > 0 && (
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <div className="mt-2 pt-2 border-t border-white/20 text-left text-xs flex justify-between items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                                    <span>Credit: -{formatCurrency(c.creditBalance)}</span>
-                                    <Info className="h-3 w-3"/>
-                                </div>
-                            </DialogTrigger>
-                            <RepayCreditDialog />
-                        </Dialog>
-                    )}
                 </Card>
             ))}
         </div>

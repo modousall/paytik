@@ -12,16 +12,13 @@ import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
-import PICASH from './picash';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
 import { Button } from './ui/button';
 import { LayoutDashboard } from 'lucide-react';
 import AdminDashboard from './admin-dashboard';
-import MerchantDashboard from './merchant-dashboard';
 import Settings from './settings';
 import MerchantList from './merchant-list';
-import { useBnpl } from '@/hooks/use-bnpl';
-import IslamicFinancing from './islamic-financing';
+import Financing from './financing';
 
 type UserInfo = {
     name: string;
@@ -36,8 +33,8 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
-type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer' | 'financement';
-type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
+type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
+type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | 'financement' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [view, setView] = useState<View>('dashboard');
@@ -102,6 +99,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     return <VirtualCard onBack={() => setActiveService(null)} cardHolderName={userInfo.name} />;
                 case 'coffres':
                      return <Vaults onBack={() => setActiveService(null)} />;
+                case 'financement':
+                    return <Financing onBack={() => setActiveService(null)} />;
                 default:
                     setActiveService(null);
              }
@@ -112,10 +111,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     return <PayerTransferer onBack={() => setActiveAction('none')} />
                 case 'recharger':
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
-                case 'retirer':
-                    return <PICASH onBack={() => setActiveAction('none')} />
-                case 'financement':
-                    return <IslamicFinancing onBack={() => setActiveAction('none')} />;
                 default:
                     setActiveAction('none');
             }
@@ -138,8 +133,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
-                    onWithdrawClick={() => setActiveAction('retirer')}
-                    onFinancingClick={() => setActiveAction('financement')}
+                    onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
                 />

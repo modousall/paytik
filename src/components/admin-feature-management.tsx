@@ -14,6 +14,7 @@ import { Button } from './ui/button';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { formatCurrency } from '@/lib/utils';
 import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
+import AdminProductManagement from './admin-product-management';
 
 const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey, onClick }: { title: string, value: string, icon: JSX.Element, isEnabled?: boolean, onToggle?: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature, onClick?: () => void }) => (
     <Card className={`flex flex-col ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`} onClick={onClick}>
@@ -49,7 +50,7 @@ export default function AdminFeatureManagement() {
   const { kpis: bnplKpis } = useBnpl();
   const { allRequests: financingRequests } = useIslamicFinancing();
 
-  const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'bnplManagement'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'bnplManagement' | 'billers'>('overview');
   const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | null>(null);
 
   const kpis = useMemo(() => {
@@ -91,6 +92,10 @@ export default function AdminFeatureManagement() {
 
   if (activeView === 'bnplManagement') {
       return <AdminBnplManagement />
+  }
+  
+  if (activeView === 'billers') {
+      return <AdminProductManagement />
   }
 
   return (
@@ -165,6 +170,20 @@ export default function AdminFeatureManagement() {
                     />
                     <Label htmlFor="financing-switch" className="cursor-pointer">{flags.islamicFinancing ? "Activé" : "Désactivé"}</Label>
                 </div>
+            </CardFooter>
+        </Card>
+
+        <Card className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('billers')}>
+            <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
+                <div className="p-3 bg-primary/10 rounded-full text-primary"><Handshake /></div>
+                <CardTitle className="text-lg font-semibold">Gestion des Facturiers</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+                 <p className="text-3xl font-bold">&nbsp;</p> {/* Placeholder */}
+                 <p className="text-sm text-muted-foreground">Configurez les services externes</p>
+            </CardContent>
+            <CardFooter className="flex-col items-start gap-4 border-t pt-4">
+                 <p className="text-xs text-muted-foreground">Gérer les facturiers (Senelec, SDE) et les opérateurs Mobile Money (Wave, OM).</p>
             </CardFooter>
         </Card>
       </div>

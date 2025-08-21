@@ -110,7 +110,6 @@ export default function IslamicFinancing({ onBack }: IslamicFinancingProps) {
   const handleReset = () => {
       setAssessmentResult(null);
       form.reset();
-      onBack();
   }
 
   if (assessmentResult) {
@@ -119,16 +118,6 @@ export default function IslamicFinancing({ onBack }: IslamicFinancingProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Button onClick={onBack} variant="ghost" size="icon">
-          <ArrowLeft />
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-primary">Demande de Financement</h2>
-          <p className="text-muted-foreground">Financez vos projets en accord avec vos valeurs.</p>
-        </div>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg mx-auto">
           <Alert>

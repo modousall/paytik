@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, Package, FileText, ScanLine, Share2, Handshake } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, Handshake } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -24,7 +24,6 @@ type UserInfo = {
 type HomeActionsProps = { 
     onSendClick: () => void; 
     onRechargeClick: () => void;
-    onWithdrawClick: () => void;
     onFinancingClick: () => void;
     alias: string;
     userInfo: UserInfo;
@@ -78,7 +77,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
     );
 }
 
-export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
     const { toast } = useToast();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -129,7 +128,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 <Dialog onOpenChange={(open) => !open && setPaymentLink(null)}>
                     <DialogTrigger asChild>
                         <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1">
-                            <FileText/> Demander
+                            <Share2/> Demander
                         </Button>
                     </DialogTrigger>
                      {paymentLink ? (
@@ -151,7 +150,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                     )}
                 </Dialog>
 
-                <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
+                <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => handlePlaceholderClick("Retrait")}>
                     <Landmark/> Retirer
                 </Button>
             </div>
@@ -159,16 +158,8 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
     }
 
     // Client View
-    const clientActions = [
-        { id: 'receive', title: 'Recevoir', icon: <ArrowDown/>, dialog: true },
-        { id: 'send', title: 'Payer', icon: <ArrowUp/>, onClick: onSendClick, primary: true },
-        { id: 'recharge', title: 'Dépôt', icon: <PlusCircle/>, onClick: onRechargeClick },
-        { id: 'withdraw', title: 'Retrait', icon: <Landmark/>, onClick: onWithdrawClick, secondary: true },
-        { id: 'finance', title: 'Financement', icon: <Handshake/>, onClick: onFinancingClick, secondary: true }
-    ];
-
     return (
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
              <Dialog>
                 <DialogTrigger asChild>
                      <Button variant="outline" size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
@@ -199,11 +190,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
             <Button size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onRechargeClick}>
                 <PlusCircle/> Dépôt
             </Button>
-            
-            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
-                <Landmark/> Retirer
-            </Button>
-            
+                       
             <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
                 <Handshake/> Financement
             </Button>

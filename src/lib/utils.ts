@@ -9,9 +9,9 @@ export const formatCurrency = (value?: number | null): string => {
     if (value === null || value === undefined) {
         return `0 F`;
     }
-    const formatted = value.toLocaleString('fr-FR', {
+    const formatted = new Intl.NumberFormat('fr-FR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    });
-    return `${formatted.replace(/,/g, '.')} F`;
+    }).format(value);
+    return `${formatted} F`;
 };
