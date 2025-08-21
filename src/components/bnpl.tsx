@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -16,12 +16,20 @@ import QRCodeScanner from './qr-code-scanner';
 import { useBnpl } from '@/hooks/use-bnpl';
 import type { BnplAssessmentOutput } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant de l'achat doit être positif." }),
   downPayment: z.coerce.number().min(0, "L'avance ne peut être négative.").optional(),
-  duration: z.string().min(1, { message: "La durée est requise." }),
+  repaymentFrequency: z.string().min(1, "La périodicité est requise."),
+  installmentsCount: z.coerce.number().int().positive("Le nombre d'échéances est requis."),
+  firstInstallmentDate: z.date({ required_error: "La date de première échéance est requise." }),
+  marginRate: z.coerce.number().min(0, "Le taux de marge ne peut être négatif."),
 });
 
 type BnplFormValues = z.infer<typeof bnplFormSchema>;
@@ -90,14 +98,23 @@ export default function BNPL({ onBack }: BnplProps) {
       merchantAlias: '',
       amount: '' as any,
       downPayment: '' as any,
-      duration: '3',
+      repaymentFrequency: "monthly",
+      installmentsCount: 3,
+      marginRate: 0,
     },
   });
 
   const onSubmit = async (values: BnplFormValues) => {
     setIsLoading(true);
     try {
-      const result = await submitRequest(values.merchantAlias, values.amount);
+      const result = await submitRequest({
+          merchantAlias: values.merchantAlias, 
+          amount: values.amount,
+          installmentsCount: values.installmentsCount,
+          marginRate: values.marginRate,
+          repaymentFrequency: values.repaymentFrequency,
+          firstInstallmentDate: values.firstInstallmentDate.toISOString(),
+      });
       setAssessmentResult(result);
     } catch(e) {
       console.error(e);
@@ -202,34 +219,91 @@ export default function BNPL({ onBack }: BnplProps) {
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-2 gap-4">
-                <FormField
+            <div className="grid grid-cols-2 gap-4">
+                 <FormField
                     control={form.control}
-                    name="duration"
+                    name="installmentsCount"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Durée</FormLabel>
+                            <FormLabel>Nombre d'échéances</FormLabel>
+                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="repaymentFrequency"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Périodicité</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionnez..." />
-                                </SelectTrigger>
-                                </FormControl>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionnez..." /></SelectTrigger></FormControl>
                                 <SelectContent>
-                                    <SelectItem value="1">1 mois</SelectItem>
-                                    <SelectItem value="2">2 mois</SelectItem>
-                                    <SelectItem value="3">3 mois</SelectItem>
+                                    <SelectItem value="weekly">Hebdomadaire</SelectItem>
+                                    <SelectItem value="bi-monthly">Bi-mensuel</SelectItem>
+                                    <SelectItem value="monthly">Mensuel</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <FormItem>
-                    <FormLabel>Taux de marge</FormLabel>
-                    <Input value="0% (Halal)" readOnly disabled />
-                </FormItem>
-           </div>
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstInstallmentDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Date 1ère échéance</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <FormControl>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    {field.value ? (
+                                        format(field.value, "PPP", { locale: fr })
+                                    ) : (
+                                        <span>Choisissez une date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date < new Date() || date > new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                                    }
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="marginRate"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Taux de marge (%)</FormLabel>
+                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
 
 
           <Button type="submit" className="w-full py-6" disabled={isLoading}>
@@ -241,3 +315,5 @@ export default function BNPL({ onBack }: BnplProps) {
     </div>
   );
 }
+
+    

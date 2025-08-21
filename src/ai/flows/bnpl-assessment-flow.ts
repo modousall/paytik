@@ -26,23 +26,28 @@ Critères d'évaluation :
 1.  **Montant de l'achat** : Si le montant est très élevé (ex: > 150 000 Fcfa), soyez prudent.
 2.  **Historique des transactions** : Un utilisateur avec un historique de transactions régulier et des revenus (received) est un bon candidat. Un utilisateur sans historique est à haut risque.
 3.  **Solde actuel** : Un solde actuel très bas peut indiquer un risque.
+4.  **Conditions du crédit** : Un taux de marge élevé ou une périodicité de remboursement très courte pour un montant élevé peuvent augmenter le risque.
 
 Règles de décision :
-- **Approuver** : Pour les montants raisonnables (< 100 000 Fcfa) avec un bon historique de transactions.
+- **Approuver** : Pour les montants raisonnables (< 100 000 Fcfa) avec un bon historique de transactions et des conditions de crédit standard.
 - **Rejeter** : Pour les nouveaux utilisateurs sans historique ou pour des montants clairement excessifs sans historique pour le justifier.
-- **Mettre en examen (review)** : Pour les cas limites, comme un montant élevé mais un bon historique, ou un utilisateur relativement nouveau avec un montant modéré.
+- **Mettre en examen (review)** : Pour les cas limites, comme un montant élevé mais un bon historique, ou un utilisateur relativement nouveau avec un montant modéré, ou des conditions de crédit inhabituelles (taux élevé, etc.).
 
 Informations sur le demandeur :
 Alias: {{{alias}}}
 Montant de l'achat : {{{purchaseAmount}}} Fcfa
 Solde actuel : {{{currentBalance}}} Fcfa
+Nombre d'échéances: {{{installmentsCount}}}
+Périodicité de remboursement: {{{repaymentFrequency}}}
+Date de première échéance: {{{firstInstallmentDate}}}
+Taux de marge: {{{marginRate}}}%
 
 Historique des transactions:
 {{#each transactionHistory}}
 - {{this.type}} de {{this.amount}} Fcfa le {{this.date}}
 {{/each}}
 
-Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et concise pour votre décision, et si approuvé, un plan de remboursement simple (ex: "3 versements mensuels de X Fcfa").
+Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et concise pour votre décision, et si approuvé, un plan de remboursement simple (ex: "{{{installmentsCount}}} versements de X Fcfa").
 `,
   });
 
@@ -60,3 +65,5 @@ Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et co
 
   return bnplAssessmentFlow(input);
 }
+
+    

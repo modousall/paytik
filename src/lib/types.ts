@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // BNPL (Buy Now, Pay Later) Schemas and Types
@@ -14,6 +15,10 @@ export const BnplAssessmentInputSchema = z.object({
     )
     .describe("A summary of the user's recent transaction history."),
   currentBalance: z.number().describe('The current main balance of the user.'),
+  repaymentFrequency: z.string().describe('The frequency of repayments (e.g., weekly, monthly).'),
+  installmentsCount: z.number().describe('The total number of installments.'),
+  firstInstallmentDate: z.string().describe('The date of the first installment.'),
+  marginRate: z.number().describe('The margin rate for the credit.'),
 });
 export type BnplAssessmentInput = z.infer<typeof BnplAssessmentInputSchema>;
 
@@ -41,3 +46,5 @@ export type BnplRequest = {
     requestDate: string;
     repaidAmount?: number;
 };
+
+    

@@ -6,9 +6,17 @@ import { assessBnplApplication } from '@/ai/flows/bnpl-assessment-flow';
 import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
-import type { BnplRequest, BnplAssessmentOutput } from '@/lib/types';
+import type { BnplRequest, BnplAssessmentOutput, BnplAssessmentInput } from '@/lib/types';
 import { useUserManagement } from './use-user-management';
 
+type SubmitRequestPayload = {
+    merchantAlias: string;
+    amount: number;
+    installmentsCount: number;
+    marginRate: number;
+    repaymentFrequency: string;
+    firstInstallmentDate: string;
+};
 
 type BnplContextType = {
   allRequests: BnplRequest[];
@@ -19,7 +27,7 @@ type BnplContextType = {
     pendingRequests: number;
     approvalRate: number;
   };
-  submitRequest: (merchantAlias: string, amount: number) => Promise<BnplAssessmentOutput>;
+  submitRequest: (payload: SubmitRequestPayload) => Promise<BnplAssessmentOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
   repayCredit: (amount: number) => void;
 };
@@ -93,21 +101,27 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   }, [allRequests]);
 
 
-  const submitRequest = async (merchantAlias: string, amount: number): Promise<BnplAssessmentOutput> => {
+  const submitRequest = async (payload: SubmitRequestPayload): Promise<BnplAssessmentOutput> => {
       const transactionHistory = transactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
 
-      const assessmentResult = await assessBnplApplication({
+      const assessmentInput: BnplAssessmentInput = {
         alias,
-        purchaseAmount: amount,
+        purchaseAmount: payload.amount,
         currentBalance: balance,
-        transactionHistory: transactionHistory,
-      });
+        transactionHistory,
+        installmentsCount: payload.installmentsCount,
+        marginRate: payload.marginRate,
+        repaymentFrequency: payload.repaymentFrequency,
+        firstInstallmentDate: payload.firstInstallmentDate,
+      }
+
+      const assessmentResult = await assessBnplApplication(assessmentInput);
 
       const newRequest: BnplRequest = {
           id: `bnpl-${Date.now()}`,
           alias,
-          merchantAlias,
-          amount,
+          merchantAlias: payload.merchantAlias,
+          amount: payload.amount,
           status: assessmentResult.status,
           reason: assessmentResult.reason,
           repaymentPlan: assessmentResult.repaymentPlan,
@@ -118,13 +132,13 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          credit(amount);
+          credit(payload.amount);
           
           addTransaction({
               type: 'received',
               counterparty: 'Credit Marchands',
-              reason: `Crédit approuvé pour achat chez ${merchantAlias}`,
-              amount,
+              reason: `Crédit approuvé pour achat chez ${payload.merchantAlias}`,
+              amount: payload.amount,
               date: new Date().toISOString(),
               status: 'Terminé'
           });
@@ -280,3 +294,5 @@ export const useBnpl = () => {
   }
   return context;
 };
+
+    
