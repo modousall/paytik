@@ -28,6 +28,7 @@ import type { BnplRequest, BnplStatus } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import CreditRequestDetails from './credit-request-details';
 
 // Import product components
 import Vaults from './vaults';
@@ -204,16 +205,23 @@ const MerchantCreditDetails = ({ requests }: { requests: BnplRequest[] }) => (
                 </TableHeader>
                 <TableBody>
                 {requests.map(req => (
-                    <TableRow key={req.id}>
-                        <TableCell>{formatDate(req.requestDate)}</TableCell>
-                        <TableCell>{req.alias}</TableCell>
-                        <TableCell>{formatCurrency(req.amount)}</TableCell>
-                        <TableCell>
-                             <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
-                                {statusConfig[req.status].icon} {statusConfig[req.status].text}
-                            </Badge>
-                        </TableCell>
-                    </TableRow>
+                    <Dialog key={req.id}>
+                        <DialogTrigger asChild>
+                            <TableRow className="cursor-pointer">
+                                <TableCell>{formatDate(req.requestDate)}</TableCell>
+                                <TableCell>{req.alias}</TableCell>
+                                <TableCell>{formatCurrency(req.amount)}</TableCell>
+                                <TableCell>
+                                    <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
+                                        {statusConfig[req.status].icon} {statusConfig[req.status].text}
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <CreditRequestDetails request={req} />
+                        </DialogContent>
+                    </Dialog>
                 ))}
                 </TableBody>
             </Table>
@@ -413,9 +421,5 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
-
-    
-
-    
 
     
