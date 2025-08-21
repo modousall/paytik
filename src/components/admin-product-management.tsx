@@ -7,7 +7,7 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark } from 'lucide-react';
+import { Trash2, Edit, PlusCircle, Power, PowerOff, Landmark, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
