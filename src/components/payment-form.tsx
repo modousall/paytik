@@ -1,5 +1,6 @@
 
-"use client";
+
+"use client"
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -28,7 +29,7 @@ export const creditProposalSchema = z.object({
   repaymentFrequency: z.string(),
   installmentsCount: z.number(),
   firstInstallmentDate: z.string(),
-  marginRate: z.number(), // Ensure marginRate is part of the schema
+  marginRate: z.number(),
 });
 export type CreditProposal = z.infer<typeof creditProposalSchema>;
 
@@ -123,7 +124,6 @@ export default function PaymentForm() {
   const handleScannedCode = (decodedText: string) => {
     try {
         const data = JSON.parse(decodedText);
-        // Check for BNPL proposal
         const proposalResult = creditProposalSchema.safeParse(data);
         if (proposalResult.success) {
             const { type, clientAlias, ...proposal } = proposalResult.data;
@@ -142,12 +142,10 @@ export default function PaymentForm() {
             }
             toast({ title: "Code marchand scanné !", description: "Les détails du paiement ont été pré-remplis." });
         } else {
-            // Handle non-JSON or other formats
             form.setValue('recipientAlias', decodedText, { shouldValidate: true });
             toast({ title: "Code scanné", description: "Le code a été inséré." });
         }
     } catch(e) {
-        // Not a JSON, treat as raw string
         form.setValue('recipientAlias', decodedText, { shouldValidate: true });
         toast({ title: "Code scanné", description: "Le code a été inséré." });
     }
