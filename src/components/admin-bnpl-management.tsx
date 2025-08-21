@@ -14,6 +14,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AdminUserDetail from './admin-user-detail';
 import { useUserManagement, type ManagedUserWithDetails } from '@/hooks/use-user-management';
+import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import CreditRequestDetails from './credit-request-details';
+
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
@@ -122,34 +125,41 @@ export default function AdminBnplManagement() {
                         </TableHeader>
                         <TableBody>
                             {filteredRequests.map(req => (
-                                <TableRow key={req.id}>
-                                    <TableCell>{formatDate(req.requestDate)}</TableCell>
-                                    <TableCell>
-                                        <Button variant="link" className="p-0 h-auto" onClick={() => handleUserSelect(req.alias)}>
-                                        {req.alias}
-                                        </Button>
-                                    </TableCell>
-                                    <TableCell>{req.merchantAlias}</TableCell>
-                                    <TableCell>{formatCurrency(req.amount)}</TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
-                                            {statusConfig[req.status].icon} {statusConfig[req.status].text}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {req.status === 'review' && (
-                                            <div className="flex gap-2 justify-end">
-                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req.id, 'approved')}>
-                                                    <Check className="mr-1" size={16}/> Approuver
+                                <Dialog key={req.id}>
+                                    <DialogTrigger asChild>
+                                        <TableRow className="cursor-pointer">
+                                            <TableCell>{formatDate(req.requestDate)}</TableCell>
+                                            <TableCell>
+                                                <Button variant="link" className="p-0 h-auto" onClick={(e) => {e.stopPropagation(); handleUserSelect(req.alias);}}>
+                                                {req.alias}
                                                 </Button>
-                                                <Button size="sm" variant="destructive" onClick={() => handleUpdateRequest(req.id, 'rejected')}>
-                                                    <X className="mr-1" size={16}/> Rejeter
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
+                                            </TableCell>
+                                            <TableCell>{req.merchantAlias}</TableCell>
+                                            <TableCell>{formatCurrency(req.amount)}</TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">{req.reason}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={statusConfig[req.status].badgeVariant} className="gap-1">
+                                                    {statusConfig[req.status].icon} {statusConfig[req.status].text}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {req.status === 'review' && (
+                                                    <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                                                        <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleUpdateRequest(req.id, 'approved')}>
+                                                            <Check className="mr-1" size={16}/> Approuver
+                                                        </Button>
+                                                        <Button size="sm" variant="destructive" onClick={() => handleUpdateRequest(req.id, 'rejected')}>
+                                                            <X className="mr-1" size={16}/> Rejeter
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    </DialogTrigger>
+                                     <DialogContent>
+                                        <CreditRequestDetails request={req} />
+                                    </DialogContent>
+                                </Dialog>
                             ))}
                         </TableBody>
                     </Table>

@@ -11,6 +11,7 @@ import { CreditCard, Users, Clock, PiggyBank, Wallet, ArrowLeft } from 'lucide-r
 import AdminFeatureDetail from './admin-feature-detail';
 import AdminBnplManagement from './admin-bnpl-management';
 import { Button } from './ui/button';
+import { useBnpl } from '@/hooks/use-bnpl';
 
 const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()} Fcfa`;
 
@@ -45,6 +46,7 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
 export default function AdminFeatureManagement() {
   const { flags, setFlag } = useFeatureFlags();
   const { users } = useUserManagement();
+  const { kpis: bnplKpis } = useBnpl();
   const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'bnplManagement'>('overview');
   const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | null>(null);
 
@@ -122,9 +124,11 @@ export default function AdminFeatureManagement() {
                 <CardTitle className="text-lg font-semibold">Credit Marchands</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
-                 <p className="text-sm text-muted-foreground">Gérer les demandes de paiement échelonné et activer ou désactiver la fonctionnalité.</p>
+                 <p className="text-3xl font-bold">{formatCurrency(bnplKpis.totalApprovedAmount)}</p>
+                 <p className="text-sm text-muted-foreground">Total des actifs sur la plateforme</p>
             </CardContent>
             <CardFooter className="flex-col items-start gap-4 border-t pt-4">
+                 <p className="text-xs text-muted-foreground">Gérer les demandes de paiement échelonné et activer ou désactiver la fonctionnalité.</p>
                  <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                     <Switch
                         id="bnpl-switch"
