@@ -72,7 +72,7 @@ type PaymentRequestValues = z.infer<typeof paymentRequestSchema>;
 const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: string, userInfo: UserInfo, onGenerate: (link: string) => void }) => {
     const form = useForm<PaymentRequestValues>({
         resolver: zodResolver(paymentRequestSchema),
-        defaultValues: { amount: undefined, reason: "" },
+        defaultValues: { amount: '' as any, reason: "" },
     });
 
     const onSubmit = (values: PaymentRequestValues) => {
