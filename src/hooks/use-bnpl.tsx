@@ -7,7 +7,7 @@ import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
 import type { BnplRequest, BnplAssessmentOutput, BnplAssessmentInput } from '@/lib/types';
-import { useUserManagement } from './use-user-management';
+import { useUserManagement, type ManagedUser } from './use-user-management';
 
 type SubmitRequestPayload = {
     merchantAlias: string;
@@ -29,7 +29,7 @@ type BnplContextType = {
     approvalRate: number;
   };
   submitRequest: (payload: SubmitRequestPayload) => Promise<BnplAssessmentOutput>;
-  updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
+  updateRequestStatus: (id: string, status: 'approved' | 'rejected', users: ManagedUser[]) => void;
   repayCredit: (amount: number) => void;
 };
 
@@ -47,7 +47,6 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
   const { balance, debit, credit } = useBalance();
-  const { users } = useUserManagement();
 
   useEffect(() => {
     try {
@@ -163,7 +162,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       return assessmentResult;
   };
 
-  const updateRequestStatus = (id: string, status: 'approved' | 'rejected') => {
+  const updateRequestStatus = (id: string, status: 'approved' | 'rejected', users: ManagedUser[]) => {
       const requestToUpdate = allRequests.find(r => r.id === id);
       if (!requestToUpdate) {
         console.error("BNPL request not found");
@@ -178,7 +177,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         try {
             const userToCredit = users.find(u => u.alias === requestToUpdate.alias);
             const merchantToPay = users.find(u => u.alias === requestToUpdate.merchantAlias);
-
+            
             if (!userToCredit || !merchantToPay) {
                 throw new Error("Utilisateur ou marchand introuvable pour la transaction BNPL.");
             }
@@ -310,5 +309,3 @@ export const useBnpl = () => {
   }
   return context;
 };
-
-    
