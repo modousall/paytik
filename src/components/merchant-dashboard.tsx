@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine, Smartphone, Store } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine, Smartphone, Store, Calculator } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -21,6 +21,7 @@ import { useProductManagement } from "@/hooks/use-product-management";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useTransactions } from "@/hooks/use-transactions";
 import { Html5Qrcode } from "html5-qrcode";
+import AdminTegSimulator from "./admin-teg-simulator";
 
 type UserInfo = {
     name: string;
@@ -344,9 +345,19 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
             <header className="bg-background border-b shadow-sm sticky top-0 z-10">
                 <div className="container mx-auto p-4 flex justify-between items-center">
                     <h1 className="text-xl font-bold text-primary">Tableau de Bord Marchand</h1>
-                    <Button variant="outline" onClick={onLogout}>
-                        <LogOut className="mr-2" /> Déconnexion
-                    </Button>
+                    <div className="flex items-center gap-2">
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="secondary">
+                                    <Calculator className="mr-2"/> Simulateur TEG
+                                </Button>
+                            </DialogTrigger>
+                            <AdminTegSimulator />
+                        </Dialog>
+                        <Button variant="outline" onClick={onLogout}>
+                            <LogOut className="mr-2" /> Déconnexion
+                        </Button>
+                    </div>
                 </div>
             </header>
             

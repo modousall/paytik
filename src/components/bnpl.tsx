@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -21,6 +21,7 @@ import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import AdminTegSimulator from './admin-teg-simulator';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -98,9 +99,9 @@ export default function BNPL({ onBack }: BnplProps) {
       merchantAlias: '',
       amount: '' as any,
       downPayment: '' as any,
-      repaymentFrequency: "monthly",
-      installmentsCount: 3,
-      marginRate: 0,
+      repaymentFrequency: "weekly",
+      installmentsCount: 17,
+      marginRate: 0.2856,
     },
   });
 
@@ -145,14 +146,24 @@ export default function BNPL({ onBack }: BnplProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Button onClick={onBack} variant="ghost" size="icon">
-          <ArrowLeft />
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-primary">Credit Marchands (BNPL)</h2>
-          <p className="text-muted-foreground">Financez vos achats et payez en plusieurs fois.</p>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+            <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft />
+            </Button>
+            <div>
+            <h2 className="text-2xl font-bold text-primary">Credit Marchands (BNPL)</h2>
+            <p className="text-muted-foreground">Financez vos achats et payez en plusieurs fois.</p>
+            </div>
         </div>
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="secondary">
+                    <Calculator className="mr-2"/> Simulateur TEG
+                </Button>
+            </DialogTrigger>
+            <AdminTegSimulator />
+        </Dialog>
       </div>
 
       <Form {...form}>
@@ -297,8 +308,8 @@ export default function BNPL({ onBack }: BnplProps) {
                     name="marginRate"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Taux de marge (%)</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormLabel>Taux de marge (% hebdo)</FormLabel>
+                            <FormControl><Input type="number" {...field} readOnly className="bg-muted" /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -315,5 +326,3 @@ export default function BNPL({ onBack }: BnplProps) {
     </div>
   );
 }
-
-    
