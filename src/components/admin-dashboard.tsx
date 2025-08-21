@@ -9,7 +9,7 @@ import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminRoleManagement from "./admin-role-management";
 import AdminFeatureManagement from "./admin-feature-management";
 import AdminMerchantManagement from "./admin-merchant-management";
-import AdminFinancingManagement from "./admin-financing-management";
+import AdminFinancingHub from "./admin-financing-hub";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 type AdminDashboardProps = {
@@ -22,7 +22,7 @@ const adminFeatures: {id: AdminView, title: string, description: string, icon: J
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
     { id: "merchants", title: "Gestion des Marchands", description: "Gérer les comptes et les profils des marchands.", icon: <Building /> },
     { id: "transactions", title: "Centre d'Analyse", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
-    { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de financement islamique.", icon: <HandCoins /> },
+    { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de crédit et de financement.", icon: <HandCoins /> },
     { id: "services", title: "Gestion des Services", description: "Configurer les fonctionnalités et les facturiers.", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
@@ -39,7 +39,7 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
             case 'transactions':
                 return <AdminTransactionAnalysis />;
             case 'financing':
-                return <AdminFinancingManagement />;
+                return <AdminFinancingHub />;
             case 'services':
                 return <AdminFeatureManagement />;
             case 'roles':

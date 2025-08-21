@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -62,9 +61,9 @@ export default function AdminBnplManagement() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Gestion des Demandes de Credit Marchands</CardTitle>
+                    <CardTitle>Gestion des Demandes de Crédit Achat</CardTitle>
                     <CardDescription>
-                        Examinez, approuvez ou rejetez les demandes de paiement échelonné des utilisateurs.
+                        Examinez, approuvez ou rejetez les demandes de paiement échelonné des utilisateurs. Midi finance le client, qui rembourse Midi.
                     </CardDescription>
                 </CardHeader>
             </Card>

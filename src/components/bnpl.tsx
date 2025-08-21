@@ -102,7 +102,7 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | nul
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer par Midi</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
                  <hr/>
                  <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
@@ -291,7 +291,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                 <ArrowLeft />
             </Button>
             <div>
-            <h2 className="text-2xl font-bold text-primary">Credit Marchands</h2>
+            <h2 className="text-2xl font-bold text-primary">Crédit Achat</h2>
             <p className="text-muted-foreground">{prefillData ? "Confirmez votre demande de crédit." : "Financez vos achats et payez en plusieurs fois."}</p>
             </div>
         </div>
@@ -303,7 +303,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             <Info className="h-4 w-4" />
             <AlertTitle>Information</AlertTitle>
             <AlertDescription>
-              Ce service est soumis à une vérification d'éligibilité par IA. La soumission ne garantit pas l'approbation.
+              Ce service de crédit vous est offert par Midi pour votre achat. La soumission ne garantit pas l'approbation.
             </AlertDescription>
           </Alert>
 
@@ -471,15 +471,15 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             Soumettre la demande
           </Button>
           
-          {showConfirmation && formValuesForConfirmation && (
-            <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+            {formValuesForConfirmation && (
                 <ConfirmationDialog 
                     values={formValuesForConfirmation}
                     onConfirm={onConfirmSubmit}
                     onCancel={() => setShowConfirmation(false)}
                 />
-            </Dialog>
-          )}
+            )}
+          </Dialog>
 
         </form>
       </Form>
