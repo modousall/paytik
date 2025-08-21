@@ -18,28 +18,49 @@ import QRCodeScanner from './qr-code-scanner';
 import { formatCurrency } from '@/lib/utils';
 
 const picashFormSchema = z.object({
-  merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
+  alias: z.string().min(1, { message: "L'alias est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant du retrait doit être positif." }),
 });
 
 type PicashFormValues = z.infer<typeof picashFormSchema>;
 
+type PicoMode = 'compense' | 'customer_withdrawal';
+
 type PicashProps = {
   onBack: () => void;
+  mode: PicoMode;
 };
 
-export default function PICASH({ onBack }: PicashProps) {
+const formConfig: Record<PicoMode, { title: string, description: string, aliasLabel: string, aliasPlaceholder: string, buttonText: string }> = {
+    'compense': {
+        title: "Retrait / Compensation",
+        description: "Générez un code pour retirer du cash chez un autre marchand ou un point de service.",
+        aliasLabel: "Alias ou Code Marchand",
+        aliasPlaceholder: "Entrez l'identifiant du marchand",
+        buttonText: "Générer le code de retrait"
+    },
+    'customer_withdrawal': {
+        title: "Retrait Client",
+        description: "Entrez les informations du client pour effectuer un retrait d'argent pour lui.",
+        aliasLabel: "Alias du Client",
+        aliasPlaceholder: "Entrez l'alias du client",
+        buttonText: "Effectuer le retrait pour le client"
+    }
+}
+
+export default function PICASH({ onBack, mode }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
   const { balance, debit } = useBalance();
   const { addTransaction } = useTransactions();
+  const config = formConfig[mode];
 
   const form = useForm<PicashFormValues>({
     resolver: zodResolver(picashFormSchema),
     defaultValues: {
-      merchantAlias: '',
+      alias: '',
       amount: '' as any,
     },
   });
@@ -48,20 +69,25 @@ export default function PICASH({ onBack }: PicashProps) {
     if (values.amount > balance) {
         toast({
             title: "Solde insuffisant",
-            description: "Votre solde principal est insuffisant pour effectuer ce retrait.",
+            description: "Votre solde est insuffisant pour effectuer cette opération.",
             variant: "destructive",
         });
         return;
     }
 
     setIsLoading(true);
-    // Simulate API call to generate a withdrawal code
+    // Simulate API call
     setTimeout(() => {
       debit(values.amount);
+      
+      const transactionReason = mode === 'compense' 
+        ? 'Retrait de fonds via partenaire'
+        : `Retrait cash pour client ${values.alias}`;
+        
       addTransaction({
           type: "sent",
-          counterparty: `Retrait - ${values.merchantAlias}`,
-          reason: `Retrait d'argent`,
+          counterparty: mode === 'compense' ? `Compensation - ${values.alias}` : `Retrait Client - ${values.alias}`,
+          reason: transactionReason,
           date: new Date().toISOString(),
           amount: values.amount,
           status: "Terminé",
@@ -70,8 +96,8 @@ export default function PICASH({ onBack }: PicashProps) {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setGeneratedCode(code);
       toast({
-        title: 'Code de retrait généré',
-        description: `Présentez ce code au marchand ${values.merchantAlias} pour retirer ${formatCurrency(values.amount)}.`,
+        title: 'Opération réussie',
+        description: `Un code a été généré pour valider l'opération.`,
       });
       setIsLoading(false);
     }, 1500);
@@ -89,9 +115,9 @@ export default function PICASH({ onBack }: PicashProps) {
   }
   
   const handleScannedCode = (decodedText: string) => {
-    form.setValue('merchantAlias', decodedText, { shouldValidate: true });
+    form.setValue('alias', decodedText, { shouldValidate: true });
     setIsScannerOpen(false);
-    toast({ title: "Code Scanné", description: "L'alias du marchand a été inséré." });
+    toast({ title: "Code Scanné", description: "L'alias a été inséré." });
   }
 
   if (generatedCode) {
@@ -101,12 +127,17 @@ export default function PICASH({ onBack }: PicashProps) {
                 <Button onClick={resetForm} variant="ghost" size="icon">
                     <ArrowLeft />
                 </Button>
-                <h2 className="text-2xl font-bold text-primary">Code de Retrait</h2>
+                <h2 className="text-2xl font-bold text-primary">Code de Validation</h2>
             </div>
             <Card className="max-w-sm mx-auto text-center">
                 <CardHeader>
-                    <CardTitle>Votre code à usage unique</CardTitle>
-                    <CardDescription>Présentez ce code au marchand pour finaliser votre retrait.</CardDescription>
+                    <CardTitle>Code à usage unique</CardTitle>
+                    <CardDescription>
+                        {mode === 'compense' 
+                            ? "Présentez ce code au marchand pour finaliser votre retrait." 
+                            : "Donnez ce code au client pour qu'il le confirme sur son téléphone."
+                        }
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="bg-muted p-4 rounded-lg">
@@ -128,8 +159,8 @@ export default function PICASH({ onBack }: PicashProps) {
           <ArrowLeft />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-primary">Retrait d'Argent</h2>
-          <p className="text-muted-foreground">Générez un code pour retirer du cash chez un marchand.</p>
+          <h2 className="text-2xl font-bold text-primary">{config.title}</h2>
+          <p className="text-muted-foreground">{config.description}</p>
         </div>
       </div>
 
@@ -137,13 +168,13 @@ export default function PICASH({ onBack }: PicashProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg mx-auto">
           <FormField
             control={form.control}
-            name="merchantAlias"
+            name="alias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Alias ou Code Marchand</FormLabel>
+                <FormLabel>{config.aliasLabel}</FormLabel>
                 <FormControl>
                     <div className="flex gap-2">
-                        <Input placeholder="Entrez l'identifiant du marchand" {...field} />
+                        <Input placeholder={config.aliasPlaceholder} {...field} />
                          <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                             <DialogTrigger asChild>
                                 <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
@@ -152,7 +183,7 @@ export default function PICASH({ onBack }: PicashProps) {
                             </DialogTrigger>
                             <DialogContent className="max-w-md p-0">
                                 <DialogHeader className="p-4">
-                                    <DialogTitle>Scanner le code du marchand</DialogTitle>
+                                    <DialogTitle>Scanner le code QR</DialogTitle>
                                 </DialogHeader>
                                 <QRCodeScanner onScan={handleScannedCode}/>
                             </DialogContent>
@@ -168,7 +199,7 @@ export default function PICASH({ onBack }: PicashProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant à retirer</FormLabel>
+                <FormLabel>Montant du retrait</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="ex: 20000" {...field} />
                 </FormControl>
@@ -179,7 +210,7 @@ export default function PICASH({ onBack }: PicashProps) {
 
           <Button type="submit" className="w-full py-6" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Générer le code de retrait
+            {config.buttonText}
           </Button>
         </form>
       </Form>

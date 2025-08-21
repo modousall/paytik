@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, Landmark, QrCode, Clock, Link, HandCoins, ArrowDownCircle } from 'lucide-react';
+import { LogOut, BarChart3, Landmark, QrCode, Clock, Link as LinkIcon, HandCoins, ArrowDownCircle } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -113,7 +113,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
 
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [isProposalFormOpen, setIsProposalFormOpen] = useState(false);
-    const [activeAction, setActiveAction] = useState<'none' | 'retirer' | 'retrait-client'>('none');
+    const [activeAction, setActiveAction] = useState<'none' | 'compense' | 'retrait-client'>('none');
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
     const { toast } = useToast();
     
@@ -131,17 +131,17 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
         }
     };
   
-    if(activeAction === 'retirer') {
+    if(activeAction === 'compense') {
         return (
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <PICASH onBack={() => setActiveAction('none')} />
+                <PICASH onBack={() => setActiveAction('none')} mode="compense"/>
             </div>
         )
     }
     if (activeAction === 'retrait-client') {
         return (
              <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <PICASH onBack={() => setActiveAction('none')} />
+                <PICASH onBack={() => setActiveAction('none')} mode="customer_withdrawal"/>
             </div>
         )
     }
@@ -181,7 +181,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                     <Dialog onOpenChange={(open) => !open && setPaymentLink(null)}>
                                         <DialogTrigger asChild>
                                             <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1">
-                                                <Link/> Lien
+                                                <LinkIcon/> Lien
                                             </Button>
                                         </DialogTrigger>
                                         {paymentLink ? (
@@ -192,7 +192,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                                 </DialogHeader>
                                                 <Input readOnly value={paymentLink} />
                                                 <DialogFooter>
-                                                    <Button variant="secondary" onClick={handleShareLink}><Link className="mr-2"/> Partager</Button>
+                                                    <Button variant="secondary" onClick={handleShareLink}><LinkIcon className="mr-2"/> Partager</Button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         ) : (
@@ -202,7 +202,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                             </DialogContent>
                                         )}
                                     </Dialog>
-                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('retirer')}>
+                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('compense')}>
                                         <Landmark/> Compense
                                     </Button>
                                 </div>
