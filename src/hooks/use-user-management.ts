@@ -35,7 +35,7 @@ export type NewUserPayload = {
     email: string;
     alias: string;
     pincode: string;
-    role: 'support' | 'admin';
+    role: 'support' | 'admin' | 'merchant';
 }
 
 export const useUserManagement = () => {

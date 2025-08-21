@@ -127,7 +127,7 @@ export default function PICASH({ onBack }: PicashProps) {
           <ArrowLeft />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-primary">PICASH (Retrait d'argent)</h2>
+          <h2 className="text-2xl font-bold text-primary">Retrait</h2>
           <p className="text-muted-foreground">Générez un code pour retirer du cash chez un marchand.</p>
         </div>
       </div>

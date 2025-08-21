@@ -155,7 +155,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
     const canBeReversed = transaction.type !== 'tontine' && transaction.status !== 'Retourné' && transaction.type !== 'versement';
 
     return (
-        <DialogContent>
+        <DialogContent className="max-w-md">
              {/* Hidden receipt for rendering */}
             <div style={{ position: 'fixed', left: '-9999px', top: '-9999px' }}>
                 <div ref={receiptRef} style={{ width: '400px', padding: '20px', background: 'white' }}>
@@ -169,27 +169,27 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
                     ID de transaction : {transaction.id}
                 </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4 border-y">
+            <div className="space-y-3 py-4 border-y">
                 <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Montant</span>
+                    <span className="text-muted-foreground text-sm">Montant</span>
                     <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.type === 'sent' || transaction.type === 'versement' ? '-' : '+'}
                         {transaction.amount.toLocaleString()} Fcfa
                     </span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{transaction.type === 'sent' ? 'À' : 'De'}</span>
                     <span className="font-medium">{transaction.counterparty}</span>
                 </div>
-                <div className="flex justify-between items-start gap-4">
+                <div className="flex justify-between items-start gap-4 text-sm">
                     <span className="text-muted-foreground">Raison</span>
                     <span className="font-medium text-right">{transaction.reason}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{formatDate(transaction.date)}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Statut</span>
                     <Badge variant={transaction.status === 'Terminé' ? 'default' : transaction.status === 'Retourné' ? 'secondary' : 'destructive'} 
                            className={transaction.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
@@ -304,13 +304,13 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                                     <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary cursor-pointer">
                                         <TransactionIcon tx={tx}/>
                                         <div className="flex-grow">
-                                            <p className="font-semibold">{tx.counterparty}</p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="font-medium text-sm">{tx.counterparty}</p>
+                                            <p className="text-xs text-muted-foreground">
                                                 {showAll ? formatDate(tx.date) : tx.reason}
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <div className={`font-semibold ${tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
+                                            <div className={`font-medium text-sm ${tx.type === 'received' || tx.type === 'tontine' || tx.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
                                                 {tx.type === 'sent' || tx.type === 'versement' ? '-' : '+'}
                                                 {tx.amount.toLocaleString()} <span className="text-xs text-muted-foreground">Fcfa</span>
                                             </div>

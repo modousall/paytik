@@ -138,12 +138,12 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                     onClick={() => onNavigate(c.id)}
                 >
                     <div className="flex justify-between items-start">
-                        <p className="font-semibold text-sm sm:text-base">{c.title}</p>
+                        <p className="font-semibold text-sm">{c.title}</p>
                         {c.icon}
                     </div>
                     <div className="text-right mt-2 sm:mt-4">
-                        <p className="text-xl sm:text-2xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
-                        <p className="text-xs sm:text-sm opacity-80">Fcfa</p>
+                        <p className="text-xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
+                        <p className="text-xs opacity-80">Fcfa</p>
                     </div>
                      {c.creditBalance && c.creditBalance > 0 && (
                         <Dialog>

@@ -7,11 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Search } from "lucide-react";
+import { Search, PlusCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Input } from "./ui/input";
 import AdminUserDetail from "./admin-user-detail";
 import { TransactionsProvider } from "@/hooks/use-transactions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import AdminCreateUserForm from "./admin-create-user-form";
 
 const roleVariantMap: {[key: string]: 'default' | 'secondary' | 'destructive' | 'outline'} = {
     merchant: 'default',
@@ -21,6 +23,7 @@ export default function AdminMerchantManagement() {
     const { users, refreshUsers } = useUserManagement();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUser, setSelectedUser] = useState<ManagedUserWithDetails | null>(null);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const filteredMerchants = useMemo(() => {
         return users.filter(user => 
@@ -37,6 +40,11 @@ export default function AdminMerchantManagement() {
     
     const handleBackToList = () => {
         setSelectedUser(null);
+        refreshUsers();
+    }
+    
+    const handleUserCreated = () => {
+        setIsCreateDialogOpen(false);
         refreshUsers();
     }
 
@@ -56,14 +64,29 @@ export default function AdminMerchantManagement() {
                             <CardTitle>Gestion des Marchands ({filteredMerchants.length})</CardTitle>
                             <CardDescription>Consultez la liste des marchands. Cliquez pour voir les détails et les transactions.</CardDescription>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Rechercher un marchand..." 
-                                className="pl-8 w-48"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2">
+                             <div className="relative">
+                                <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Rechercher un marchand..." 
+                                    className="pl-8 w-48"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <PlusCircle className="mr-2"/> Ajouter un marchand
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Créer un nouveau marchand</DialogTitle>
+                                    </DialogHeader>
+                                    <AdminCreateUserForm onUserCreated={handleUserCreated} allowedRoles={['merchant']} />
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </CardHeader>

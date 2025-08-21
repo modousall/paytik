@@ -1,15 +1,10 @@
+
 "use client";
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { QrCode, Bell, Eye, EyeOff, User } from "lucide-react";
+import { Bell, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import QrCodeDisplay from './qr-code-display';
 import Notifications from "./notifications";
 import { Progress } from './ui/progress';
 import { useBalance } from '@/hooks/use-balance';
@@ -30,7 +25,7 @@ type HeaderProps = {
     onProfileClick: () => void;
 };
 
-export default function DashboardHeader({ userInfo, alias, onProfileClick }: HeaderProps) {
+export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProps) {
     const { balance } = useBalance();
     const { card } = useVirtualCard();
     const { vaults } = useVaults();
@@ -59,19 +54,10 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
                         <AvatarFallback>{userInfo.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Bienvenue,</p>
                         <p className="font-bold text-lg text-foreground">{userInfo.name}</p>
                     </div>
                 </button>
                  <div className="flex items-center gap-1">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon"><QrCode /></Button>
-                        </SheetTrigger>
-                        <SheetContent className="p-0">
-                            <QrCodeDisplay alias={alias} userInfo={userInfo} />
-                        </SheetContent>
-                    </Sheet>
                     <Notifications />
                  </div>
             </div>
@@ -80,11 +66,11 @@ export default function DashboardHeader({ userInfo, alias, onProfileClick }: Hea
                 <p className="text-sm text-muted-foreground">Solde Total</p>
                 <div className="flex items-center justify-center gap-2">
                      {isBalanceVisible ? (
-                        <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
-                            {totalBalance.toLocaleString()} <span className="text-base sm:text-lg font-normal">Fcfa</span>
+                        <p className="text-3xl font-bold tracking-tight text-primary">
+                            {totalBalance.toLocaleString()} <span className="text-lg font-normal">Fcfa</span>
                         </p>
                     ) : (
-                        <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
+                        <p className="text-3xl font-bold tracking-tight text-primary">
                             ••••••••
                         </p>
                     )}

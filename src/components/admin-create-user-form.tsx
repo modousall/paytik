@@ -16,33 +16,34 @@ const userSchema = z.object({
   email: z.string().email("L'email est invalide."),
   alias: z.string().min(3, "L'alias doit contenir au moins 3 caractères."),
   pincode: z.string().regex(/^\d{4}$/, "Le code PIN doit être composé de 4 chiffres."),
-  role: z.enum(['support', 'admin'], { required_error: "Le rôle est requis." }),
+  role: z.enum(['support', 'admin', 'merchant'], { required_error: "Le rôle est requis." }),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
 
 type AdminCreateUserFormProps = {
     onUserCreated: () => void;
+    allowedRoles?: ('support' | 'admin' | 'merchant')[];
 };
 
-export default function AdminCreateUserForm({ onUserCreated }: AdminCreateUserFormProps) {
+export default function AdminCreateUserForm({ onUserCreated, allowedRoles = ['support', 'admin'] }: AdminCreateUserFormProps) {
     const { toast } = useToast();
     const { addUser } = useUserManagement();
 
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
-        defaultValues: { name: "", email: "", alias: "", pincode: "", role: "support" },
+        defaultValues: { name: "", email: "", alias: "", pincode: "", role: allowedRoles[0] },
     });
 
     const onSubmit = (values: UserFormValues) => {
         const result = addUser({
             ...values,
-            role: values.role as 'support' | 'admin',
+            role: values.role as 'support' | 'admin' | 'merchant',
         });
 
         if (result.success) {
             toast({
-                title: "Utilisateur Interne Créé",
+                title: "Utilisateur Créé",
                 description: `Le compte pour ${values.name} a été créé avec succès.`
             });
             onUserCreated();
@@ -104,8 +105,9 @@ export default function AdminCreateUserForm({ onUserCreated }: AdminCreateUserFo
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="support">Support</SelectItem>
-                                    <SelectItem value="admin">Admin</SelectItem>
+                                    {allowedRoles.map(role => (
+                                        <SelectItem key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
