@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -38,6 +37,7 @@ import { formatCurrency } from '@/lib/utils';
 
 type VaultsProps = {
   onBack: () => void;
+  standalone?: boolean;
 };
 
 const vaultFormSchema = z.object({
@@ -237,32 +237,34 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
     )
 }
 
-export default function Vaults({ onBack }: VaultsProps) {
+export default function Vaults({ onBack, standalone = true }: VaultsProps) {
   const { vaults } = useVaults();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex items-center gap-4">
-          <Button onClick={onBack} variant="ghost" size="icon">
-            <ArrowLeft />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-primary">Mes Coffres</h2>
-            <p className="text-muted-foreground">Votre tirelire mobile.</p>
-          </div>
+      {standalone && (
+        <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-4">
+            <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft />
+            </Button>
+            <div>
+                <h2 className="text-2xl font-bold text-primary">Mes Coffres</h2>
+                <p className="text-muted-foreground">Votre tirelire mobile.</p>
+            </div>
+            </div>
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogTrigger asChild>
+                    <Button><PlusCircle className="mr-2 h-4 w-4" /> Créer</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Créer une nouvelle tirelire</DialogTitle></DialogHeader>
+                    <CreateVaultForm onVaultCreated={() => setIsCreateOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-                <Button><PlusCircle className="mr-2 h-4 w-4" /> Créer</Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader><DialogTitle>Créer une nouvelle tirelire</DialogTitle></DialogHeader>
-                <CreateVaultForm onVaultCreated={() => setIsCreateOpen(false)} />
-            </DialogContent>
-        </Dialog>
-      </div>
+      )}
 
       {vaults.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -317,6 +319,19 @@ export default function Vaults({ onBack }: VaultsProps) {
             </Dialog>
         </div>
       )}
+       {!standalone && (
+            <div className="mt-6">
+                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4" /> Créer un coffre</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader><DialogTitle>Créer une nouvelle tirelire</DialogTitle></DialogHeader>
+                        <CreateVaultForm onVaultCreated={() => setIsCreateOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+            </div>
+       )}
     </div>
   );
 }

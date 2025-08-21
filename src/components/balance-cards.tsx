@@ -4,17 +4,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useBalance } from "@/hooks/use-balance";
 import { useVirtualCard } from "@/hooks/use-virtual-card";
-import { CreditCard, Wallet, PiggyBank, Users, Info, HandCoins } from 'lucide-react';
+import { CreditCard, Wallet, PiggyBank, HandCoins } from 'lucide-react';
 import { useVaults } from "@/hooks/use-vaults";
 import { useTontine } from "@/hooks/use-tontine";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useBnpl } from "@/hooks/use-bnpl";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { useState } from "react";
-import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 type UserInfo = {
@@ -22,61 +16,8 @@ type UserInfo = {
 };
 
 type BalanceCardsProps = {
-    onNavigate: (destination: 'transactions' | 'ma-carte' | 'coffres' | 'tontine' | 'financement') => void;
+    onNavigate: (destination: 'transactions' | 'ma-carte' | 'epargne' | 'financement') => void;
     userInfo: UserInfo;
-}
-
-const RepayCreditDialog = () => {
-    const { currentCreditBalance, repayCredit } = useBnpl();
-    const { balance: mainBalance } = useBalance();
-    const [repaymentAmount, setRepaymentAmount] = useState<number | string>('');
-
-    const handleRepay = () => {
-        const amount = Number(repaymentAmount);
-        if (amount <= 0) {
-            toast({ title: "Montant invalide", variant: 'destructive' });
-            return;
-        }
-        repayCredit(amount);
-        setRepaymentAmount('');
-    };
-
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Rembourser votre Credit Marchands</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                    Le montant sera déduit de votre solde principal.
-                    Solde disponible: {formatCurrency(mainBalance)}.
-                </p>
-                <div>
-                    <Label htmlFor="repayment-amount">Montant à rembourser</Label>
-                    <Input
-                        id="repayment-amount"
-                        type="number"
-                        value={repaymentAmount}
-                        onChange={(e) => setRepaymentAmount(e.target.value)}
-                        placeholder={`ex: ${currentCreditBalance}`}
-                    />
-                </div>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="ghost">Annuler</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                    <Button
-                        onClick={handleRepay}
-                        disabled={!repaymentAmount || Number(repaymentAmount) <= 0 || Number(repaymentAmount) > currentCreditBalance || Number(repaymentAmount) > mainBalance}
-                    >
-                        Confirmer le remboursement
-                    </Button>
-                </DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    )
 }
 
 export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps) {
@@ -111,7 +52,7 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
             enabled: flags.virtualCards && !isMerchant
         },
         {
-            id: 'coffres' as const,
+            id: 'epargne' as const,
             title: 'Épargne',
             balance: totalEpargne,
             icon: <PiggyBank className="h-5 w-5 text-white" />,

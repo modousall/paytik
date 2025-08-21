@@ -4,10 +4,8 @@
 import { useState } from 'react';
 import TransactionHistory from './transaction-history';
 import Profile from './profile';
-import Tontine from './tontine';
 import VirtualCard from './virtual-card';
 import HomeActions from './home-actions';
-import Vaults from './vaults';
 import BalanceCards from './balance-cards';
 import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
@@ -20,6 +18,7 @@ import Settings from './settings';
 import MerchantList from './merchant-list';
 import Financing from './financing';
 import PICASH from './picash';
+import Epargne from './epargne';
 
 type UserInfo = {
     name: string;
@@ -35,7 +34,7 @@ type DashboardProps = {
 
 type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
-type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | 'financement' | null;
+type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [view, setView] = useState<View>('dashboard');
@@ -94,12 +93,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         }
         if (activeService) {
              switch (activeService) {
-                case 'tontine':
-                    return <Tontine onBack={() => setActiveService(null)}/>;
                 case 'ma-carte':
                     return <VirtualCard onBack={() => setActiveService(null)} cardHolderName={userInfo.name} />;
-                case 'coffres':
-                     return <Vaults onBack={() => setActiveService(null)} />;
+                case 'epargne':
+                     return <Epargne onBack={() => setActiveService(null)} />;
                 case 'financement':
                     return <Financing onBack={() => setActiveService(null)} />;
                 default:
@@ -137,7 +134,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
                     onWithdrawClick={() => setActiveAction('retirer')}
-                    onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
                 />

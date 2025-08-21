@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,9 +16,10 @@ import { formatCurrency } from "@/lib/utils";
 
 type TontineProps = {
     onBack: () => void;
+    standalone?: boolean;
 };
 
-export default function Tontine({ onBack }: TontineProps) {
+export default function Tontine({ onBack, standalone = true }: TontineProps) {
   const { tontines } = useTontine();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTontine, setSelectedTontine] = useState<TontineType | null>(null);
@@ -54,30 +54,33 @@ export default function Tontine({ onBack }: TontineProps) {
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex items-center gap-4">
-          <Button onClick={onBack} variant="ghost" size="icon">
-            <ArrowLeft />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold text-primary">Tontines</h2>
-            <p className="text-muted-foreground">Gérer les contributions.</p>
+      {standalone && (
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-4">
+              <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft />
+              </Button>
+              <div>
+                <h2 className="text-2xl font-bold text-primary">Tontines</h2>
+                <p className="text-muted-foreground">Gérer les contributions.</p>
+              </div>
+            </div>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Créer un groupe
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Lancer une nouvelle tontine / tirelire</DialogTitle>
+                </DialogHeader>
+                <CreateTontineForm onTontineCreated={() => setIsCreateDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
           </div>
-        </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Créer un groupe
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Lancer une nouvelle tontine / tirelire</DialogTitle>
-            </DialogHeader>
-            <CreateTontineForm onTontineCreated={() => setIsCreateDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      )}
+
 
       {tontines.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -121,7 +124,7 @@ export default function Tontine({ onBack }: TontineProps) {
         <div className="text-center py-16 px-4 border-2 border-dashed rounded-lg">
             <UserPlus className="mx-auto h-16 w-16 text-muted-foreground" />
             <h4 className="mt-4 text-xl font-semibold">Aucun groupe d'épargne</h4>
-            <p className="mt-2 text-muted-foreground">Vous n'êtes membre d'aucune tontine ou tirelire pour le moment.</p>
+            <p className="mt-2 text-muted-foreground">Vous n'êtes membre d'aucune tontine pour le moment.</p>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="mt-6">
@@ -130,13 +133,28 @@ export default function Tontine({ onBack }: TontineProps) {
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Lancer une nouvelle tontine / tirelire</DialogTitle>
+                  <DialogTitle>Lancer une nouvelle tontine</DialogTitle>
                 </DialogHeader>
                 <CreateTontineForm onTontineCreated={() => setIsCreateDialogOpen(false)} />
               </DialogContent>
             </Dialog>
         </div>
       )}
+       {!standalone && (
+         <div className="mt-6">
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4" /> Créer un groupe</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                    <DialogTitle>Lancer une nouvelle tontine</DialogTitle>
+                    </DialogHeader>
+                    <CreateTontineForm onTontineCreated={() => setIsCreateDialogOpen(false)} />
+                </DialogContent>
+            </Dialog>
+         </div>
+       )}
     </div>
   );
 }

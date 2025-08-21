@@ -122,9 +122,9 @@ export default function IslamicFinancing({ onBack }: IslamicFinancingProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Soumettez votre besoin.</AlertTitle>
+            <AlertTitle>Comment ça marche ?</AlertTitle>
             <AlertDescription>
-              La plateforme Midi évalue votre demande et si elle est approuvée, les fonds sont immédiatement disponibles sur votre compte.
+              Soumettez votre besoin. La plateforme Midi évalue votre demande et si elle est approuvée, les fonds sont immédiatement disponibles sur votre compte.
             </AlertDescription>
           </Alert>
           
