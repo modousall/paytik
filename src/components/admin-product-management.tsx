@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -110,7 +109,7 @@ const ProductDialog = ({
                             <FormItem><FormLabel>Frais client</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                          <FormField control={form.control} name="commission" render={({ field }) => (
-                            <FormItem><FormLabel>Commission PAYTIK</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Commission Midi</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                     </div>
                      <FormField control={form.control} name="isActive" render={({ field }) => (

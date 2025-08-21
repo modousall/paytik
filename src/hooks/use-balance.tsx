@@ -22,7 +22,7 @@ export const BalanceProvider = ({ children, alias }: BalanceProviderProps) => {
   const [balance, setBalance] = useState<number>(initialBalance);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = `paytik_balance_${alias}`;
+  const storageKey = `midi_balance_${alias}`;
 
   useEffect(() => {
     if (!alias) return;

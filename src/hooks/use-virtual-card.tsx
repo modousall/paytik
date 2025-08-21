@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -54,8 +53,8 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
   const { addTransaction } = useTransactions();
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const cardStorageKey = `paytik_virtual_card_${alias}`;
-  const txStorageKey = `paytik_virtual_card_txs_${alias}`;
+  const cardStorageKey = `midi_virtual_card_${alias}`;
+  const txStorageKey = `midi_virtual_card_txs_${alias}`;
 
   useEffect(() => {
     let storedCard: CardDetails | null = null;

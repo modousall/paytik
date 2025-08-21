@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -9,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon, Calculator, Banknote, Phone } from 'lucide-react';
+import { ArrowLeft, Loader2, Info, QrCode, CheckCircle, XCircle, Hourglass, CalendarIcon, Banknote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from './ui/dialog';
@@ -28,7 +27,7 @@ const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant de l'achat doit être positif." }),
   downPayment: z.coerce.number().min(0, "L'avance ne peut être négative.").optional(),
-  repaymentFrequency: z.string().min(1, "La périodicité est requise."),
+  repaymentFrequency: z.enum(['daily', 'weekly', 'monthly'], { required_error: "La périodicité est requise." }),
   installmentsCount: z.coerce.number().int().positive("Le nombre d'échéances est requis."),
   firstInstallmentDate: z.date({ required_error: "La date de première échéance est requise." }),
   marginRate: z.coerce.number().min(0, "Le taux de marge ne peut être négatif."),
@@ -117,6 +116,22 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | nul
     )
 }
 
+const ANNUAL_RATE = 23.5; // Taux annuel en pourcentage
+
+const getMarginRate = (frequency: 'daily' | 'weekly' | 'monthly') => {
+    switch (frequency) {
+        case 'daily':
+            return ANNUAL_RATE / 365;
+        case 'weekly':
+            return ANNUAL_RATE / 52;
+        case 'monthly':
+            return ANNUAL_RATE / 12;
+        default:
+            return 0;
+    }
+}
+
+
 export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | null>(null);
@@ -135,26 +150,33 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
       repaymentFrequency: "weekly",
       installmentsCount: '' as any,
       firstInstallmentDate: undefined,
-      marginRate: 0.2856,
+      marginRate: getMarginRate('weekly'),
     },
   });
   
   const watchedFormValues = form.watch();
 
+  useEffect(() => {
+    const newMarginRate = getMarginRate(watchedFormValues.repaymentFrequency as 'daily'|'weekly'|'monthly');
+    if (watchedFormValues.marginRate !== newMarginRate) {
+        form.setValue('marginRate', newMarginRate, { shouldValidate: true });
+    }
+  }, [watchedFormValues.repaymentFrequency, form, watchedFormValues.marginRate]);
+
+
   const calculatedValues = useMemo(() => {
     const { amount, downPayment, installmentsCount, marginRate } = watchedFormValues;
     if (amount > 0 && installmentsCount > 0 && marginRate >= 0) { // marginRate can be 0
         const financedAmount = amount - (downPayment || 0);
-        // Standard formula for annuity payment
-        const weeklyRate = marginRate / 100;
-        const installmentAmount = weeklyRate > 0 
-            ? (financedAmount * weeklyRate) / (1 - Math.pow(1 + weeklyRate, -installmentsCount))
+        const periodicRate = marginRate / 100;
+        const installmentAmount = periodicRate > 0 
+            ? (financedAmount * periodicRate) / (1 - Math.pow(1 + periodicRate, -installmentsCount))
             : financedAmount / installmentsCount;
             
         const totalRepaid = installmentAmount * installmentsCount;
         const totalCost = totalRepaid - financedAmount;
 
-        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost };
+        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost: isNaN(totalCost) ? 0 : totalCost };
     }
     return { financedAmount: 0, installmentAmount: 0, totalCost: 0};
   }, [watchedFormValues]);
@@ -163,13 +185,8 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   useEffect(() => {
     if (prefillData) {
         form.reset({
-            merchantAlias: prefillData.merchantAlias,
-            amount: prefillData.amount,
-            downPayment: prefillData.downPayment,
-            repaymentFrequency: prefillData.repaymentFrequency,
-            installmentsCount: prefillData.installmentsCount,
+            ...prefillData,
             firstInstallmentDate: new Date(prefillData.firstInstallmentDate),
-            marginRate: prefillData.marginRate,
         });
         toast({
             title: "Proposition de crédit chargée",
@@ -216,7 +233,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             clientAlias: z.string(),
             amount: z.number(),
             downPayment: z.number().optional(),
-            repaymentFrequency: z.string(),
+            repaymentFrequency: z.enum(['daily', 'weekly', 'monthly']),
             installmentsCount: z.number(),
             firstInstallmentDate: z.string(),
             marginRate: z.number(),
@@ -224,9 +241,6 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
 
         if (proposalResult.success) {
             const { type, clientAlias, ...proposal } = proposalResult.data;
-            // The BNPL component will be re-rendered with prefillData
-            // This is handled by a parent component that needs to manage state
-            // For now, we simulate this by directly setting state if possible
             form.reset({
                 ...proposal,
                 firstInstallmentDate: new Date(proposal.firstInstallmentDate),
@@ -277,7 +291,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                 <ArrowLeft />
             </Button>
             <div>
-            <h2 className="text-2xl font-bold text-primary">Credit Marchands (BNPL)</h2>
+            <h2 className="text-2xl font-bold text-primary">Credit Marchands</h2>
             <p className="text-muted-foreground">{prefillData ? "Confirmez votre demande de crédit." : "Financez vos achats et payez en plusieurs fois."}</p>
             </div>
         </div>
@@ -368,8 +382,8 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!prefillData}>
                                 <FormControl><SelectTrigger className={prefillData ? 'bg-muted' : ''}><SelectValue placeholder="Sélectionnez..." /></SelectTrigger></FormControl>
                                 <SelectContent>
+                                    <SelectItem value="daily">Journalier</SelectItem>
                                     <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                                    <SelectItem value="bi-monthly">Bi-mensuel</SelectItem>
                                     <SelectItem value="monthly">Mensuel</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -427,8 +441,8 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                     name="marginRate"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Taux de marge (% hebdo)</FormLabel>
-                            <FormControl><Input type="number" {...field} readOnly className="bg-muted" /></FormControl>
+                            <FormLabel>Taux de marge périodique</FormLabel>
+                            <FormControl><Input value={`${field.value.toFixed(4)} %`} readOnly className="bg-muted" /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -456,14 +470,17 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Soumettre la demande
           </Button>
+          
+          {showConfirmation && formValuesForConfirmation && (
+            <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+                <ConfirmationDialog 
+                    values={formValuesForConfirmation}
+                    onConfirm={onConfirmSubmit}
+                    onCancel={() => setShowConfirmation(false)}
+                />
+            </Dialog>
+          )}
 
-          <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-             <ConfirmationDialog 
-                  values={formValuesForConfirmation}
-                  onConfirm={onConfirmSubmit}
-                  onCancel={() => setShowConfirmation(false)}
-              />
-          </Dialog>
         </form>
       </Form>
     </div>

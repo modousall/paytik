@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -46,8 +45,8 @@ const initialMobileMoneyOperators: ProductItem[] = [
     { id: "Wizall", name: "Wizall Money", fee: 100, commission: 30, isActive: false },
 ];
 
-const billersStorageKey = 'paytik_product_billers';
-const operatorsStorageKey = 'paytik_product_operators';
+const billersStorageKey = 'midi_product_billers';
+const operatorsStorageKey = 'midi_product_operators';
 
 type ProductProviderProps = { 
     children: ReactNode;

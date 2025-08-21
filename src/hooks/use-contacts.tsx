@@ -32,7 +32,7 @@ export const ContactsProvider = ({ children, alias }: ContactsProviderProps) => 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = `paytik_contacts_${alias}`;
+  const storageKey = `midi_contacts_${alias}`;
 
   useEffect(() => {
     if (!alias) return;

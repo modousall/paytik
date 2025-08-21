@@ -56,7 +56,7 @@ export default function MerchantList({ onBack }: MerchantListProps) {
                 </Button>
                 <div>
                     <h2 className="text-2xl font-bold text-primary">Marchands à proximité</h2>
-                    <p className="text-muted-foreground">Trouvez des points de service PAYTIK près de vous.</p>
+                    <p className="text-muted-foreground">Trouvez des points de service Midi près de vous.</p>
                 </div>
             </div>
 

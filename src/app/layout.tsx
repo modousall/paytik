@@ -4,8 +4,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'PAYTIK',
-  description: 'Application de paiement PAYTIK',
+  title: 'Midi',
+  description: 'Midi - Microfinance Islamique Digitale et Inclusive',
 };
 
 export default function RootLayout({

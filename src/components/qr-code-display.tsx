@@ -92,7 +92,7 @@ export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amo
                     src={qrCodeUrl}
                     width={300}
                     height={300}
-                    alt="QR Code PAYTIK"
+                    alt="QR Code Midi"
                     className="rounded-lg"
                     data-ai-hint="qr code"
                     unoptimized

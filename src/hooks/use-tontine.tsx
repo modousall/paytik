@@ -31,7 +31,7 @@ export const TontineProvider = ({ children, alias }: TontineProviderProps) => {
   const [tontines, setTontines] = useState<Tontine[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = `paytik_tontines_${alias}`;
+  const storageKey = `midi_tontines_${alias}`;
 
   useEffect(() => {
     try {

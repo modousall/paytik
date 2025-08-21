@@ -28,7 +28,7 @@ export const VaultsProvider = ({ children, alias }: VaultsProviderProps) => {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = `paytik_vaults_${alias}`;
+  const storageKey = `midi_vaults_${alias}`;
 
   useEffect(() => {
     try {

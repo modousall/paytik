@@ -3,16 +3,17 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-export type Feature = 'virtualCards' | 'tontine' | 'bnpl';
+export type Feature = 'virtualCards' | 'tontine' | 'bnpl' | 'islamicFinancing';
 export type FeatureFlags = Record<Feature, boolean>;
 
 export const defaultFlags: FeatureFlags = {
     virtualCards: true,
     tontine: true,
     bnpl: true,
+    islamicFinancing: true,
 };
 
-const featureFlagsStorageKey = 'paytik_feature_flags';
+const featureFlagsStorageKey = 'midi_feature_flags';
 
 type FeatureFlagContextType = {
     flags: FeatureFlags;
@@ -33,7 +34,9 @@ export const FeatureFlagProvider = ({ children }: FeatureFlagProviderProps) => {
         try {
             const storedFlags = localStorage.getItem(featureFlagsStorageKey);
             if (storedFlags) {
-                setFlags(JSON.parse(storedFlags));
+                // Ensure new flags are added if they don't exist in storage
+                const parsedFlags = JSON.parse(storedFlags);
+                setFlags({ ...defaultFlags, ...parsedFlags });
             } else {
                 setFlags(defaultFlags);
             }

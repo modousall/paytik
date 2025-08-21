@@ -32,7 +32,7 @@ const initialDevices: Device[] = [
     { id: '3', type: 'mobile', name: 'Android (Samsung)', location: 'Dakar, Sénégal', lastSeen: 'Il y a 3 jours', isCurrent: false },
 ];
 
-const devicesStorageKey = 'paytik_connected_devices';
+const devicesStorageKey = 'midi_connected_devices';
 
 export default function ConnectedDevices() {
     const [devices, setDevices] = useState<Device[]>([]);

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import QRCode from "qrcode.react";
@@ -44,7 +43,7 @@ const TransactionReceipt = ({ transaction }: { transaction: Transaction }) => {
     <div style={{ fontFamily: 'sans-serif', color: '#333', fontSize: '14px', width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', background: 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0' }}>
-                PAYTIK
+                Midi
             </h1>
             <p style={{ color: '#666', marginTop: '4px' }}>Reçu de Transaction</p>
         </div>
@@ -67,8 +66,8 @@ const TransactionReceipt = ({ transaction }: { transaction: Transaction }) => {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '12px', color: '#999' }}>
-            <p>Merci d'utiliser PAYTIK.</p>
-            <p>www.paytik.sn</p>
+            <p>Merci d'utiliser Midi.</p>
+            <p>www.midi.sn</p>
         </div>
     </div>
   );

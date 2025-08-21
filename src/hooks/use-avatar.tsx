@@ -14,7 +14,7 @@ export const AvatarProvider = ({ children, alias }: { children: ReactNode, alias
   const [avatar, setAvatarState] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const storageKey = `paytik_avatar_${alias}`;
+  const storageKey = `midi_avatar_${alias}`;
 
   useEffect(() => {
     try {

@@ -21,6 +21,7 @@ import MerchantDashboard from './merchant-dashboard';
 import Settings from './settings';
 import MerchantList from './merchant-list';
 import { useBnpl } from '@/hooks/use-bnpl';
+import IslamicFinancing from './islamic-financing';
 
 type UserInfo = {
     name: string;
@@ -35,7 +36,7 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
-type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
+type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer' | 'financement';
 type ActiveService = 'ma-carte' | 'coffres' | 'tontine' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
@@ -113,6 +114,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
                 case 'retirer':
                     return <PICASH onBack={() => setActiveAction('none')} />
+                case 'financement':
+                    return <IslamicFinancing onBack={() => setActiveAction('none')} />;
                 default:
                     setActiveAction('none');
             }
@@ -136,6 +139,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
                     onWithdrawClick={() => setActiveAction('retirer')}
+                    onFinancingClick={() => setActiveAction('financement')}
                     alias={alias}
                     userInfo={userInfo}
                 />

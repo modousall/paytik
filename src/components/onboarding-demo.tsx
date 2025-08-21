@@ -32,7 +32,7 @@ const features = [
     {
       icon: <ShieldCheck className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
       title: "Sécurité Renforcée",
-      description: "Avec PAYTIK, vos transactions sont protégées par les dernières technologies de sécurité.",
+      description: "Avec Midi, vos transactions sont protégées par les dernières technologies de sécurité.",
     },
     {
       icon: <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
@@ -74,9 +74,9 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
 
         <div className="my-8">
             <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              PAYTIK
+              Midi
             </h1>
-            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Votre solution de paiement simplifiée et sécurisée.</p>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Microfinance Islamique Digitale et Inclusive.</p>
         </div>
 
         <Carousel setApi={setApi} className="w-full max-w-sm sm:max-w-md">

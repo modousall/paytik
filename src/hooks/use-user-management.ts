@@ -52,8 +52,8 @@ export const useUserManagement = () => {
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('paytik_user_')) {
-        const alias = key.replace('paytik_user_', '');
+      if (key && key.startsWith('midi_user_')) {
+        const alias = key.replace('midi_user_', '');
         const userDataString = localStorage.getItem(key);
         
         if (userDataString) {
@@ -61,13 +61,13 @@ export const useUserManagement = () => {
             const userData = JSON.parse(userDataString);
 
             // Fetch all related data from localStorage
-            const balanceDataString = localStorage.getItem(`paytik_balance_${alias}`);
-            const avatarDataString = localStorage.getItem(`paytik_avatar_${alias}`);
-            const transactionsDataString = localStorage.getItem(`paytik_transactions_${alias}`);
-            const vaultsDataString = localStorage.getItem(`paytik_vaults_${alias}`);
-            const tontinesDataString = localStorage.getItem(`paytik_tontines_${alias}`);
-            const virtualCardDataString = localStorage.getItem(`paytik_virtual_card_${alias}`);
-            const virtualCardTxDataString = localStorage.getItem(`paytik_virtual_card_txs_${alias}`);
+            const balanceDataString = localStorage.getItem(`midi_balance_${alias}`);
+            const avatarDataString = localStorage.getItem(`midi_avatar_${alias}`);
+            const transactionsDataString = localStorage.getItem(`midi_transactions_${alias}`);
+            const vaultsDataString = localStorage.getItem(`midi_vaults_${alias}`);
+            const tontinesDataString = localStorage.getItem(`midi_tontines_${alias}`);
+            const virtualCardDataString = localStorage.getItem(`midi_virtual_card_${alias}`);
+            const virtualCardTxDataString = localStorage.getItem(`midi_virtual_card_txs_${alias}`);
             
             const balance = balanceDataString ? JSON.parse(balanceDataString) : 0;
             const transactions = transactionsDataString ? JSON.parse(transactionsDataString) : [];
@@ -114,7 +114,7 @@ export const useUserManagement = () => {
   }, [loadUsers]);
 
   const updateUserProperty = (alias: string, update: (userData: any) => void) => {
-    const userKey = `paytik_user_${alias}`;
+    const userKey = `midi_user_${alias}`;
     const userDataString = localStorage.getItem(userKey);
     if (userDataString) {
         try {
@@ -141,7 +141,7 @@ export const useUserManagement = () => {
   };
 
   const changeUserPin = (alias: string, oldPin: string, newPin: string): { success: boolean, message: string } => {
-    const userKey = `paytik_user_${alias}`;
+    const userKey = `midi_user_${alias}`;
     const userDataString = localStorage.getItem(userKey);
     if (userDataString) {
         try {
@@ -167,7 +167,7 @@ export const useUserManagement = () => {
   };
 
   const addUser = (payload: NewUserPayload): { success: boolean, message: string } => {
-    const userKey = `paytik_user_${payload.alias}`;
+    const userKey = `midi_user_${payload.alias}`;
     if (localStorage.getItem(userKey)) {
         return { success: false, message: "Cet alias est déjà utilisé." };
     }
@@ -182,11 +182,11 @@ export const useUserManagement = () => {
 
     localStorage.setItem(userKey, JSON.stringify(newUser));
     // Initialize other user-related data
-    localStorage.setItem(`paytik_balance_${payload.alias}`, '0');
-    localStorage.setItem(`paytik_transactions_${payload.alias}`, '[]');
-    localStorage.setItem(`paytik_contacts_${payload.alias}`, '[]');
-    localStorage.setItem(`paytik_vaults_${payload.alias}`, '[]');
-    localStorage.setItem(`paytik_tontines_${payload.alias}`, '[]');
+    localStorage.setItem(`midi_balance_${payload.alias}`, '0');
+    localStorage.setItem(`midi_transactions_${payload.alias}`, '[]');
+    localStorage.setItem(`midi_contacts_${payload.alias}`, '[]');
+    localStorage.setItem(`midi_vaults_${payload.alias}`, '[]');
+    localStorage.setItem(`midi_tontines_${payload.alias}`, '[]');
     
     loadUsers(); // Force reload of all users to reflect change
     return { success: true, message: "Utilisateur créé avec succès." };

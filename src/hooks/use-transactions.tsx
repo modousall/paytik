@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -30,7 +29,7 @@ export const TransactionsProvider = ({ children, alias }: TransactionsProviderPr
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  const storageKey = `paytik_transactions_${alias}`;
+  const storageKey = `midi_transactions_${alias}`;
 
   useEffect(() => {
     try {
@@ -81,4 +80,3 @@ export const useTransactions = () => {
   }
   return context;
 };
-

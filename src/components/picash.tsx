@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -61,7 +60,7 @@ export default function PICASH({ onBack }: PicashProps) {
       debit(values.amount);
       addTransaction({
           type: "sent",
-          counterparty: `PICASH - ${values.merchantAlias}`,
+          counterparty: `Retrait - ${values.merchantAlias}`,
           reason: `Retrait d'argent`,
           date: new Date().toISOString(),
           amount: values.amount,

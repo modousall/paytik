@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, Package, FileText, ScanLine, Share2 } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, Package, FileText, ScanLine, Share2, Handshake } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -25,6 +25,7 @@ type HomeActionsProps = {
     onSendClick: () => void; 
     onRechargeClick: () => void;
     onWithdrawClick: () => void;
+    onFinancingClick: () => void;
     alias: string;
     userInfo: UserInfo;
 };
@@ -56,7 +57,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                 <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Montant (Fcfa)</FormLabel>
+                        <FormLabel>Montant (F)</FormLabel>
                         <FormControl><Input type="number" placeholder="ex: 1500" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
@@ -77,7 +78,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
     );
 }
 
-export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
     const { toast } = useToast();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -98,7 +99,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
         if (!paymentLink) return;
         if (navigator.share) {
             navigator.share({
-                title: 'Demande de paiement PAYTIK',
+                title: 'Demande de paiement Midi',
                 text: `Veuillez me payer en utilisant ce lien : ${paymentLink}`,
                 url: paymentLink,
             });
@@ -157,9 +158,18 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
         )
     }
 
+    // Client View
+    const clientActions = [
+        { id: 'receive', title: 'Recevoir', icon: <ArrowDown/>, dialog: true },
+        { id: 'send', title: 'Payer', icon: <ArrowUp/>, onClick: onSendClick, primary: true },
+        { id: 'recharge', title: 'Dépôt', icon: <PlusCircle/>, onClick: onRechargeClick },
+        { id: 'withdraw', title: 'Retrait', icon: <Landmark/>, onClick: onWithdrawClick, secondary: true },
+        { id: 'finance', title: 'Financement', icon: <Handshake/>, onClick: onFinancingClick, secondary: true }
+    ];
+
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
-            <Dialog>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
+             <Dialog>
                 <DialogTrigger asChild>
                      <Button variant="outline" size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
                         <ArrowDown/> Recevoir
@@ -167,7 +177,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 </DialogTrigger>
                 <DialogContent className="max-w-xs p-4">
                      <DialogHeader className="mb-4">
-                        <DialogTitle className="text-center">Mon Code PAYTIK</DialogTitle>
+                        <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
                     </DialogHeader>
                     <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
                      <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
@@ -192,6 +202,10 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
             
             <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
                 <Landmark/> Retirer
+            </Button>
+            
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
+                <Handshake/> Financement
             </Button>
         </div>
     )

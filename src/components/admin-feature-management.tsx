@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -8,12 +7,13 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { CreditCard, Users, Clock, PiggyBank, Wallet, ArrowLeft } from 'lucide-react';
+import { CreditCard, Users, Clock, PiggyBank, Wallet, ArrowLeft, Handshake } from 'lucide-react';
 import AdminFeatureDetail from './admin-feature-detail';
 import AdminBnplManagement from './admin-bnpl-management';
 import { Button } from './ui/button';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { formatCurrency } from '@/lib/utils';
+import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
 
 const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey, onClick }: { title: string, value: string, icon: JSX.Element, isEnabled?: boolean, onToggle?: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature, onClick?: () => void }) => (
     <Card className={`flex flex-col ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`} onClick={onClick}>
@@ -47,6 +47,8 @@ export default function AdminFeatureManagement() {
   const { flags, setFlag } = useFeatureFlags();
   const { users } = useUserManagement();
   const { kpis: bnplKpis } = useBnpl();
+  const { allRequests: financingRequests } = useIslamicFinancing();
+
   const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'bnplManagement'>('overview');
   const [selectedFeature, setSelectedFeature] = useState<Feature | 'mainBalance' | 'vaults' | null>(null);
 
@@ -55,14 +57,16 @@ export default function AdminFeatureManagement() {
     const totalVirtualCardBalance = users.reduce((sum, user) => sum + (user.virtualCard?.balance || 0), 0);
     const totalVaultsBalance = users.reduce((sum, user) => sum + user.vaults.reduce((vaultSum, vault) => vaultSum + vault.balance, 0), 0);
     const totalTontineValue = users.reduce((sum, user) => sum + user.tontines.reduce((tontineSum, tontine) => tontineSum + (tontine.amount * tontine.participants.length), 0), 0);
+    const totalApprovedFinancing = financingRequests.filter(r => r.status === 'approved').reduce((sum, r) => sum + r.amount, 0);
     
     return {
         mainBalance: totalMainBalance,
         virtualCards: totalVirtualCardBalance,
         vaults: totalVaultsBalance,
         tontine: totalTontineValue,
+        islamicFinancing: totalApprovedFinancing,
     }
-  }, [users]);
+  }, [users, financingRequests]);
   
   const allProducts = [
     { featureKey: 'mainBalance', title: "Comptes Principaux", value: formatCurrency(kpis.mainBalance), icon: <Wallet/>, description: "Somme de tous les soldes principaux des utilisateurs." },
@@ -82,7 +86,7 @@ export default function AdminFeatureManagement() {
   }
 
   if(activeView === 'featureDetail' && selectedFeature) {
-      return <AdminFeatureDetail feature={selectedFeature} onBack={handleBackToOverview} />
+      return <AdminFeatureDetail feature={selectedFeature as any} onBack={handleBackToOverview} />
   }
 
   if (activeView === 'bnplManagement') {
@@ -125,7 +129,7 @@ export default function AdminFeatureManagement() {
             </CardHeader>
             <CardContent className="flex-grow">
                  <p className="text-3xl font-bold">{formatCurrency(bnplKpis.totalApprovedAmount)}</p>
-                 <p className="text-sm text-muted-foreground">Total des actifs sur la plateforme</p>
+                 <p className="text-sm text-muted-foreground">Total des crédits approuvés</p>
             </CardContent>
             <CardFooter className="flex-col items-start gap-4 border-t pt-4">
                  <p className="text-xs text-muted-foreground">Gérer les demandes de paiement échelonné et activer ou désactiver la fonctionnalité.</p>
@@ -137,6 +141,29 @@ export default function AdminFeatureManagement() {
                         aria-label="Activer ou désactiver le Credit Marchands"
                     />
                     <Label htmlFor="bnpl-switch" className="cursor-pointer">{flags.bnpl ? "Activé" : "Désactivé"}</Label>
+                </div>
+            </CardFooter>
+        </Card>
+        
+        <Card className="flex flex-col">
+            <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
+                <div className="p-3 bg-primary/10 rounded-full text-primary"><Handshake /></div>
+                <CardTitle className="text-lg font-semibold">Financement Islamique</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+                 <p className="text-3xl font-bold">{formatCurrency(kpis.islamicFinancing)}</p>
+                 <p className="text-sm text-muted-foreground">Total des financements approuvés</p>
+            </CardContent>
+            <CardFooter className="flex-col items-start gap-4 border-t pt-4">
+                 <p className="text-xs text-muted-foreground">Activer ou désactiver le module de financement islamique pour les utilisateurs.</p>
+                 <div className="flex items-center space-x-2">
+                    <Switch
+                        id="financing-switch"
+                        checked={flags.islamicFinancing}
+                        onCheckedChange={(val) => setFlag('islamicFinancing', val)}
+                        aria-label="Activer ou désactiver le Financement Islamique"
+                    />
+                    <Label htmlFor="financing-switch" className="cursor-pointer">{flags.islamicFinancing ? "Activé" : "Désactivé"}</Label>
                 </div>
             </CardFooter>
         </Card>

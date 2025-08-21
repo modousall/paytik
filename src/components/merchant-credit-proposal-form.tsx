@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { CalendarIcon, QrCode, Banknote } from 'lucide-react';
+import { CalendarIcon, Banknote } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
@@ -24,7 +23,7 @@ const proposalFormSchema = z.object({
   clientAlias: z.string().min(1, { message: "L'alias du client est requis." }),
   amount: z.coerce.number().positive({ message: "Le montant de l'achat doit être positif." }),
   downPayment: z.coerce.number().min(0, "L'avance ne peut être négative.").optional(),
-  repaymentFrequency: z.string().min(1, "La périodicité est requise."),
+  repaymentFrequency: z.enum(['daily', 'weekly', 'monthly'], { required_error: "La périodicité est requise." }),
   installmentsCount: z.coerce.number().int().positive("Le nombre d'échéances est requis."),
   firstInstallmentDate: z.date({ required_error: "La date de première échéance est requise." }),
 });
@@ -36,6 +35,17 @@ type MerchantCreditProposalFormProps = {
   merchantInfo: { name: string; email: string };
   onClose: () => void;
 };
+
+const ANNUAL_RATE = 23.5;
+
+const getMarginRate = (frequency: 'daily' | 'weekly' | 'monthly') => {
+    switch (frequency) {
+        case 'daily': return ANNUAL_RATE / 365;
+        case 'weekly': return ANNUAL_RATE / 52;
+        case 'monthly': return ANNUAL_RATE / 12;
+        default: return 0;
+    }
+}
 
 export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo, onClose }: MerchantCreditProposalFormProps) {
   const [isQrGenerated, setIsQrGenerated] = useState(false);
@@ -54,20 +64,21 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
 
   const watchedFormValues = form.watch();
 
+  const marginRate = getMarginRate(watchedFormValues.repaymentFrequency as 'daily'|'weekly'|'monthly');
+
   const calculatedValues = useMemo(() => {
     const { amount, downPayment, installmentsCount } = watchedFormValues;
-    const marginRate = 0.2856; // Fixed rate
     if (amount > 0 && installmentsCount > 0 && marginRate >= 0) {
         const financedAmount = amount - (downPayment || 0);
-        const weeklyRate = marginRate / 100;
-        const installmentAmount = weeklyRate > 0 
-            ? (financedAmount * weeklyRate) / (1 - Math.pow(1 + weeklyRate, -installmentsCount))
+        const periodicRate = marginRate / 100;
+        const installmentAmount = periodicRate > 0 
+            ? (financedAmount * periodicRate) / (1 - Math.pow(1 + periodicRate, -installmentsCount))
             : financedAmount / installmentsCount;
             
         return { installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount };
     }
     return { installmentAmount: 0 };
-  }, [watchedFormValues]);
+  }, [watchedFormValues, marginRate]);
 
   const onSubmit = (values: ProposalFormValues) => {
     setProposalData(values);
@@ -84,14 +95,14 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
         repaymentFrequency: proposalData.repaymentFrequency,
         installmentsCount: proposalData.installmentsCount,
         firstInstallmentDate: proposalData.firstInstallmentDate.toISOString(),
-        marginRate: 0.2856,
+        marginRate: marginRate,
     }
     return (
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Proposition de Crédit</DialogTitle>
                 <DialogDescription>
-                    Demandez à votre client de scanner ce QR code avec son application PAYTIK pour valider la demande de crédit.
+                    Demandez à votre client de scanner ce QR code avec son application Midi pour valider la demande de crédit.
                 </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center py-4">
@@ -123,7 +134,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
             <FormField control={form.control} name="clientAlias" render={({ field }) => (
                 <FormItem>
                     <FormLabel>Alias du Client</FormLabel>
-                    <FormControl><Input placeholder="Demandez l'alias PAYTIK à votre client" {...field} /></FormControl>
+                    <FormControl><Input placeholder="Demandez l'alias Midi à votre client" {...field} /></FormControl>
                     <FormMessage />
                 </FormItem>
             )}/>
@@ -155,8 +166,8 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Sélectionnez..." /></SelectTrigger></FormControl>
                             <SelectContent>
+                                <SelectItem value="daily">Journalier</SelectItem>
                                 <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                                <SelectItem value="bi-monthly">Bi-mensuel</SelectItem>
                                 <SelectItem value="monthly">Mensuel</SelectItem>
                             </SelectContent>
                         </Select>

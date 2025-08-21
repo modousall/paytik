@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-const monthlyBudgetStorageKey = 'paytik_monthly_budget';
+const monthlyBudgetStorageKey = 'midi_monthly_budget';
 
 type MonthlyBudgetContextType = {
     budget: number;

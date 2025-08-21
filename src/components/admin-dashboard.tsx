@@ -4,24 +4,26 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks, Download, Clock, Building } from 'lucide-react';
+import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks, Download, Clock, Building, HandCoins } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminProductManagement from "./admin-product-management";
 import AdminRoleManagement from "./admin-role-management";
 import AdminFeatureManagement from "./admin-feature-management";
 import AdminMerchantManagement from "./admin-merchant-management";
+import AdminFinancingManagement from "./admin-financing-management";
 
 type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'partners' | 'services';
+type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'partners' | 'services' | 'financing';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
     { id: "merchants", title: "Gestion des Marchands", description: "Gérer les comptes et les profils des marchands.", icon: <Building /> },
     { id: "transactions", title: "Centre d'Analyse Business", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
+    { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de financement islamique.", icon: <HandCoins /> },
     { id: "partners", title: "Gestion des Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
     { id: "services", title: "Gestion des Services", description: "Configurer les fonctionnalités (cartes, BNPL, tontines...).", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
@@ -38,6 +40,8 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminMerchantManagement />;
             case 'transactions':
                 return <AdminTransactionAnalysis />;
+            case 'financing':
+                return <AdminFinancingManagement />;
             case 'partners':
                 return <AdminProductManagement />;
             case 'services':
@@ -79,7 +83,7 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 {view === 'dashboard' ? (
                      <>
                         <h2 className="text-3xl font-bold">Bienvenue, Admin !</h2>
-                        <p className="text-muted-foreground">Pilotez et contrôlez la plateforme PAYTIK depuis ce tableau de bord.</p>
+                        <p className="text-muted-foreground">Pilotez et contrôlez la plateforme Midi depuis ce tableau de bord.</p>
                      </>
                 ) : (
                     <Button variant="outline" onClick={() => setView('dashboard')}>
