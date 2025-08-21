@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,6 +17,18 @@ import { Loader2, ClipboardPaste, QrCode } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
+import BNPL from './bnpl';
+
+export const creditProposalSchema = z.object({
+  type: z.literal('bnpl_proposal'),
+  merchantAlias: z.string(),
+  amount: z.number(),
+  downPayment: z.number().optional(),
+  repaymentFrequency: z.string(),
+  installmentsCount: z.number(),
+  firstInstallmentDate: z.string(),
+});
+export type CreditProposal = z.infer<typeof creditProposalSchema>;
 
 const paymentFormSchema = z.object({
   recipientAlias: z.string().min(1, { message: "L'alias du destinataire est requis." }),
@@ -30,6 +42,7 @@ export default function PaymentForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [securityAnalysis, setSecurityAnalysis] = useState<PaymentSecurityAssistantOutput | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
+  const [creditProposal, setCreditProposal] = useState<CreditProposal | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
@@ -43,6 +56,10 @@ export default function PaymentForm() {
       reason: "",
     },
   });
+  
+  if (creditProposal) {
+    return <BNPL onBack={() => setCreditProposal(null)} prefillData={creditProposal} />;
+  }
 
   async function onSubmit(values: PaymentFormValues) {
     setIsLoading(true);
@@ -104,6 +121,14 @@ export default function PaymentForm() {
   const handleScannedCode = (decodedText: string) => {
     try {
         const data = JSON.parse(decodedText);
+        // Check for BNPL proposal
+        const proposalResult = creditProposalSchema.safeParse(data);
+        if (proposalResult.success) {
+            setCreditProposal(proposalResult.data);
+            setIsScannerOpen(false);
+            return;
+        }
+
         if (data.shid) {
             form.setValue('recipientAlias', data.shid, { shouldValidate: true });
             if (data.amount) {

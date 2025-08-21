@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, Loader2, ScanLine, Smartphone, Store, Calculator } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, ScanLine, Smartphone, Store, Calculator, Clock } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useTransactions } from "@/hooks/use-transactions";
 import { Html5Qrcode } from "html5-qrcode";
 import AdminTegSimulator from "./admin-teg-simulator";
+import MerchantCreditProposalForm from "./merchant-credit-proposal-form";
 
 type UserInfo = {
     name: string;
@@ -314,6 +315,7 @@ const PayoutDialog = () => {
 
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [isProposalFormOpen, setIsProposalFormOpen] = useState(false);
 
     const handleScannedCode = (decodedText: string) => {
         setIsScannerOpen(false);
@@ -372,7 +374,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                         <Card className="max-w-2xl mx-auto">
                             <CardHeader className="text-center">
                                 <CardTitle className="text-2xl">Recevoir un Paiement</CardTitle>
-                                <CardDescription>Le client scanne ce code. Cliquez sur le code pour scanner celui du client.</CardDescription>
+                                <CardDescription>Le client scanne votre code. Cliquez sur le code pour scanner celui du client.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex flex-col items-center gap-6">
                                 <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
@@ -405,6 +407,18 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                             </Button>
                                         </DialogTrigger>
                                         <PayoutDialog />
+                                     </Dialog>
+                                      <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700">
+                                                <Clock/> Proposer un Crédit
+                                            </Button>
+                                        </DialogTrigger>
+                                        <MerchantCreditProposalForm 
+                                            merchantAlias={alias}
+                                            merchantInfo={userInfo}
+                                            onClose={() => setIsProposalFormOpen(false)}
+                                        />
                                      </Dialog>
                                 </div>
                             </CardContent>

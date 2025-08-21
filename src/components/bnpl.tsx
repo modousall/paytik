@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import AdminTegSimulator from './admin-teg-simulator';
+import type { CreditProposal } from './payment-form';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -37,6 +38,7 @@ type BnplFormValues = z.infer<typeof bnplFormSchema>;
 
 type BnplProps = {
   onBack: () => void;
+  prefillData?: CreditProposal | null;
 };
 
 const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput, onBack: () => void }) => {
@@ -86,7 +88,7 @@ const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput, onBac
     )
 }
 
-export default function BNPL({ onBack }: BnplProps) {
+export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -96,24 +98,39 @@ export default function BNPL({ onBack }: BnplProps) {
   const form = useForm<BnplFormValues>({
     resolver: zodResolver(bnplFormSchema),
     defaultValues: {
-      merchantAlias: '',
-      amount: '' as any,
-      downPayment: '' as any,
-      repaymentFrequency: "weekly",
-      installmentsCount: 17,
+      merchantAlias: prefillData?.merchantAlias ?? '',
+      amount: prefillData?.amount,
+      downPayment: prefillData?.downPayment,
+      repaymentFrequency: prefillData?.repaymentFrequency ?? "weekly",
+      installmentsCount: prefillData?.installmentsCount ?? 17,
+      firstInstallmentDate: prefillData?.firstInstallmentDate ? new Date(prefillData.firstInstallmentDate) : undefined,
       marginRate: 0.2856,
     },
   });
+
+  useEffect(() => {
+    if (prefillData) {
+        form.reset({
+            merchantAlias: prefillData.merchantAlias,
+            amount: prefillData.amount,
+            downPayment: prefillData.downPayment,
+            repaymentFrequency: prefillData.repaymentFrequency,
+            installmentsCount: prefillData.installmentsCount,
+            firstInstallmentDate: new Date(prefillData.firstInstallmentDate),
+            marginRate: 0.2856,
+        });
+        toast({
+            title: "Proposition de crédit chargée",
+            description: "Vérifiez les détails et soumettez la demande."
+        })
+    }
+  }, [prefillData, form, toast]);
 
   const onSubmit = async (values: BnplFormValues) => {
     setIsLoading(true);
     try {
       const result = await submitRequest({
-          merchantAlias: values.merchantAlias, 
-          amount: values.amount,
-          installmentsCount: values.installmentsCount,
-          marginRate: values.marginRate,
-          repaymentFrequency: values.repaymentFrequency,
+          ...values,
           firstInstallmentDate: values.firstInstallmentDate.toISOString(),
       });
       setAssessmentResult(result);
@@ -138,6 +155,7 @@ export default function BNPL({ onBack }: BnplProps) {
   const handleReset = () => {
       setAssessmentResult(null);
       form.reset();
+      onBack();
   }
 
   if(assessmentResult) {
@@ -153,7 +171,7 @@ export default function BNPL({ onBack }: BnplProps) {
             </Button>
             <div>
             <h2 className="text-2xl font-bold text-primary">Credit Marchands (BNPL)</h2>
-            <p className="text-muted-foreground">Financez vos achats et payez en plusieurs fois.</p>
+            <p className="text-muted-foreground">{prefillData ? "Confirmez votre demande de crédit." : "Financez vos achats et payez en plusieurs fois."}</p>
             </div>
         </div>
         <Dialog>
@@ -184,10 +202,10 @@ export default function BNPL({ onBack }: BnplProps) {
                 <FormLabel>Alias ou Code Marchand</FormLabel>
                 <FormControl>
                   <div className="flex gap-2">
-                    <Input placeholder="Entrez l'identifiant du marchand" {...field} />
+                    <Input placeholder="Entrez l'identifiant du marchand" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
                      <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                       <DialogTrigger asChild>
-                          <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                          <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code" disabled={!!prefillData}>
                               <QrCode />
                           </Button>
                       </DialogTrigger>
@@ -211,7 +229,7 @@ export default function BNPL({ onBack }: BnplProps) {
               <FormItem>
                 <FormLabel>Montant total de l'achat (Fcfa)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="ex: 150000" {...field} />
+                  <Input type="number" placeholder="ex: 150000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -224,7 +242,7 @@ export default function BNPL({ onBack }: BnplProps) {
               <FormItem>
                 <FormLabel>Avance (Fcfa, optionnel)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="ex: 30000" {...field} />
+                  <Input type="number" placeholder="ex: 30000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''}/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -237,7 +255,7 @@ export default function BNPL({ onBack }: BnplProps) {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre d'échéances</FormLabel>
-                            <FormControl><Input type="number" {...field} /></FormControl>
+                            <FormControl><Input type="number" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -248,8 +266,8 @@ export default function BNPL({ onBack }: BnplProps) {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Périodicité</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionnez..." /></SelectTrigger></FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!prefillData}>
+                                <FormControl><SelectTrigger className={prefillData ? 'bg-muted' : ''}><SelectValue placeholder="Sélectionnez..." /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="weekly">Hebdomadaire</SelectItem>
                                     <SelectItem value="bi-monthly">Bi-mensuel</SelectItem>
@@ -273,9 +291,11 @@ export default function BNPL({ onBack }: BnplProps) {
                                 <FormControl>
                                     <Button
                                     variant={"outline"}
+                                    disabled={!!prefillData}
                                     className={cn(
                                         "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
+                                        !field.value && "text-muted-foreground",
+                                        prefillData ? 'bg-muted' : ''
                                     )}
                                     >
                                     {field.value ? (

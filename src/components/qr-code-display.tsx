@@ -10,6 +10,7 @@ import { SheetHeader, SheetTitle } from './ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { useAvatar } from '@/hooks/use-avatar';
+import type { CreditProposal } from './payment-form';
 
 type UserInfo = {
     name: string;
@@ -22,19 +23,30 @@ type QrCodeDisplayProps = {
   simpleMode?: boolean;
   amount?: number;
   reason?: string;
+  creditProposal?: Omit<CreditProposal, 'type'>;
 };
 
-export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amount, reason }: QrCodeDisplayProps) {
+export default function QrCodeDisplay({ alias, userInfo, simpleMode = false, amount, reason, creditProposal }: QrCodeDisplayProps) {
   const { toast } = useToast();
   const { avatar } = useAvatar();
   
-  const qrDataBase = {
-      shid: alias,
-      merchantChannel: 731,
-  };
-  const qrDataWithAmount = (amount && amount > 0) ? { ...qrDataBase, amount, reason: reason || undefined } : qrDataBase;
-  const qrData = JSON.stringify(qrDataWithAmount);
+  let qrDataObject: Record<string, any>;
 
+  if (creditProposal) {
+    qrDataObject = {
+      type: 'bnpl_proposal',
+      ...creditProposal
+    };
+  } else {
+    qrDataObject = {
+        shid: alias,
+        merchantChannel: 731,
+        ...(amount && amount > 0 && { amount }),
+        ...(reason && { reason }),
+    };
+  }
+
+  const qrData = JSON.stringify(qrDataObject);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
   
   const handleCopyAlias = () => {
