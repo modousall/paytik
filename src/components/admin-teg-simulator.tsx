@@ -49,10 +49,11 @@ const getPeriodsInYear = (periodicity: 'days' | 'weeks' | 'months') => {
     }
 };
 
-// Actuarial function to calculate installment amount (PMT)
+// Actuarial function to calculate installment amount (PMT), rounded up
 const calculatePMT = (rate: number, nper: number, pv: number): number => {
-    if (rate === 0) return pv / nper;
-    return (pv * rate) / (1 - Math.pow(1 + rate, -nper));
+    if (rate === 0) return Math.ceil(pv / nper);
+    const pmt = (pv * rate) / (1 - Math.pow(1 + rate, -nper));
+    return Math.ceil(pmt);
 };
 
 // Actuarial function to calculate rate (using Newton-Raphson method for precision)
