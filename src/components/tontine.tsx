@@ -58,8 +58,8 @@ export default function Tontine({ onBack }: TontineProps) {
             <ArrowLeft />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-primary">Mes Tontines</h2>
-            <p className="text-muted-foreground">Gérez vos groupes d'épargne et suivez vos contributions.</p>
+            <h2 className="text-2xl font-bold text-primary">Tontines</h2>
+            <p className="text-muted-foreground">Gérer les contributions.</p>
           </div>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -92,7 +92,7 @@ export default function Tontine({ onBack }: TontineProps) {
                 <div>
                   <div className="flex justify-between items-baseline mb-1">
                     <span className="text-sm font-medium">Montant total</span>
-                    <span className="font-bold text-lg text-primary">{(tontine.amount * tontine.participants.length).toLocaleString()} Fcfa</span>
+                    <span className="font-bold text-base text-primary">{(tontine.amount * tontine.participants.length).toLocaleString()} Fcfa</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Votre part</span>

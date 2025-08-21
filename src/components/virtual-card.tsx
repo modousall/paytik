@@ -162,8 +162,8 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
                 <ArrowLeft />
             </Button>
             <div>
-                <h2 className="text-2xl font-bold text-primary">Ma Carte Virtuelle</h2>
-                <p className="text-muted-foreground">Utilisez cette carte pour vos paiements en ligne en toute sécurité.</p>
+                <h2 className="text-2xl font-bold text-primary">Carte Virtuelle</h2>
+                <p className="text-muted-foreground">Paiement en ligne sécurisé.</p>
             </div>
         </div>
         
@@ -179,7 +179,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
                     </div>
                     
                     <div className='space-y-1'>
-                        <p className="text-center text-base sm:text-2xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
+                        <p className="text-center text-lg sm:text-xl tracking-widest">{showDetails ? card.number : `**** **** **** ${card.number.slice(-4)}`}</p>
                         <div className="flex justify-between text-xs sm:text-sm pt-2">
                             <div>
                                 <p className="opacity-70">Expire Fin</p>
@@ -211,7 +211,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
             <Card>
                 <CardContent className="p-4 flex justify-between items-center">
                     <p className="text-muted-foreground">Solde de la carte</p>
-                    <p className="text-xl sm:text-2xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
+                    <p className="text-xl font-bold text-primary">{(card.balance || 0).toLocaleString()} Fcfa</p>
                 </CardContent>
             </Card>
 
@@ -254,7 +254,7 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
         <Card className="max-w-2xl mx-auto mt-8">
             <CardHeader>
                 <div className="flex justify-between items-center">
-                    <CardTitle>Transactions de la carte</CardTitle>
+                    <CardTitle className="text-base">Transactions</CardTitle>
                      <Dialog>
                         <DialogTrigger asChild>
                            <Button><Wallet className="mr-2"/>Gérer les fonds</Button>
@@ -277,10 +277,10 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
                                     {tx.type === 'debit' ? <ArrowUp className="text-red-600"/> : <ArrowDown className="text-green-600"/>}
                                 </div>
                                 <div>
-                                    <p className="font-semibold">{tx.merchant}</p>
-                                    <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
+                                    <p className="font-semibold text-sm">{tx.merchant}</p>
+                                    <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
                                 </div>
-                                <p className={`ml-auto font-semibold ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
+                                <p className={`ml-auto font-semibold text-sm ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
                                     {tx.type === 'debit' ? '-' : '+'} {tx.amount.toLocaleString()} Fcfa
                                 </p>
                             </div>

@@ -20,7 +20,7 @@ export default function RechargerCompte({ onBack }: RechargerCompteProps) {
             <ArrowLeft />
         </Button>
          <div>
-            <h2 className="text-2xl font-bold text-primary">Recharger le compte</h2>
+            <h2 className="text-2xl font-bold text-primary">Dépôt</h2>
              <p className="text-muted-foreground mb-6">Approvisionnez votre solde principal.</p>
         </div>
       </div>

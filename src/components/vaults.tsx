@@ -247,8 +247,8 @@ export default function Vaults({ onBack }: VaultsProps) {
             <ArrowLeft />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-primary">Mes Coffres / Tirelires</h2>
-            <p className="text-muted-foreground">Épargnez pour vos projets, seul ou à plusieurs.</p>
+            <h2 className="text-2xl font-bold text-primary">Mes Coffres</h2>
+            <p className="text-muted-foreground">Votre tirelire mobile.</p>
           </div>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -273,7 +273,7 @@ export default function Vaults({ onBack }: VaultsProps) {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                        <div className="text-2xl font-bold mb-2">{vault.balance.toLocaleString()} Fcfa</div>
+                        <div className="text-xl font-bold mb-2">{vault.balance.toLocaleString()} Fcfa</div>
                         {vault.targetAmount && (
                             <div>
                                 <div className="flex justify-between text-sm text-muted-foreground mb-1">

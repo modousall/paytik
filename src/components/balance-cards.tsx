@@ -119,7 +119,7 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
         },
         {
             id: 'tontine' as const,
-            title: 'Mes Tontines',
+            title: 'Tontines',
             balance: totalTontinesBalance,
             icon: <Users className="h-5 w-5 text-white" />,
             color: 'from-emerald-500 to-green-400',
@@ -142,7 +142,7 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                         {c.icon}
                     </div>
                     <div className="text-right mt-2 sm:mt-4">
-                        <p className="text-xl font-bold tracking-tight">{c.balance.toLocaleString()}</p>
+                        <p className="text-lg font-bold tracking-tight">{c.balance.toLocaleString()}</p>
                         <p className="text-xs opacity-80">Fcfa</p>
                     </div>
                      {c.creditBalance && c.creditBalance > 0 && (

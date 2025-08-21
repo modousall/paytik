@@ -74,7 +74,7 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
   return (
     <Card className="border-0 shadow-none">
         <CardHeader>
-            <CardTitle>Recharger par Mobile Money</CardTitle>
+            <CardTitle>Mobile Money</CardTitle>
             <CardDescription>Approvisionnez votre solde principal depuis un compte mobile money.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -131,7 +131,7 @@ export default function MobileMoneyRechargeForm({ onRechargeSuccess }: MobileMon
                 />
                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 py-6 text-lg" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Recharger
+                    Confirmer
                 </Button>
                 </form>
             </Form>

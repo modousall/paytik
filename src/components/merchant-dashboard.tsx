@@ -9,7 +9,7 @@ import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription, DialogFooter } from "./ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from 'zod';
@@ -21,6 +21,8 @@ import { useTransactions } from "@/hooks/use-transactions";
 import MerchantCreditProposalForm from "./merchant-credit-proposal-form";
 import PICASH from "./picash";
 import HomeActions from "./home-actions";
+import { useToast } from "@/hooks/use-toast";
+import { Share2 } from "lucide-react";
 
 type UserInfo = {
     name: string;
@@ -33,7 +35,6 @@ type MerchantDashboardProps = {
     userInfo: UserInfo;
     alias: string;
 };
-
 
 const KPIs = () => {
     const { balance } = useBalance();
@@ -57,7 +58,7 @@ const KPIs = () => {
                         <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{kpi.value}</div>
+                        <div className="text-xl font-bold">{kpi.value}</div>
                     </CardContent>
                 </Card>
             ))}
@@ -65,9 +66,73 @@ const KPIs = () => {
     );
 };
 
+const paymentRequestSchema = z.object({
+    amount: z.coerce.number().positive("Le montant doit être positif."),
+    reason: z.string().optional(),
+});
+type PaymentRequestValues = z.infer<typeof paymentRequestSchema>;
+
+const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: string, userInfo: UserInfo, onGenerate: (link: string) => void }) => {
+    const form = useForm<PaymentRequestValues>({
+        resolver: zodResolver(paymentRequestSchema),
+        defaultValues: { amount: undefined, reason: "" },
+    });
+
+    const onSubmit = (values: PaymentRequestValues) => {
+        const params = new URLSearchParams({
+            to: alias,
+            amount: values.amount.toString(),
+            reason: values.reason || `Paiement pour ${userInfo.name}`
+        });
+        const paymentLink = `${window.location.origin}?pay=${params.toString()}`;
+        onGenerate(paymentLink);
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Montant (Fcfa)</FormLabel>
+                        <FormControl><Input type="number" placeholder="ex: 1500" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                <FormField control={form.control} name="reason" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Raison / Description (Optionnel)</FormLabel>
+                        <FormControl><Input placeholder="ex: Facture #42" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                <div className="flex justify-end gap-2 pt-4">
+                    <DialogClose asChild><Button type="button" variant="ghost">Annuler</Button></DialogClose>
+                    <Button type="submit">Générer le lien</Button>
+                </div>
+            </form>
+        </Form>
+    );
+}
+
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [isProposalFormOpen, setIsProposalFormOpen] = useState(false);
     const [activeAction, setActiveAction] = useState<'none' | 'retirer'>('none');
+    const [paymentLink, setPaymentLink] = useState<string | null>(null);
+    const { toast } = useToast();
+    
+    const handleShareLink = () => {
+        if (!paymentLink) return;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Demande de paiement PAYTIK',
+                text: `Veuillez me payer en utilisant ce lien : ${paymentLink}`,
+                url: paymentLink,
+            });
+        } else {
+            navigator.clipboard.writeText(paymentLink);
+            toast({ title: "Lien copié !", description: "Le lien de paiement a été copié dans le presse-papiers." });
+        }
+    };
   
     if(activeAction === 'retirer') {
         return (
@@ -108,14 +173,36 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                     <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                     <HomeActions 
-                                        onSendClick={() => {}} // N/A for merchant
-                                        onRechargeClick={() => {}} // N/A for merchant
-                                        onWithdrawClick={() => setActiveAction('retirer')}
-                                        alias={alias}
-                                        userInfo={userInfo}
-                                     />
+                                <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                                    <Dialog onOpenChange={(open) => !open && setPaymentLink(null)}>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1">
+                                                <FileText/> Demander
+                                            </Button>
+                                        </DialogTrigger>
+                                        {paymentLink ? (
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Lien de Paiement Généré</DialogTitle>
+                                                    <DialogDescription>Partagez ce lien avec votre client pour qu'il puisse vous payer facilement.</DialogDescription>
+                                                </DialogHeader>
+                                                <Input readOnly value={paymentLink} />
+                                                <DialogFooter>
+                                                    <Button variant="secondary" onClick={handleShareLink}><Share2 className="mr-2"/> Partager</Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        ) : (
+                                            <DialogContent>
+                                                <DialogHeader><DialogTitle>Demander un paiement</DialogTitle></DialogHeader>
+                                                <RequestPaymentDialogContent alias={alias} userInfo={userInfo} onGenerate={setPaymentLink} />
+                                            </DialogContent>
+                                        )}
+                                    </Dialog>
+                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('retirer')}>
+                                        <Landmark/> Retirer
+                                    </Button>
+                                </div>
+                                <div className="w-full max-w-sm">
                                       <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
                                         <DialogTrigger asChild>
                                             <Button size="lg" variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700 h-20 sm:h-16 w-full flex-col gap-1">
@@ -137,7 +224,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                         <KPIs />
                         <Card>
                             <CardHeader>
-                                <CardTitle>Historique des Transactions</CardTitle>
+                                <CardTitle>Historique</CardTitle>
                                 <CardDescription>Liste de toutes les transactions sur votre compte marchand.</CardDescription>
                             </CardHeader>
                             <CardContent>

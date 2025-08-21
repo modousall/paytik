@@ -72,7 +72,7 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
   return (
     <Card className="border-0 shadow-none">
         <CardHeader>
-            <CardTitle>Recharger par Carte Bancaire</CardTitle>
+            <CardTitle>Carte Bancaire</CardTitle>
             <CardDescription>Entrez les détails de votre carte pour approvisionner votre compte.</CardDescription>
         </CardHeader>
         <CardContent>

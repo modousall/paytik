@@ -187,7 +187,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
             </Button>
 
             <Button size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onRechargeClick}>
-                <PlusCircle/> Recharger
+                <PlusCircle/> Dépôt
             </Button>
             
             <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>

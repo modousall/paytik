@@ -155,7 +155,7 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
     const canBeReversed = transaction.type !== 'tontine' && transaction.status !== 'Retourné' && transaction.type !== 'versement';
 
     return (
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-sm">
              {/* Hidden receipt for rendering */}
             <div style={{ position: 'fixed', left: '-9999px', top: '-9999px' }}>
                 <div ref={receiptRef} style={{ width: '400px', padding: '20px', background: 'white' }}>
@@ -166,13 +166,13 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             <DialogHeader>
                 <DialogTitle>Détails de la transaction</DialogTitle>
                 <DialogDescription>
-                    ID de transaction : {transaction.id}
+                    ID : {transaction.id}
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-4 border-y">
                 <div className="flex justify-between items-center">
                     <span className="text-muted-foreground text-sm">Montant</span>
-                    <span className={`font-semibold text-lg ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold text-base ${transaction.type === 'received' || transaction.type === 'tontine' || transaction.type === 'card_recharge' ? 'text-green-600' : 'text-red-600'}`}>
                         {transaction.type === 'sent' || transaction.type === 'versement' ? '-' : '+'}
                         {transaction.amount.toLocaleString()} Fcfa
                     </span>
@@ -200,12 +200,12 @@ const TransactionDetailsDialog = ({ transaction }: { transaction: Transaction })
             <DialogFooter className="sm:justify-between gap-2 flex-wrap">
                  <Button variant="ghost" onClick={handleDownload} disabled={isDownloading}>
                     <Download className={`mr-2 ${isDownloading ? 'animate-pulse' : ''}`} /> 
-                    {isDownloading ? "Génération..." : "Télécharger le reçu"}
+                    {isDownloading ? "Génération..." : "Reçu"}
                 </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="outline" disabled={!canBeReversed}>
-                            <RotateCcw className="mr-2" /> Retourner la transaction
+                            <RotateCcw className="mr-2" /> Retourner
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -259,7 +259,7 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
                         </Button>
                     )}
                     <CardTitle className="text-lg font-semibold">
-                        {showAll ? 'Historique des transactions' : 'Transactions Récentes'}
+                        {showAll ? 'Historique' : 'Transactions Récentes'}
                     </CardTitle>
                 </div>
                 {showAll && (

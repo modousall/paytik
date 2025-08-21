@@ -109,7 +109,7 @@ export default function PICASH({ onBack }: PicashProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="bg-muted p-4 rounded-lg">
-                        <p className="text-4xl font-bold tracking-widest">{generatedCode}</p>
+                        <p className="text-3xl font-bold tracking-widest">{generatedCode}</p>
                     </div>
                     <Button onClick={handleCopyCode} variant="outline" className="mt-4">
                         <Copy className="mr-2" /> Copier le code

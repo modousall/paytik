@@ -66,11 +66,11 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
                 <p className="text-sm text-muted-foreground">Solde Total</p>
                 <div className="flex items-center justify-center gap-2">
                      {isBalanceVisible ? (
-                        <p className="text-3xl font-bold tracking-tight text-primary">
-                            {totalBalance.toLocaleString()} <span className="text-lg font-normal">Fcfa</span>
+                        <p className="text-2xl font-bold tracking-tight text-primary">
+                            {totalBalance.toLocaleString()} <span className="text-base font-normal">Fcfa</span>
                         </p>
                     ) : (
-                        <p className="text-3xl font-bold tracking-tight text-primary">
+                        <p className="text-2xl font-bold tracking-tight text-primary">
                             ••••••••
                         </p>
                     )}
