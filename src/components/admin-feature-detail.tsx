@@ -185,4 +185,3 @@ export default function AdminFeatureDetail({ feature, onBack }: AdminFeatureDeta
         </div>
     )
 }
-

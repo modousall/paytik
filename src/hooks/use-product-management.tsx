@@ -1,9 +1,11 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from './use-toast';
 import type { Transaction } from './use-transactions';
+import { formatCurrency } from '@/lib/utils';
 
 export type ProductItem = {
     id: string;
@@ -119,7 +121,7 @@ export const ProductProvider = ({ children, addSettlementTransaction }: ProductP
         status: 'Terminé',
       });
       
-      toast({ title: "Règlement enregistré", description: `Un versement de ${amount.toLocaleString()} Fcfa a été enregistré pour ${product.name}. Le solde sera mis à jour.` });
+      toast({ title: "Règlement enregistré", description: `Un versement de ${formatCurrency(amount)} a été enregistré pour ${product.name}. Le solde sera mis à jour.` });
   }
 
   const value = { 

@@ -30,7 +30,7 @@ const DetailRow = ({ label, value }: { label: string, value: string | React.Reac
 
 const RepaymentSchedule = ({ plan }: { plan: string }) => {
     // Basic parser for "X versements de Y Fcfa"
-    const match = plan.match(/(\d+)\s*versements\s*de\s*([\d\s.,]+)\s*Fcfa/);
+    const match = plan.match(/(\d+)\s*versements\s*de\s*([\d\s.,]+)\s*F/);
     if (!match) return <p className="text-sm text-muted-foreground">{plan}</p>;
 
     const count = parseInt(match[1], 10);
@@ -117,4 +117,3 @@ export default function CreditRequestDetails({ request }: { request: BnplRequest
         </>
     )
 }
-

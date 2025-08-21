@@ -140,4 +140,3 @@ export default function Tontine({ onBack }: TontineProps) {
     </div>
   );
 }
-

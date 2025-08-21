@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -23,6 +24,7 @@ import PICASH from "./picash";
 import HomeActions from "./home-actions";
 import { useToast } from "@/hooks/use-toast";
 import { Share2 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 type UserInfo = {
     name: string;
@@ -45,9 +47,9 @@ const KPIs = () => {
     const todaysRevenue = todaysTransactions.reduce((acc, tx) => acc + tx.amount, 0);
 
     const kpiData = [
-        { title: "Chiffre d'affaires (Aujourd'hui)", value: `${todaysRevenue.toLocaleString()} Fcfa` },
+        { title: "Chiffre d'affaires (Aujourd'hui)", value: formatCurrency(todaysRevenue) },
         { title: "Transactions (Aujourd'hui)", value: todaysTransactions.length },
-        { title: "Solde Marchand Actuel", value: `${balance.toLocaleString()} Fcfa` },
+        { title: "Solde Marchand Actuel", value: formatCurrency(balance) },
     ];
 
     return (
@@ -93,7 +95,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                 <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Montant (Fcfa)</FormLabel>
+                        <FormLabel>Montant (F)</FormLabel>
                         <FormControl><Input type="number" placeholder="ex: 1500" {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>

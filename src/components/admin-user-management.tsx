@@ -147,4 +147,3 @@ export default function AdminUserManagement() {
         </TransactionsProvider>
     )
 }
-

@@ -146,4 +146,3 @@ export default function BankCardRechargeForm({ onRechargeSuccess }: BankCardRech
     </Card>
   );
 }
-

@@ -214,4 +214,3 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
     </DialogContent>
   );
 }
-

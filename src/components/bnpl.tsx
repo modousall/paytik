@@ -92,7 +92,8 @@ const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput, onBac
     )
 }
 
-const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any, onConfirm: () => void, onCancel: () => void }) => {
+const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | null, onConfirm: () => void, onCancel: () => void }) => {
+    if (!values) return null;
     return (
         <DialogContent>
             <DialogHeader>
@@ -100,13 +101,13 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any, onCo
             </DialogHeader>
             <div className="space-y-4 py-4 text-sm">
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer</span><span className="font-medium">{formatCurrency(values.financedAmount)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
                  <hr/>
-                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount)}</span></div>
+                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total du crédit</span><span className="font-medium">{formatCurrency(values.totalCost)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
@@ -207,9 +208,55 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   };
   
   const handleScannedCode = (decodedText: string) => {
-    form.setValue('merchantAlias', decodedText, { shouldValidate: true });
+    try {
+        const data = JSON.parse(decodedText);
+        const proposalResult = z.object({
+            type: z.literal('bnpl_proposal'),
+            merchantAlias: z.string(),
+            clientAlias: z.string(),
+            amount: z.number(),
+            downPayment: z.number().optional(),
+            repaymentFrequency: z.string(),
+            installmentsCount: z.number(),
+            firstInstallmentDate: z.string(),
+            marginRate: z.number(),
+          }).safeParse(data);
+
+        if (proposalResult.success) {
+            const { type, clientAlias, ...proposal } = proposalResult.data;
+            // The BNPL component will be re-rendered with prefillData
+            // This is handled by a parent component that needs to manage state
+            // For now, we simulate this by directly setting state if possible
+            form.reset({
+                ...proposal,
+                firstInstallmentDate: new Date(proposal.firstInstallmentDate),
+            });
+            toast({
+                title: "Proposition de crédit chargée",
+                description: "Vérifiez les détails et soumettez la demande."
+            })
+            setIsScannerOpen(false);
+            return;
+        }
+
+        if (data.shid) {
+            form.setValue('recipientAlias', data.shid, { shouldValidate: true });
+            if (data.amount) {
+                form.setValue('amount', data.amount, { shouldValidate: true });
+            }
+            if (data.reason) {
+                form.setValue('reason', data.reason, { shouldValidate: true });
+            }
+            toast({ title: "Code marchand scanné !", description: "Les détails du paiement ont été pré-remplis." });
+        } else {
+            form.setValue('merchantAlias', decodedText, { shouldValidate: true });
+            toast({ title: "Code scanné", description: "Le code a été inséré." });
+        }
+    } catch(e) {
+        form.setValue('merchantAlias', decodedText, { shouldValidate: true });
+        toast({ title: "Code scanné", description: "Le code a été inséré." });
+    }
     setIsScannerOpen(false);
-    toast({ title: "Code Scanné", description: "L'alias du marchand a été inséré." });
   }
   
   const handleReset = () => {
@@ -281,7 +328,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
               <FormItem>
                 <FormLabel>Montant total de l'achat</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="ex: 150000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
+                  <Input type="number" placeholder="ex: 150000" {...field} value={field.value || ''} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -294,7 +341,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
               <FormItem>
                 <FormLabel>Avance (optionnel)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="ex: 30000" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''}/>
+                  <Input type="number" placeholder="ex: 30000" {...field} value={field.value || ''} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''}/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -307,7 +354,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre d'échéances</FormLabel>
-                            <FormControl><Input type="number" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} /></FormControl>
+                            <FormControl><Input type="number" {...field} value={field.value || ''} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -411,18 +458,14 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
           </Button>
 
           <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-            {formValuesForConfirmation && (
-              <ConfirmationDialog 
+             <ConfirmationDialog 
                   values={formValuesForConfirmation}
                   onConfirm={onConfirmSubmit}
                   onCancel={() => setShowConfirmation(false)}
               />
-            )}
           </Dialog>
         </form>
       </Form>
     </div>
   );
 }
-
-

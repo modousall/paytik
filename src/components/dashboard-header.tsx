@@ -95,4 +95,3 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
         </header>
     );
 }
-

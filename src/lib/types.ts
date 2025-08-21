@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 // BNPL (Buy Now, Pay Later) Schemas and Types
@@ -47,5 +48,3 @@ export type BnplRequest = {
     requestDate: string;
     repaidAmount?: number;
 };
-
-    

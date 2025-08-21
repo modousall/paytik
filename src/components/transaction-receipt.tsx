@@ -75,4 +75,3 @@ const TransactionReceipt = ({ transaction }: { transaction: Transaction }) => {
 };
 
 export default TransactionReceipt;
-

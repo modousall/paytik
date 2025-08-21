@@ -335,4 +335,3 @@ export default function TransactionHistory({ showAll, onShowAll }: TransactionHi
         </Card>
     );
 }
-

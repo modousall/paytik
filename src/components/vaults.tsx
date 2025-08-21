@@ -320,4 +320,3 @@ export default function Vaults({ onBack }: VaultsProps) {
     </div>
   );
 }
-

@@ -16,7 +16,7 @@ import { formatCurrency } from '@/lib/utils';
 
 const formatDate = (dateString: string) => format(new Date(dateString), 'Pp', { locale: fr });
 
-export default function AdminProductDetail({ product, allTransactions, onBack }: AdminProductDetailProps) {
+export default function AdminProductDetail({ product, allTransactions, onBack }: { product: ProductWithBalance, allTransactions: Transaction[], onBack: () => void; }) {
 
     const { kpis, recentTransactions } = useMemo(() => {
         const productTransactions = allTransactions.filter(tx => 
@@ -130,4 +130,3 @@ export default function AdminProductDetail({ product, allTransactions, onBack }:
         </div>
     )
 }
-

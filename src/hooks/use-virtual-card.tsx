@@ -1,10 +1,12 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useToast } from './use-toast';
 import { useBalance } from './use-balance';
 import { useTransactions } from './use-transactions';
+import { formatCurrency } from '@/lib/utils';
 
 const VIRTUAL_CARD_BALANCE_LIMIT = 2000000;
 
@@ -132,7 +134,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
              return;
         }
         if (card.balance + amount > VIRTUAL_CARD_BALANCE_LIMIT) {
-            toast({ title: "Plafond de la carte atteint", description: `Le solde de la carte ne peut excéder ${VIRTUAL_CARD_BALANCE_LIMIT.toLocaleString()} Fcfa.`, variant: "destructive" });
+            toast({ title: "Plafond de la carte atteint", description: `Le solde de la carte ne peut excéder ${formatCurrency(VIRTUAL_CARD_BALANCE_LIMIT)}.`, variant: "destructive" });
             return;
         }
 
@@ -159,7 +161,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
 
         toast({
             title: "Rechargement réussi",
-            description: `Votre carte a été rechargée de ${amount.toLocaleString()} Fcfa.`
+            description: `Votre carte a été rechargée de ${formatCurrency(amount)}.`
         });
     }
   }
@@ -189,7 +191,7 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
 
         toast({
             title: "Retrait réussi",
-            description: `${amount.toLocaleString()} Fcfa ont été transférés sur votre solde principal.`
+            description: `${formatCurrency(amount)} ont été transférés sur votre solde principal.`
         });
     } else if (card && amount > card.balance) {
         toast({ title: "Solde de la carte insuffisant", variant: "destructive"});

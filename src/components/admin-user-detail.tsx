@@ -383,7 +383,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                                 <SummaryCard title="Solde Principal" balance={user.balance} icon={<Wallet className="h-5 w-5 text-white" />} color="from-primary to-blue-400" onClick={() => setActiveServiceView('transactions')} />
                                 <SummaryCard title="Carte Virtuelle" balance={virtualCardBalance} icon={<CreditCard className="h-5 w-5 text-white" />} color="from-sky-500 to-cyan-400" onClick={() => setActiveServiceView('ma-carte')} />
                                 <SummaryCard title="Mes Coffres" balance={totalVaultsBalance} icon={<PiggyBank className="h-5 w-5 text-white" />} color="from-amber-500 to-yellow-400" onClick={() => setActiveServiceView('coffres')} />
-                                <SummaryCard title="Mes Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" onClick={() => setActiveServiceView('tontine')}/>
+                                <SummaryCard title="Tontines" balance={totalTontinesBalance} icon={<TontineIcon className="h-5 w-5 text-white" />} color="from-emerald-500 to-green-400" onClick={() => setActiveServiceView('tontine')}/>
                             </div>
                         )}
                         {user.role === 'merchant' && (
@@ -421,5 +421,3 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
         </UserServiceProvider>
     )
 }
-
-    

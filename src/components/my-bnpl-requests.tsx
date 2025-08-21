@@ -96,4 +96,3 @@ export default function MyBnplRequests({ onBack }: MyBnplRequestsProps) {
         </div>
     );
 }
-
