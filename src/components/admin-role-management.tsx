@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { ShieldCheck, UserCog, Building, User, Headset, PlusCircle, Trash2, Edit, UserSearch, Scale } from 'lucide-react';
+import { ShieldCheck, UserCog, Building, User, Headset, PlusCircle, Trash2, Edit, UserSearch, Scale, Briefcase, UserSquare } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from './ui/dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,8 +29,10 @@ const roleIcons: Record<string, JSX.Element> = {
     "Support": <Headset className="h-8 w-8 text-primary" />,
     "Marchand": <Building className="h-8 w-8 text-primary" />,
     "Utilisateur": <User className="h-8 w-8 text-primary" />,
-    "Analyste Financier": <UserSearch className="h-8 w-8 text-primary" />,
+    "Agent de Crédit": <UserSearch className="h-8 w-8 text-primary" />,
     "Agent de Conformité": <Scale className="h-8 w-8 text-primary" />,
+    "Guichetier": <UserSquare className="h-8 w-8 text-primary" />,
+    "Responsable Agence": <Briefcase className="h-8 w-8 text-primary" />,
 };
 
 const RoleDialog = ({ 

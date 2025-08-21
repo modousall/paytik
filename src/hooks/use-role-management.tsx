@@ -38,7 +38,7 @@ const initialRoles: Role[] = [
     },
     {
         id: "analyst",
-        name: "Analyste Financier",
+        name: "Agent de Crédit",
         description: "Examine et valide les demandes de financement des clients.",
         permissions: ["Voir financements", "Approuver financements", "Rejeter financements"],
         isDeletable: true,
@@ -56,6 +56,20 @@ const initialRoles: Role[] = [
         description: "Assiste les utilisateurs, consulte les transactions et peut suspendre des comptes.",
         permissions: ["Consultation utilisateurs", "Consultation transactions", "Suspension utilisateurs"],
         isDeletable: false,
+    },
+     {
+        id: "teller",
+        name: "Guichetier",
+        description: "Gère les opérations cash en agence: dépôts, retraits, ouverture de comptes.",
+        permissions: ["Dépôt cash", "Retrait cash", "Ouvrir compte", "Vérifier identité"],
+        isDeletable: true,
+    },
+    {
+        id: "branch_manager",
+        name: "Responsable Agence",
+        description: "Supervise les opérations d'un point de service ou d'une agence.",
+        permissions: ["Voir transactions agence", "Gérer guichetiers", "Rapports agence"],
+        isDeletable: true,
     },
     {
         id: "merchant",

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, Clock, Share2 } from 'lucide-react';
+import { LogOut, BarChart3, Landmark, QrCode, Clock, Link, HandCoins, ArrowDownCircle } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -113,7 +113,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
 
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [isProposalFormOpen, setIsProposalFormOpen] = useState(false);
-    const [activeAction, setActiveAction] = useState<'none' | 'retirer'>('none');
+    const [activeAction, setActiveAction] = useState<'none' | 'retirer' | 'retrait-client'>('none');
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
     const { toast } = useToast();
     
@@ -134,6 +134,13 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
     if(activeAction === 'retirer') {
         return (
             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+                <PICASH onBack={() => setActiveAction('none')} />
+            </div>
+        )
+    }
+    if (activeAction === 'retrait-client') {
+        return (
+             <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <PICASH onBack={() => setActiveAction('none')} />
             </div>
         )
@@ -174,7 +181,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                     <Dialog onOpenChange={(open) => !open && setPaymentLink(null)}>
                                         <DialogTrigger asChild>
                                             <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1">
-                                                <FileText/> Demander
+                                                <Link/> Lien
                                             </Button>
                                         </DialogTrigger>
                                         {paymentLink ? (
@@ -185,25 +192,25 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                                 </DialogHeader>
                                                 <Input readOnly value={paymentLink} />
                                                 <DialogFooter>
-                                                    <Button variant="secondary" onClick={handleShareLink}><Share2 className="mr-2"/> Partager</Button>
+                                                    <Button variant="secondary" onClick={handleShareLink}><Link className="mr-2"/> Partager</Button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         ) : (
                                             <DialogContent>
-                                                <DialogHeader><DialogTitle>Demander un paiement</DialogTitle></DialogHeader>
+                                                <DialogHeader><DialogTitle>Demander un paiement par lien</DialogTitle></DialogHeader>
                                                 <RequestPaymentDialogContent alias={alias} userInfo={userInfo} onGenerate={setPaymentLink} />
                                             </DialogContent>
                                         )}
                                     </Dialog>
                                       <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('retirer')}>
-                                        <Landmark/> Retirer
+                                        <Landmark/> Compense
                                     </Button>
                                 </div>
-                                <div className="w-full max-w-sm">
-                                      <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
+                                <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+                                     <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
                                         <DialogTrigger asChild>
                                             <Button size="lg" variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700 h-20 sm:h-16 w-full flex-col gap-1">
-                                                <Clock/> Proposer un Crédit
+                                                <HandCoins/> Achat credit
                                             </Button>
                                         </DialogTrigger>
                                         <MerchantCreditProposalForm 
@@ -212,6 +219,9 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                             onClose={() => setIsProposalFormOpen(false)}
                                         />
                                      </Dialog>
+                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('retrait-client')}>
+                                        <ArrowDownCircle/> Retrait client
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
