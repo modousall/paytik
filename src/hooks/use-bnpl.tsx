@@ -12,6 +12,7 @@ import { useUserManagement } from './use-user-management';
 type SubmitRequestPayload = {
     merchantAlias: string;
     amount: number;
+    downPayment?: number;
     installmentsCount: number;
     marginRate: number;
     repaymentFrequency: string;
@@ -107,6 +108,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       const assessmentInput: BnplAssessmentInput = {
         alias,
         purchaseAmount: payload.amount,
+        downPayment: payload.downPayment,
         currentBalance: balance,
         transactionHistory,
         installmentsCount: payload.installmentsCount,
@@ -121,7 +123,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
           id: `bnpl-${Date.now()}`,
           alias,
           merchantAlias: payload.merchantAlias,
-          amount: payload.amount,
+          amount: payload.amount - (payload.downPayment || 0),
           status: assessmentResult.status,
           reason: assessmentResult.reason,
           repaymentPlan: assessmentResult.repaymentPlan,
@@ -132,13 +134,27 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          credit(payload.amount);
-          
+          // Pay the down payment immediately
+          if(payload.downPayment && payload.downPayment > 0) {
+            debit(payload.downPayment);
+            addTransaction({
+              type: 'sent',
+              counterparty: payload.merchantAlias,
+              reason: `Avance pour achat BNPL`,
+              amount: payload.downPayment,
+              date: new Date().toISOString(),
+              status: 'Terminé'
+            });
+          }
+
+          // Credit the user with the financed amount
+          const financedAmount = payload.amount - (payload.downPayment || 0);
+          credit(financedAmount);
           addTransaction({
               type: 'received',
               counterparty: 'Credit Marchands',
               reason: `Crédit approuvé pour achat chez ${payload.merchantAlias}`,
-              amount: payload.amount,
+              amount: financedAmount,
               date: new Date().toISOString(),
               status: 'Terminé'
           });

@@ -5,6 +5,7 @@ import { z } from 'zod';
 export const BnplAssessmentInputSchema = z.object({
   alias: z.string().describe('The user alias applying for BNPL.'),
   purchaseAmount: z.number().describe('The total amount of the purchase.'),
+  downPayment: z.number().optional().describe('The down payment made by the user, if any.'),
   transactionHistory: z
     .array(
       z.object({

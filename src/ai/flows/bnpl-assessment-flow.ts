@@ -24,9 +24,10 @@ Analysez la demande de "Credit Marchands" (BNPL) suivante et décidez si elle do
 
 Critères d'évaluation :
 1.  **Montant de l'achat** : Si le montant est très élevé (ex: > 150 000 Fcfa), soyez prudent.
-2.  **Historique des transactions** : Un utilisateur avec un historique de transactions régulier et des revenus (received) est un bon candidat. Un utilisateur sans historique est à haut risque.
-3.  **Solde actuel** : Un solde actuel très bas peut indiquer un risque.
-4.  **Conditions du crédit** : Un taux de marge élevé ou une périodicité de remboursement très courte pour un montant élevé peuvent augmenter le risque.
+2.  **Avance (Down Payment)**: Une avance significative réduit le risque. Si une avance est versée, le montant à financer est réduit.
+3.  **Historique des transactions** : Un utilisateur avec un historique de transactions régulier et des revenus (received) est un bon candidat. Un utilisateur sans historique est à haut risque.
+4.  **Solde actuel** : Un solde actuel très bas peut indiquer un risque.
+5.  **Conditions du crédit** : Un taux de marge élevé ou une périodicité de remboursement très courte pour un montant élevé peuvent augmenter le risque.
 
 Règles de décision :
 - **Approuver** : Pour les montants raisonnables (< 100 000 Fcfa) avec un bon historique de transactions et des conditions de crédit standard.
@@ -36,18 +37,21 @@ Règles de décision :
 Informations sur le demandeur :
 Alias: {{{alias}}}
 Montant de l'achat : {{{purchaseAmount}}} Fcfa
+Avance versée : {{#if downPayment}}{{{downPayment}}} Fcfa{{else}}0 Fcfa{{/if}}
 Solde actuel : {{{currentBalance}}} Fcfa
 Nombre d'échéances: {{{installmentsCount}}}
 Périodicité de remboursement: {{{repaymentFrequency}}}
 Date de première échéance: {{{firstInstallmentDate}}}
 Taux de marge: {{{marginRate}}}%
 
-Historique des transactions:
-{{#each transactionHistory}}
-- {{this.type}} de {{this.amount}} Fcfa le {{this.date}}
-{{/each}}
+Calcul du plan de remboursement (si approuvé) :
+1. Calculez le montant à financer : Montant de l'achat - Avance versée.
+2. Calculez le coût total du crédit : Montant à financer * Taux de marge * Nombre d'échéances (si le taux est par période).
+3. Calculez le montant total à rembourser : Montant à financer + Coût total du crédit.
+4. Calculez le montant par échéance : Montant total à rembourser / Nombre d'échéances.
+5. Formulez le plan de remboursement : "{{{installmentsCount}}} versements de [Montant par échéance] Fcfa".
 
-Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et concise pour votre décision, et si approuvé, un plan de remboursement simple (ex: "{{{installmentsCount}}} versements de X Fcfa").
+Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et concise pour votre décision, et si approuvé, le plan de remboursement calculé.
 `,
   });
 
@@ -65,5 +69,4 @@ Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et co
 
   return bnplAssessmentFlow(input);
 }
-
     
