@@ -37,6 +37,20 @@ const initialRoles: Role[] = [
         isDeletable: false,
     },
     {
+        id: "analyst",
+        name: "Analyste Financier",
+        description: "Examine et valide les demandes de financement des clients.",
+        permissions: ["Voir financements", "Approuver financements", "Rejeter financements"],
+        isDeletable: true,
+    },
+     {
+        id: "compliance",
+        name: "Agent de Conformité",
+        description: "Supervise la conformité des opérations et des produits avec les standards éthiques.",
+        permissions: ["Voir transactions", "Rapports de conformité", "Auditer les produits"],
+        isDeletable: true,
+    },
+    {
         id: "support",
         name: "Support",
         description: "Assiste les utilisateurs, consulte les transactions et peut suspendre des comptes.",

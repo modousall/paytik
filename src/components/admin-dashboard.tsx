@@ -17,14 +17,14 @@ type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'partners' | 'services' | 'financing';
+type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'billers' | 'services' | 'financing';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
     { id: "merchants", title: "Gestion des Marchands", description: "Gérer les comptes et les profils des marchands.", icon: <Building /> },
-    { id: "transactions", title: "Centre d'Analyse Business", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
+    { id: "transactions", title: "Centre d'Analyse", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
     { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de financement islamique.", icon: <HandCoins /> },
-    { id: "partners", title: "Gestion des Partenaires", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
+    { id: "billers", title: "Gestion des Facturiers", description: "Gérer les facturiers et les opérateurs externes.", icon: <Handshake /> },
     { id: "services", title: "Gestion des Services", description: "Configurer les fonctionnalités (cartes, BNPL, tontines...).", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
@@ -42,7 +42,7 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminTransactionAnalysis />;
             case 'financing':
                 return <AdminFinancingManagement />;
-            case 'partners':
+            case 'billers':
                 return <AdminProductManagement />;
             case 'services':
                 return <AdminFeatureManagement />;

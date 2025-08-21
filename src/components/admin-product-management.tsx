@@ -43,7 +43,7 @@ const SettlementDialog = ({ product, onSettle }: { product: ProductWithBalance, 
             <DialogHeader>
                 <DialogTitle>Règlement pour {product.name}</DialogTitle>
                 <DialogDescription>
-                    Confirmez le montant à régler pour ce partenaire. Cette action simulera un virement et réinitialisera le solde dû.
+                    Confirmez le montant à régler pour ce facturier. Cette action simulera un virement et réinitialisera le solde dû.
                 </DialogDescription>
             </DialogHeader>
              <div className="py-4 space-y-4">
@@ -97,12 +97,12 @@ const ProductDialog = ({
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{product?.id ? 'Modifier' : 'Ajouter'} un partenaire</DialogTitle>
+                <DialogTitle>{product?.id ? 'Modifier' : 'Ajouter'} un facturier</DialogTitle>
             </DialogHeader>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                     <FormField control={form.control} name="name" render={({ field }) => (
-                        <FormItem><FormLabel>Nom du partenaire</FormLabel><FormControl><Input placeholder="ex: SENELEC" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Nom du facturier</FormLabel><FormControl><Input placeholder="ex: SENELEC" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <div className="grid grid-cols-2 gap-4">
                          <FormField control={form.control} name="fee" render={({ field }) => (
@@ -219,7 +219,7 @@ const ProductTable = ({
                             </TableRow>
                         ))}
                          {products.length === 0 && (
-                            <TableRow><TableCell colSpan={6} className="text-center">Aucun partenaire configuré.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={6} className="text-center">Aucun facturier configuré.</TableCell></TableRow>
                         )}
                     </TableBody>
                 </Table>
@@ -289,8 +289,8 @@ export default function AdminProductManagement() {
     <div className="space-y-8">
       <Card>
         <CardHeader>
-            <CardTitle>Gestion des Partenaires</CardTitle>
-            <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un partenaire pour voir ses détails.</CardDescription>
+            <CardTitle>Gestion des Facturiers</CardTitle>
+            <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un facturier pour voir ses détails.</CardDescription>
         </CardHeader>
       </Card>
       

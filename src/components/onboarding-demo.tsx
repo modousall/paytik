@@ -9,7 +9,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Zap, ShieldCheck, DollarSign, Wifi } from "lucide-react";
+import { Zap, ShieldCheck, HandCoins, Users } from "lucide-react";
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -20,24 +20,24 @@ type OnboardingDemoProps = {
 
 const features = [
     {
-      icon: <Wifi className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
-      title: "Paiements Interopérables",
-      description: "Notre plateforme est conçue pour fonctionner de manière transparente avec divers services.",
+      icon: <HandCoins className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
+      title: "Financement Conforme",
+      description: "Financez vos projets et achats (Mourabaha) en accord avec les principes éthiques.",
+    },
+    {
+      icon: <Users className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
+      title: "Épargne & Tontine",
+      description: "Constituez votre épargne dans des coffres ou participez à des tontines collaboratives.",
     },
     {
       icon: <Zap className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
-      title: "Transactions Instantanées",
-      description: "Profitez d'un traitement des paiements ultra-rapide pour tous vos besoins.",
+      title: "Paiements Éthiques",
+      description: "Envoyez et recevez de l'argent instantanément, avec des frais justes et transparents.",
     },
     {
       icon: <ShieldCheck className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
-      title: "Sécurité Renforcée",
-      description: "Avec Midi, vos transactions sont protégées par les dernières technologies de sécurité.",
-    },
-    {
-      icon: <DollarSign className="h-10 w-10 sm:h-12 sm:w-12 text-white" />,
-      title: "Coûts Abordables",
-      description: "Profitez de frais de transaction compétitifs et transparents.",
+      title: "Sécurité & Conformité",
+      description: "Vos transactions sont protégées et conformes aux plus hauts standards de sécurité.",
     },
 ];
 
@@ -76,7 +76,7 @@ export default function OnboardingDemo({ onStart, onLogin }: OnboardingDemoProps
             <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Midi
             </h1>
-            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Paiement Simplifié.</p>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Microfinance Islamique Digitale et Inclusive.</p>
         </div>
 
         <Carousel setApi={setApi} className="w-full max-w-sm sm:max-w-md">

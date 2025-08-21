@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -122,7 +121,7 @@ export default function AdminTransactionAnalysis() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-             <CardTitle>Centre d'Analyse Business</CardTitle>
+             <CardTitle>Centre d'Analyse</CardTitle>
              <Button onClick={handleExport}>
                 <Download className="mr-2"/> Exporter vers Excel
              </Button>
