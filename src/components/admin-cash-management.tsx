@@ -10,12 +10,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from './ui/badge';
 import { formatCurrency } from '@/lib/utils';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import AdminTegSimulator from './admin-teg-simulator';
 import { useTreasuryManagement, type TreasuryOperation } from '@/hooks/use-treasury-management';
 import TreasuryOperationForm from './treasury-operation-form';
 import { Input } from './ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import dynamic from 'next/dynamic';
+import { Skeleton } from './ui/skeleton';
 
+const AdminTegSimulator = dynamic(() => import('./admin-teg-simulator'), {
+  loading: () => <div className="p-8"><Skeleton className="h-64 w-full" /></div>,
+  ssr: false,
+});
 
 export default function AdminCashManagement() {
     const { treasuryData, addOperation } = useTreasuryManagement();
