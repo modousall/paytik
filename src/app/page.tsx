@@ -154,6 +154,8 @@ export default function AuthenticationGate() {
           pincode: '', // PIN will be set at next step
           role: 'user', // Default role for new users
       }));
+      // Ensure new users start with a zero balance
+      localStorage.setItem(`midi_balance_${newAlias}`, '0');
       localStorage.setItem('midi_active_alias_creation', newAlias);
       setAlias(newAlias);
       setStep('pin_creation');

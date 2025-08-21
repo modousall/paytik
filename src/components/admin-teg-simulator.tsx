@@ -12,6 +12,7 @@ import { DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFoot
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Calculator } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { formatCurrency } from '@/lib/utils';
 
 const simulatorSchema = z.object({
   financedAmount: z.coerce.number().positive({ message: "Le montant doit être positif." }),
@@ -71,8 +72,6 @@ export default function AdminTegSimulator() {
         }
         return null;
     }, [financedAmount, installments, installmentAmount]);
-
-    const formatCurrency = (value: number) => `${value.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Fcfa`;
 
     return (
         <DialogContent className="max-w-xl">
