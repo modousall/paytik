@@ -129,10 +129,10 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
     resolver: zodResolver(bnplFormSchema),
     defaultValues: {
       merchantAlias: '',
-      amount: undefined,
-      downPayment: undefined,
+      amount: '' as any,
+      downPayment: '' as any,
       repaymentFrequency: "weekly",
-      installmentsCount: undefined,
+      installmentsCount: '' as any,
       firstInstallmentDate: undefined,
       marginRate: 0.2856,
     },
@@ -424,4 +424,5 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
     </div>
   );
 }
+
 
