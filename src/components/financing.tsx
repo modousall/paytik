@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CreditCard, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
@@ -36,7 +36,7 @@ const RequestHistory = () => {
     const combinedRequests: CombinedRequest[] = [
         ...bnplRequests.map(r => ({ ...r, financingProduct: 'bnpl' as const })),
         ...islamicRequests.map(r => ({ ...r, financingProduct: 'islamic' as const }))
-    ].sort((a,b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
+    ].sort((a,b) => new Date(b.requestDate).getTime() - new Date(a.date).getTime());
 
     return (
          <Card>
@@ -61,7 +61,7 @@ const RequestHistory = () => {
                                     <TableRow className="cursor-pointer">
                                         <TableCell>{formatDate(req.requestDate)}</TableCell>
                                         <TableCell>
-                                            {req.financingProduct === 'bnpl' ? 'Credit Marchand' : 'Financement Islamique'}
+                                            {req.financingProduct === 'bnpl' ? 'Credit Achat' : 'Financement Islamique'}
                                         </TableCell>
                                         <TableCell>{formatCurrency(req.amount)}</TableCell>
                                         <TableCell>
@@ -115,15 +115,28 @@ export default function Financing({ onBack }: FinancingProps) {
                 <RequestHistory />
             </TabsContent>
             <TabsContent value="new">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Demande de Financement Islamique</CardTitle>
-                        <CardDescription>Financez vos projets en accord avec vos valeurs.</CardDescription>
-                    </CardHeader>
-                     <CardContent>
-                        <IslamicFinancingRequestForm onBack={() => {}} />
-                    </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><CreditCard />Crédit Achat (BNPL)</CardTitle>
+                            <CardDescription>Financez un achat spécifique chez un marchand partenaire.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                             <p className="text-sm text-muted-foreground">
+                                Ce type de crédit est initié directement lors d'un paiement. Scannez le QR code d'un marchand proposant un plan de paiement échelonné pour commencer.
+                             </p>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><FileText />Financement Islamique</CardTitle>
+                            <CardDescription>Financez vos projets en accord avec vos valeurs.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <IslamicFinancingRequestForm onBack={() => {}} />
+                        </CardContent>
+                    </Card>
+                </div>
             </TabsContent>
         </Tabs>
     </div>

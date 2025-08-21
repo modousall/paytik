@@ -119,12 +119,12 @@ export default function IslamicFinancing({ onBack }: IslamicFinancingProps) {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg mx-auto">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Alert>
             <Info className="h-4 w-4" />
-            <AlertTitle>Comment ça marche ?</AlertTitle>
+            <AlertTitle>Soumettez votre besoin.</AlertTitle>
             <AlertDescription>
-              Soumettez votre besoin. Notre IA évalue votre demande et si elle est approuvée, les fonds sont immédiatement disponibles sur votre compte.
+              La plateforme Midi évalue votre demande et si elle est approuvée, les fonds sont immédiatement disponibles sur votre compte.
             </AlertDescription>
           </Alert>
           
@@ -142,8 +142,8 @@ export default function IslamicFinancing({ onBack }: IslamicFinancingProps) {
                     </FormControl>
                     <SelectContent>
                         <SelectItem value="Mourabaha">Mourabaha (Achat de biens)</SelectItem>
-                        <SelectItem value="Ijara" disabled>Ijara (Location) - Bientôt</SelectItem>
-                        <SelectItem value="Moudaraba" disabled>Moudaraba (Partenariat) - Bientôt</SelectItem>
+                        <SelectItem value="Ijara">Ijara (Location)</SelectItem>
+                        <SelectItem value="Moudaraba">Moudaraba (Partenariat)</SelectItem>
                     </SelectContent>
                 </Select>
                 <FormMessage />
