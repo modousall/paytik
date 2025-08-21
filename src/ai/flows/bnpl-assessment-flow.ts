@@ -42,14 +42,13 @@ Solde actuel : {{{currentBalance}}} Fcfa
 Nombre d'échéances: {{{installmentsCount}}}
 Périodicité de remboursement: {{{repaymentFrequency}}}
 Date de première échéance: {{{firstInstallmentDate}}}
-Taux de marge: {{{marginRate}}}%
+Taux de marge: {{{marginRate}}}% par période
 
 Calcul du plan de remboursement (si approuvé) :
-1. Calculez le montant à financer : Montant de l'achat - Avance versée.
-2. Calculez le coût total du crédit : Montant à financer * Taux de marge * Nombre d'échéances (si le taux est par période).
-3. Calculez le montant total à rembourser : Montant à financer + Coût total du crédit.
-4. Calculez le montant par échéance : Montant total à rembourser / Nombre d'échéances.
-5. Formulez le plan de remboursement : "{{{installmentsCount}}} versements de [Montant par échéance] Fcfa".
+1. Calculez le **montant à financer** : Montant de l'achat - Avance versée.
+2. Calculez le **montant par échéance** en utilisant la formule d'amortissement standard : (Montant financé * Taux de marge) / (1 - (1 + Taux de marge)^(-Nombre d'échéances)). Arrondir au chiffre supérieur.
+3. Calculez le **montant total à rembourser** : Montant par échéance * Nombre d'échéances.
+4. Formulez le plan de remboursement : "{{{installmentsCount}}} versements de [Montant par échéance] Fcfa".
 
 Fournissez un statut ('approved', 'rejected', 'review'), une raison claire et concise pour votre décision, et si approuvé, le plan de remboursement calculé.
 `,
