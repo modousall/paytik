@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Info, CheckCircle, XCircle, Hourglass, CalendarIcon, Banknote, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
@@ -20,10 +20,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn, formatCurrency } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { ScrollArea } from './ui/scroll-area';
+
 
 // --- Zod Schemas ---
 const financingTypeSchema = z.enum(['bnpl', 'mourabaha', 'ijara', 'moudaraba']);
@@ -114,23 +117,60 @@ const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput | Isla
 const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | null, onConfirm: () => void, onCancel: () => void }) => {
     if (!values) return null;
 
+    const schedule = useMemo(() => {
+        if (!values || !values.schedule) return [];
+        return values.schedule;
+    }, [values]);
+
+
     return (
-        <DialogContent>
+        <DialogContent className="max-w-xl">
             <DialogHeader>
                 <DialogTitle>Confirmer la demande de crédit</DialogTitle>
-                 <AlertDescription>
+                 <DialogDescription>
                     Veuillez vérifier les détails de votre demande avant de la soumettre pour évaluation.
-                 </AlertDescription>
+                 </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3 py-4 text-sm border-t border-b">
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
-                 <div className="flex justify-between items-center font-semibold"><span className="text-muted-foreground">Montant à financer par Midi</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
+            <div className="space-y-4 py-4 text-sm border-t border-b">
+                 <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Taux périodique</span><span className="font-medium">{values.marginRate.toFixed(4)}%</span></div>
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-muted-foreground">TEG Annuel</span><span className="font-medium">{ANNUAL_RATE.toFixed(2)}%</span></div>
+                 </div>
                  <hr/>
-                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total estimé du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
+                 <div className="grid grid-cols-2 gap-x-8 gap-y-2 font-semibold">
+                    <div className="flex justify-between items-center"><span>Montant à financer</span><span className="text-primary">{formatCurrency(values.financedAmount || 0)}</span></div>
+                    <div className="flex justify-between items-center"><span>Nb. d'échéances</span><span className="text-primary">{values.installmentsCount}</span></div>
+                    <div className="flex justify-between items-center col-span-2 text-lg"><span>Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
+                 </div>
+                 <hr/>
+                 <div>
+                    <h4 className="font-medium mb-2">Échéancier Prévisionnel</h4>
+                    <ScrollArea className="h-40 border rounded-md">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-secondary">
+                                <TableRow>
+                                    <TableHead className="w-[50px]">N°</TableHead><TableHead>Date</TableHead>
+                                    <TableHead className="text-right">Principal</TableHead><TableHead className="text-right">Intérêts</TableHead>
+                                    <TableHead className="text-right">Solde Restant</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                             <TableBody>
+                                {schedule.map((row: any) => (
+                                    <TableRow key={row.number}>
+                                        <TableCell>{row.number}</TableCell><TableCell>{row.date}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(row.principal)}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(row.interest)}</TableCell>
+                                        <TableCell className="text-right font-medium">{formatCurrency(row.balance)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
+                 </div>
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
@@ -171,12 +211,12 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
   const watchedType = form.watch('financingType');
 
   // Dynamic calculation for BNPL
-  const watchedBnplValues = form.watch(['amount', 'downPayment', 'installmentsCount', 'repaymentFrequency']);
+  const watchedBnplValues = form.watch(['amount', 'downPayment', 'installmentsCount', 'repaymentFrequency', 'firstInstallmentDate']);
   const marginRate = getMarginRate(watchedBnplValues[3] as 'daily'|'weekly'|'monthly');
 
   const calculatedBnplValues = useMemo(() => {
-    const [amount, downPayment, installmentsCount] = watchedBnplValues;
-    if (watchedType === 'bnpl' && amount > 0 && installmentsCount > 0 && marginRate >= 0) {
+    const [amount, downPayment, installmentsCount, frequency, firstInstallmentDate] = watchedBnplValues;
+    if (watchedType === 'bnpl' && amount > 0 && installmentsCount > 0 && marginRate >= 0 && firstInstallmentDate) {
         const financedAmount = amount - (downPayment || 0);
         const periodicRate = marginRate / 100;
         const installmentAmount = periodicRate > 0 
@@ -184,9 +224,27 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
             : financedAmount / installmentsCount;
         const totalRepaid = installmentAmount * installmentsCount;
         const totalCost = totalRepaid - financedAmount;
-        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost: isNaN(totalCost) ? 0 : totalCost };
+
+        const schedule = [];
+        let remainingBalance = financedAmount;
+        let installmentDate = firstInstallmentDate;
+
+        for (let i = 1; i <= installmentsCount; i++) {
+            const interestComponent = remainingBalance * periodicRate;
+            const principalComponent = installmentAmount - interestComponent;
+            remainingBalance -= principalComponent;
+            schedule.push({
+                number: i, date: format(installmentDate, 'dd/MM/yyyy'), payment: installmentAmount,
+                principal: principalComponent, interest: interestComponent, balance: Math.max(0, remainingBalance)
+            });
+            if (frequency === 'daily') installmentDate = addDays(installmentDate, 1);
+            if (frequency === 'weekly') installmentDate = addWeeks(installmentDate, 1);
+            if (frequency === 'monthly') installmentDate = addMonths(installmentDate, 1);
+        }
+
+        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost: isNaN(totalCost) ? 0 : totalCost, schedule };
     }
-    return { financedAmount: 0, installmentAmount: 0, totalCost: 0};
+    return { financedAmount: 0, installmentAmount: 0, totalCost: 0, schedule: []};
   }, [watchedType, watchedBnplValues, marginRate]);
 
 
@@ -203,7 +261,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
 
   const onSubmit = async (values: UnifiedFormValues) => {
     if (values.financingType === 'bnpl') {
-        setFormValuesForConfirmation({ ...values, ...calculatedBnplValues });
+        setFormValuesForConfirmation({ ...values, ...calculatedBnplValues, marginRate });
         setShowConfirmation(true);
     } else {
         // For Islamic financing, submit directly
