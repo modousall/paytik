@@ -18,8 +18,9 @@ import { Loader2, ClipboardPaste, QrCode } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
-import BNPL from './bnpl';
+import UnifiedFinancingForm from './unified-financing-form';
 import { formatCurrency } from '@/lib/utils';
+import type { CreditProposalPrefill } from './unified-financing-form';
 
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
@@ -46,7 +47,7 @@ export default function PaymentForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [securityAnalysis, setSecurityAnalysis] = useState<PaymentSecurityAssistantOutput | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentFormValues | null>(null);
-  const [creditProposal, setCreditProposal] = useState<Omit<CreditProposal, 'type' | 'clientAlias'> | null>(null);
+  const [creditProposal, setCreditProposal] = useState<CreditProposalPrefill | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
@@ -62,7 +63,7 @@ export default function PaymentForm() {
   });
   
   if (creditProposal) {
-    return <BNPL onBack={() => setCreditProposal(null)} prefillData={creditProposal} />;
+    return <UnifiedFinancingForm onBack={() => setCreditProposal(null)} prefillData={creditProposal} />;
   }
 
   async function onSubmit(values: PaymentFormValues) {
