@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card';
 import { Button } from './ui/button';
 import { Download, TrendingUp, Landmark, Banknote, Globe, PlusCircle, Calculator } from 'lucide-react';
@@ -9,38 +9,19 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { formatCurrency } from '@/lib/utils';
-import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from './ui/dialog';
 import AdminTegSimulator from './admin-teg-simulator';
+import { useTreasuryManagement } from '@/hooks/use-treasury-management';
+import TreasuryOperationForm from './treasury-operation-form';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
-const initialTreasuryData = {
-    ownFunds: 150000000,
-    clientFunds: 850000000,
-    assets: {
-        centralBank: 300000000,
-        commercialBanks: 450000000,
-        mobileMoneyOperators: 200000000,
-        foreignCorrespondents: 50000000,
-    },
-    operations: [
-        { id: 'op1', date: '2024-07-22', type: 'Virement', from: 'Fonds Propres', to: 'Bank ABC', amount: 25000000, status: 'Terminé' },
-        { id: 'op2', date: '2024-07-21', type: 'Dépôt', from: 'Wave', to: 'Trésorerie Clients', amount: 15000000, status: 'Terminé' },
-        { id: 'op3', date: '2024-07-20', type: 'Règlement', from: 'Trésorerie Clients', to: 'SENELEC', amount: 5000000, status: 'Terminé' },
-    ]
-};
 
 export default function AdminCashManagement() {
-    const [treasuryData, setTreasuryData] = useState(initialTreasuryData);
+    const { treasuryData, addOperation } = useTreasuryManagement();
+    const [isOperationDialogOpen, setIsOperationDialogOpen] = useState(false);
 
     const totalTreasury = useMemo(() => treasuryData.ownFunds + treasuryData.clientFunds, [treasuryData]);
 
-    const assetDistributionData = useMemo(() => [
-        { name: 'Banque Centrale', value: treasuryData.assets.centralBank },
-        { name: 'Banques Commerciales', value: treasuryData.assets.commercialBanks },
-        { name: 'Opérateurs Mobile Money', value: treasuryData.assets.mobileMoneyOperators },
-        { name: 'Correspondants Étrangers', value: treasuryData.assets.foreignCorrespondents },
-    ], [treasuryData.assets]);
+    const assetDistributionData = useMemo(() => Object.entries(treasuryData.assets).map(([name, value]) => ({ name, value })), [treasuryData.assets]);
     
     const fundsDistributionData = useMemo(() => [
         { name: 'Fonds des Clients', value: treasuryData.clientFunds },
@@ -59,7 +40,9 @@ export default function AdminCashManagement() {
           );
         }
         return null;
-      };
+    };
+    
+    const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
     return (
         <div className="space-y-6">
@@ -140,7 +123,23 @@ export default function AdminCashManagement() {
                                 </DialogTrigger>
                                 <AdminTegSimulator/>
                             </Dialog>
-                            <Button><PlusCircle className="mr-2"/> Nouvelle Opération</Button>
+                            <Dialog open={isOperationDialogOpen} onOpenChange={setIsOperationDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button><PlusCircle className="mr-2"/> Nouvelle Opération</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Nouvelle Opération de Trésorerie</DialogTitle>
+                                    </DialogHeader>
+                                    <TreasuryOperationForm
+                                        treasuryData={treasuryData}
+                                        onAddOperation={(op) => {
+                                            addOperation(op);
+                                            setIsOperationDialogOpen(false);
+                                        }}
+                                    />
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </CardHeader>
@@ -152,6 +151,7 @@ export default function AdminCashManagement() {
                                 <TableHead>Type</TableHead>
                                 <TableHead>De</TableHead>
                                 <TableHead>À</TableHead>
+                                <TableHead>Description</TableHead>
                                 <TableHead className="text-right">Montant</TableHead>
                                 <TableHead>Statut</TableHead>
                             </TableRow>
@@ -163,6 +163,7 @@ export default function AdminCashManagement() {
                                     <TableCell><Badge variant="secondary">{op.type}</Badge></TableCell>
                                     <TableCell>{op.from}</TableCell>
                                     <TableCell>{op.to}</TableCell>
+                                    <TableCell className="text-muted-foreground">{op.description}</TableCell>
                                     <TableCell className="text-right font-medium">{formatCurrency(op.amount)}</TableCell>
                                     <TableCell>
                                         <Badge variant={op.status === 'Terminé' ? 'default' : 'outline'} className={op.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>

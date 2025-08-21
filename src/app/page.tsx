@@ -26,6 +26,7 @@ import { RoleProvider } from '@/hooks/use-role-management';
 import { MonthlyBudgetProvider } from '@/hooks/use-monthly-budget';
 import { BnplProvider } from '@/hooks/use-bnpl';
 import { IslamicFinancingProvider } from '@/hooks/use-islamic-financing';
+import { TreasuryProvider } from '@/hooks/use-treasury-management';
 
 type UserInfo = {
   name: string;
@@ -57,6 +58,7 @@ const ensureSuperAdminExists = () => {
 const UserSessionProviders = ({ alias, children }: { alias: string, children: React.ReactNode}) => {
     const { addTransaction } = useTransactions();
     return (
+      <TreasuryProvider>
         <ProductProvider addSettlementTransaction={addTransaction}>
             <FeatureFlagProvider>
                 <RoleProvider>
@@ -82,6 +84,7 @@ const UserSessionProviders = ({ alias, children }: { alias: string, children: Re
                 </RoleProvider>
             </FeatureFlagProvider>
       </ProductProvider>
+    </TreasuryProvider>
     )
 }
 

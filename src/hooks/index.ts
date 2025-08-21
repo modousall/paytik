@@ -16,3 +16,4 @@ export * from './use-role-management';
 export * from './use-monthly-budget';
 export * from './use-bnpl';
 export * from './use-islamic-financing';
+export * from './use-treasury-management';
