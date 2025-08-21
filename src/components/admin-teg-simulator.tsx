@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,9 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Download } from 'lucide-react';
 import { Separator } from './ui/separator';
-import { formatCurrency, cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
@@ -22,6 +22,10 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import TegScheduleReceipt from './teg-schedule-receipt';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useToast } from '@/hooks/use-toast';
 
 const MAX_ANNUAL_TEG = 0.24; // 24%
 
@@ -65,6 +69,10 @@ const calculateRATE = (nper: number, pmt: number, pv: number, guess = 0.01, maxI
 };
 
 export default function AdminTegSimulator() {
+    const receiptRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
+    const [isDownloading, setIsDownloading] = useState(false);
+    
     const form = useForm<SimulatorFormValues>({
         resolver: zodResolver(simulatorSchema),
         defaultValues: {
@@ -89,7 +97,6 @@ export default function AdminTegSimulator() {
         const periodsInYear = getPeriodsInYear(periodicity);
         
         if (adjustmentBasis === 'teg') {
-            // Adjust margin rate based on TEG
             const periodicTeg = Math.pow(1 + annualTeg / 100, 1 / periodsInYear) - 1;
             const installment = calculatePMT(periodicTeg, duration, loanAmount);
             const calculatedMarginRate = calculateRATE(duration, -installment, loanAmount) * 100;
@@ -98,7 +105,6 @@ export default function AdminTegSimulator() {
              }
 
         } else if (adjustmentBasis === 'margin') {
-            // Adjust TEG based on margin rate
             const periodicMargin = marginRate / 100;
             const installment = calculatePMT(periodicMargin, duration, loanAmount);
             const calculatedPeriodicTeg = calculateRATE(duration, -installment, loanAmount);
@@ -143,6 +149,56 @@ export default function AdminTegSimulator() {
         }
         return null;
     }, [watchedValues]);
+    
+    const handleDownloadPDF = async () => {
+        setIsDownloading(true);
+        if (receiptRef.current) {
+            try {
+                const canvas = await html2canvas(receiptRef.current, { scale: 3 });
+                const imgData = canvas.toDataURL('image/png');
+                
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save(`echeancier-simulation-${Date.now()}.pdf`);
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                toast({ title: "Erreur de téléchargement", description: "Impossible de générer le reçu PDF.", variant: "destructive" });
+            } finally {
+                setIsDownloading(false);
+            }
+        }
+    };
+
+    const handleDownloadCSV = async () => {
+        if (!results) return;
+        
+        const Papa = (await import('papaparse')).default;
+        
+        const dataToExport = results.schedule.map(row => ({
+            "Echeance N°": row.number,
+            "Date": row.date,
+            "Montant de l'echeance": row.payment.toFixed(2),
+            "Principal": row.principal.toFixed(2),
+            "Interets": row.interest.toFixed(2),
+            "Solde Restant": row.balance.toFixed(2)
+        }));
+
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `echeancier-simulation-${Date.now()}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <DialogContent className="max-w-4xl h-[90vh]">
@@ -225,10 +281,10 @@ export default function AdminTegSimulator() {
                         <CardHeader>
                             <CardTitle>Plan d'Amortissement</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-grow overflow-hidden">
+                        <CardContent className="flex-grow overflow-hidden h-0">
                             <ScrollArea className="h-full">
                                 <Table>
-                                    <TableHeader className="sticky top-0 bg-secondary">
+                                    <TableHeader className="sticky top-0 bg-secondary z-10">
                                         <TableRow>
                                             <TableHead className="w-[50px]">N°</TableHead><TableHead>Date</TableHead>
                                             <TableHead className="text-right">Échéance</TableHead><TableHead className="text-right">Principal</TableHead>
@@ -252,8 +308,27 @@ export default function AdminTegSimulator() {
                                 )}
                              </ScrollArea>
                         </CardContent>
+                        {results && (
+                            <CardContent>
+                                <div className="flex justify-end gap-2 pt-4 border-t">
+                                    <Button variant="outline" onClick={handleDownloadCSV} disabled={isDownloading}>
+                                        <Download className="mr-2"/>Exporter en CSV
+                                    </Button>
+                                    <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+                                        <Download className="mr-2"/>Télécharger en PDF
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        )}
                     </Card>
                 </div>
+            </div>
+            
+            {/* Hidden component for PDF generation */}
+            <div className="absolute -z-50 -left-[9999px] -top-[9999px]">
+                {results && (
+                    <TegScheduleReceipt ref={receiptRef} params={watchedValues} results={results} />
+                )}
             </div>
         </DialogContent>
     );
