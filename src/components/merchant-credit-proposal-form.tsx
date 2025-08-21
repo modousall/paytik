@@ -57,8 +57,8 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
 
   if (isQrGenerated && proposalData) {
     const creditProposal = {
-        merchantAlias: merchantAlias, // The merchant initiating the proposal
-        clientAlias: proposalData.clientAlias, // The client who will scan
+        merchantAlias: merchantAlias,
+        clientAlias: proposalData.clientAlias,
         amount: proposalData.amount,
         downPayment: proposalData.downPayment,
         repaymentFrequency: proposalData.repaymentFrequency,
