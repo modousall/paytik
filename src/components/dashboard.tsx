@@ -11,9 +11,6 @@ import DashboardHeader from './dashboard-header';
 import PayerTransferer from './payer-transferer';
 import RechargerCompte from './recharger-compte';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
-import { Button } from './ui/button';
-import { LayoutDashboard } from 'lucide-react';
-import AdminDashboard from './admin-dashboard';
 import Settings from './settings';
 import MerchantList from './merchant-list';
 import Financing from './financing';
@@ -33,7 +30,7 @@ type DashboardProps = {
   onLogout: () => void;
 };
 
-type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
+type View = 'dashboard' | 'profile' | 'settings' | 'merchants';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
 type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
 
@@ -67,13 +64,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
             setActiveAction('none');
         }
     };
-
-    const renderBackoffice = () => {
-        if(userInfo.role === 'admin' || userInfo.role === 'superadmin' || userInfo.role === 'support') {
-            return <AdminDashboard onExit={() => onNavigateTo('dashboard')} />
-        }
-        return null;
-    }
     
     const renderContent = () => {
         if(view === 'profile'){
@@ -84,9 +74,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         }
         if (view === 'merchants') {
             return <MerchantList onBack={() => onNavigateTo('settings')} />;
-        }
-        if(view === 'backoffice') {
-            return renderBackoffice();
         }
 
         if (showAllTransactions) {
@@ -111,25 +98,15 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 case 'recharger':
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
                 case 'retirer':
-                    return <PICASH onBack={() => setActiveAction('none')} />
+                    return <PICASH onBack={() => setActiveAction('none')} mode="compense"/>
                 default:
                     setActiveAction('none');
             }
         }
         
-        const isPrivilegedUser = ['admin', 'superadmin', 'support'].includes(userInfo.role);
-
         return (
             <div className="space-y-8">
                 <DashboardHeader userInfo={userInfo} alias={alias} onProfileClick={() => onNavigateTo('profile')} />
-                
-                {isPrivilegedUser && (
-                    <div className="text-center">
-                         <Button onClick={() => onNavigateTo('backoffice')}>
-                            <LayoutDashboard className="mr-2"/> Accéder au Backoffice
-                         </Button>
-                    </div>
-                )}
                 
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
@@ -154,3 +131,5 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     </div>
   );
 }
+
+    

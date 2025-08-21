@@ -98,6 +98,20 @@ const AppProviders = ({ alias, children }: { alias: string, children: React.Reac
     )
 }
 
+const getDashboardStepForRole = (role: UserInfo['role']): AppStep => {
+    switch (role) {
+        case 'merchant':
+            return 'merchant_dashboard';
+        case 'admin':
+        case 'superadmin':
+        case 'support':
+             return 'admin_dashboard';
+        case 'user':
+        default:
+            return 'dashboard';
+    }
+};
+
 export default function AuthenticationGate() {
   const [step, setStep] = useState<AppStep>('demo');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -109,7 +123,6 @@ export default function AuthenticationGate() {
   useEffect(() => {
     setIsClient(true);
     
-    // Ensure the superadmin account exists from the very beginning.
     ensureSuperAdminExists();
 
     const lastAlias = localStorage.getItem('midi_last_alias');
@@ -130,15 +143,7 @@ export default function AuthenticationGate() {
             const userRole = userData.role || 'user';
             setUserInfo({ name: userData.name, email: userData.email, role: userRole });
             setAlias(lastAlias);
-            
-            if (userRole === 'merchant') {
-                setStep('merchant_dashboard');
-            } else if (['admin', 'superadmin', 'support'].includes(userRole)) {
-                // For privileged users, go to the main dashboard first, which contains the backoffice link.
-                setStep('dashboard');
-            } else {
-                setStep('dashboard'); 
-            }
+            setStep(getDashboardStepForRole(userRole));
             
         } else {
              // Data mismatch, clear and go to demo
@@ -185,8 +190,9 @@ export default function AuthenticationGate() {
             
             // Set the state for the new logged-in user
             setAlias(aliasForPin);
-            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
-            setStep('dashboard');
+            const userRole = userData.role || 'user';
+            setUserInfo({ name: userData.name, email: userData.email, role: userRole });
+            setStep(getDashboardStepForRole(userRole));
         }
     } else {
          toast({
@@ -209,10 +215,6 @@ export default function AuthenticationGate() {
   const handleLoginStart = () => {
     setStep('login');
   };
-
-  const handleAdminStart = () => {
-    setStep('login');
-  }
   
   const handleKycComplete = (info: Omit<UserInfo, 'role'>) => {
     // KYC form only collects name and email, role is defaulted to 'user'
@@ -255,14 +257,7 @@ export default function AuthenticationGate() {
               title: `Bienvenue, ${userData.name} !`,
               description: "Connexion réussie.",
             });
-            
-            if (userRole === 'merchant') {
-                setStep('merchant_dashboard');
-            } else {
-                // All other roles (user, admin, support, etc.) go to the main dashboard
-                setStep('dashboard');
-            }
-
+            setStep(getDashboardStepForRole(userRole));
         } else {
              toast({
                 title: "Code PIN incorrect",
@@ -286,6 +281,7 @@ export default function AuthenticationGate() {
             <AppProviders alias={alias}>
                 {step === 'dashboard' && <Dashboard alias={alias} userInfo={userInfo} onLogout={handleLogout} />}
                 {step === 'merchant_dashboard' && <MerchantDashboard userInfo={userInfo} alias={alias} onLogout={handleLogout} />}
+                {step === 'admin_dashboard' && <AdminDashboard onExit={handleLogout} />}
             </AppProviders>
         )
     }
@@ -317,3 +313,5 @@ export default function AuthenticationGate() {
 
   return <main className="bg-background min-h-screen">{renderContent()}</main>;
 }
+
+    

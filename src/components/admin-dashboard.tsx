@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, BarChart3, ShieldCheck, Blocks, ArrowLeft, Building, HandCoins, TrendingUp } from 'lucide-react';
+import { LogOut, Users, BarChart3, ShieldCheck, Blocks, Building, HandCoins, TrendingUp } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminRoleManagement from "./admin-role-management";
@@ -69,30 +69,33 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
 
   return (
     <div className="min-h-screen bg-secondary">
-        <header className="bg-background border-b shadow-sm">
+        <header className="bg-background border-b shadow-sm sticky top-0 z-20">
             <div className="container mx-auto p-4 flex justify-between items-center">
-                 <h1 className="text-xl font-bold text-primary">Backoffice Super Admin</h1>
+                 <div className="flex items-center gap-4">
+                    {view !== 'dashboard' && (
+                        <Button variant="outline" onClick={() => setView('dashboard')}>
+                            Retour
+                        </Button>
+                    )}
+                    <h1 className="text-xl font-bold text-primary">Backoffice</h1>
+                 </div>
                  <Button variant="ghost" onClick={onExit}>
-                    <LogOut className="mr-2" /> Quitter le mode admin
+                    <LogOut className="mr-2" /> Quitter
                 </Button>
             </div>
         </header>
         
         <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div className="mb-8">
-                {view === 'dashboard' ? (
-                     <>
-                        <h2 className="text-3xl font-bold">Bienvenue, Admin !</h2>
-                        <p className="text-muted-foreground">Pilotez et contrôlez la plateforme Midi depuis ce tableau de bord.</p>
-                     </>
-                ) : (
-                    <Button variant="outline" onClick={() => setView('dashboard')}>
-                        <ArrowLeft className="mr-2"/> Retour au tableau de bord
-                    </Button>
-                )}
-            </div>
+            {view === 'dashboard' && (
+                <div className="mb-8">
+                    <h2 className="text-3xl font-bold">Bienvenue, Admin !</h2>
+                    <p className="text-muted-foreground">Pilotez et contrôlez la plateforme Midi depuis ce tableau de bord.</p>
+                </div>
+            )}
             {renderContent()}
         </main>
     </div>
   );
 }
+
+    
