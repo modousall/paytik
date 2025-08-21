@@ -101,12 +101,12 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
   const form = useForm<BnplFormValues>({
     resolver: zodResolver(bnplFormSchema),
     defaultValues: {
-      merchantAlias: prefillData?.merchantAlias ?? '',
-      amount: prefillData?.amount,
-      downPayment: prefillData?.downPayment,
-      repaymentFrequency: prefillData?.repaymentFrequency ?? "weekly",
-      installmentsCount: prefillData?.installmentsCount ?? 17,
-      firstInstallmentDate: prefillData?.firstInstallmentDate ? new Date(prefillData.firstInstallmentDate) : undefined,
+      merchantAlias: '',
+      amount: undefined,
+      downPayment: undefined,
+      repaymentFrequency: "weekly",
+      installmentsCount: undefined,
+      firstInstallmentDate: undefined,
       marginRate: 0.2856,
     },
   });
@@ -120,7 +120,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
             repaymentFrequency: prefillData.repaymentFrequency,
             installmentsCount: prefillData.installmentsCount,
             firstInstallmentDate: new Date(prefillData.firstInstallmentDate),
-            marginRate: 0.2856,
+            marginRate: prefillData.marginRate,
         });
         toast({
             title: "Proposition de crédit chargée",

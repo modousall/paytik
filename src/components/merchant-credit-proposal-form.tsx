@@ -57,6 +57,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
 
   if (isQrGenerated && proposalData) {
     const creditProposal = {
+        type: 'bnpl_proposal',
         merchantAlias: merchantAlias,
         clientAlias: proposalData.clientAlias,
         amount: proposalData.amount,
@@ -64,6 +65,7 @@ export default function MerchantCreditProposalForm({ merchantAlias, merchantInfo
         repaymentFrequency: proposalData.repaymentFrequency,
         installmentsCount: proposalData.installmentsCount,
         firstInstallmentDate: proposalData.firstInstallmentDate.toISOString(),
+        marginRate: 0.2856, // Add fixed margin rate to the proposal
     }
     return (
         <DialogContent>

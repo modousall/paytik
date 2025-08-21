@@ -28,6 +28,7 @@ export const creditProposalSchema = z.object({
   repaymentFrequency: z.string(),
   installmentsCount: z.number(),
   firstInstallmentDate: z.string(),
+  marginRate: z.number(), // Ensure marginRate is part of the schema
 });
 export type CreditProposal = z.infer<typeof creditProposalSchema>;
 
