@@ -9,10 +9,8 @@ export const formatCurrency = (value?: number | null): string => {
     if (value === null || value === undefined) {
         return `0 F`;
     }
-    // Format with a locale that uses spaces, then replace spaces with dots.
-    const formatted = new Intl.NumberFormat('fr-FR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value).replace(/\s/g, '.');
+    // Format to a string with no fractional digits, then use regex to insert dots.
+    const numString = value.toFixed(0);
+    const formatted = numString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return `${formatted} F`;
 };
