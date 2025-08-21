@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Info, CheckCircle, XCircle, Hourglass, CalendarIcon, Banknote, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogFooter } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { useBnpl } from '@/hooks/use-bnpl';
 import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
@@ -110,11 +110,43 @@ const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput | Isla
     );
 }
 
+// --- Confirmation Dialog Component ---
+const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | null, onConfirm: () => void, onCancel: () => void }) => {
+    if (!values) return null;
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirmer la demande de crédit</DialogTitle>
+                 <AlertDescription>
+                    Veuillez vérifier les détails de votre demande avant de la soumettre pour évaluation.
+                 </AlertDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4 text-sm border-t border-b">
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
+                 <div className="flex justify-between items-center font-semibold"><span className="text-muted-foreground">Montant à financer par Midi</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
+                 <hr/>
+                 <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total estimé du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={onCancel}>Annuler</Button>
+                <Button onClick={onConfirm}>Confirmer et Soumettre</Button>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
 // --- Main Form Component ---
 export default function UnifiedFinancingForm({ onBack, prefillData = null }: UnifiedFinancingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | IslamicFinancingOutput | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [formValuesForConfirmation, setFormValuesForConfirmation] = useState<any>(null);
   const { toast } = useToast();
   const bnpl = useBnpl();
   const islamicFinancing = useIslamicFinancing();
@@ -141,17 +173,20 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
   // Dynamic calculation for BNPL
   const watchedBnplValues = form.watch(['amount', 'downPayment', 'installmentsCount', 'repaymentFrequency']);
   const marginRate = getMarginRate(watchedBnplValues[3] as 'daily'|'weekly'|'monthly');
+
   const calculatedBnplValues = useMemo(() => {
-    const [amount, downPayment, installmentsCount, frequency] = watchedBnplValues;
+    const [amount, downPayment, installmentsCount] = watchedBnplValues;
     if (watchedType === 'bnpl' && amount > 0 && installmentsCount > 0 && marginRate >= 0) {
         const financedAmount = amount - (downPayment || 0);
         const periodicRate = marginRate / 100;
         const installmentAmount = periodicRate > 0 
             ? (financedAmount * periodicRate) / (1 - Math.pow(1 + periodicRate, -installmentsCount))
             : financedAmount / installmentsCount;
-        return { installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount };
+        const totalRepaid = installmentAmount * installmentsCount;
+        const totalCost = totalRepaid - financedAmount;
+        return { financedAmount, installmentAmount: isNaN(installmentAmount) ? 0 : installmentAmount, totalCost: isNaN(totalCost) ? 0 : totalCost };
     }
-    return { installmentAmount: 0 };
+    return { financedAmount: 0, installmentAmount: 0, totalCost: 0};
   }, [watchedType, watchedBnplValues, marginRate]);
 
 
@@ -167,35 +202,52 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
   }, [prefillData, form, toast]);
 
   const onSubmit = async (values: UnifiedFormValues) => {
-    setIsLoading(true);
-    try {
-        let result;
-        if (values.financingType === 'bnpl') {
-            result = await bnpl.submitRequest({
-                merchantAlias: values.merchantAlias,
-                amount: values.amount,
-                downPayment: values.downPayment,
-                installmentsCount: values.installmentsCount,
-                marginRate,
-                repaymentFrequency: values.repaymentFrequency,
-                firstInstallmentDate: values.firstInstallmentDate.toISOString(),
-            });
-        } else {
-             result = await islamicFinancing.submitRequest({
+    if (values.financingType === 'bnpl') {
+        setFormValuesForConfirmation({ ...values, ...calculatedBnplValues });
+        setShowConfirmation(true);
+    } else {
+        // For Islamic financing, submit directly
+        setIsLoading(true);
+        try {
+            const result = await islamicFinancing.submitRequest({
                 financingType: values.financingType,
                 amount: values.amount,
                 durationMonths: values.durationMonths,
                 purpose: values.purpose,
             });
+            setAssessmentResult(result);
+        } catch(e) {
+            console.error(e);
+            toast({ title: "Erreur de soumission", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
         }
-        setAssessmentResult(result);
-    } catch(e) {
-      console.error(e);
-      toast({ title: "Erreur de soumission", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  const onConfirmBnplSubmit = async () => {
+    if (!formValuesForConfirmation) return;
+    setShowConfirmation(false);
+    setIsLoading(true);
+    try {
+        const result = await bnpl.submitRequest({
+            merchantAlias: formValuesForConfirmation.merchantAlias,
+            amount: formValuesForConfirmation.amount,
+            downPayment: formValuesForConfirmation.downPayment,
+            installmentsCount: formValuesForConfirmation.installmentsCount,
+            marginRate: marginRate,
+            repaymentFrequency: formValuesForConfirmation.repaymentFrequency,
+            firstInstallmentDate: formValuesForConfirmation.firstInstallmentDate.toISOString(),
+        });
+        setAssessmentResult(result);
+    } catch(e) {
+        console.error(e);
+        toast({ title: "Erreur de soumission", variant: "destructive" });
+    } finally {
+        setIsLoading(false);
+        setFormValuesForConfirmation(null);
+    }
+  }
   
   const handleScannedCode = (decodedText: string) => {
     form.setValue('merchantAlias', decodedText, { shouldValidate: true });
@@ -240,7 +292,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
             <>
                 <Alert>
                     <Info className="h-4 w-4" />
-                    <AlertTitle>Comment ça marche?</AlertTitle>
+                    <AlertTitle>Comment ça marche ?</AlertTitle>
                     <AlertDescription>
                     Ce service de crédit vous est offert par Midi pour votre achat chez un partenaire.
                     </AlertDescription>
@@ -324,7 +376,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
                     <Card className="bg-secondary/50">
                         <CardContent className="p-4 flex justify-between items-center">
                             <div>
-                                <p className="text-sm text-muted-foreground">Montant par échéance</p>
+                                <p className="text-sm text-muted-foreground">Montant par échéance (estimation)</p>
                                 <p className="text-lg font-bold text-primary">{formatCurrency(calculatedBnplValues.installmentAmount)}</p>
                             </div>
                             <Banknote className="h-8 w-8 text-primary/70" />
@@ -369,8 +421,16 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
 
         <Button type="submit" className="w-full py-6" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Soumettre la demande
+          Vérifier ma demande
         </Button>
+
+        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+           <ConfirmationDialog 
+                values={formValuesForConfirmation}
+                onConfirm={onConfirmBnplSubmit}
+                onCancel={() => setShowConfirmation(false)}
+            />
+        </Dialog>
       </form>
     </Form>
   );

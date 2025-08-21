@@ -7,7 +7,8 @@ import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
 import type { BnplRequest, BnplAssessmentOutput, BnplAssessmentInput } from '@/lib/types';
-import { useUserManagement, type ManagedUser } from './use-user-management';
+import type { ManagedUser } from '@/hooks/use-user-management';
+import { formatCurrency } from '@/lib/utils';
 
 type SubmitRequestPayload = {
     merchantAlias: string;
@@ -117,12 +118,13 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       }
 
       const assessmentResult = await assessBnplApplication(assessmentInput);
+      const financedAmount = payload.amount - (payload.downPayment || 0);
 
       const newRequest: BnplRequest = {
           id: `bnpl-${Date.now()}`,
           alias,
           merchantAlias: payload.merchantAlias,
-          amount: payload.amount - (payload.downPayment || 0),
+          amount: financedAmount,
           status: assessmentResult.status,
           reason: assessmentResult.reason,
           repaymentPlan: assessmentResult.repaymentPlan,
@@ -133,7 +135,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          // Pay the down payment immediately
+          // Pay the down payment immediately if exists
           if(payload.downPayment && payload.downPayment > 0) {
             debit(payload.downPayment);
             addTransaction({
@@ -146,8 +148,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             });
           }
 
-          // Credit the user with the financed amount
-          const financedAmount = payload.amount - (payload.downPayment || 0);
+          // Credit the user with the financed amount and then pay the merchant
           credit(financedAmount);
           addTransaction({
               type: 'received',
@@ -156,6 +157,16 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
               amount: financedAmount,
               date: new Date().toISOString(),
               status: 'Terminé'
+          });
+
+          debit(financedAmount);
+          addTransaction({
+            type: 'sent',
+            counterparty: payload.merchantAlias,
+            reason: `Achat financé par crédit`,
+            amount: financedAmount,
+            date: new Date().toISOString(),
+            status: 'Terminé'
           });
       }
 
@@ -183,6 +194,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             }
 
             // This is a simulation, in a real app this would be a multi-step backend transaction.
+            // All these localStorage manipulations should be replaced by API calls in a real app.
             
             // 1. Credit the user's balance
             const userBalanceKey = `midi_balance_${userToCredit.alias}`;
@@ -193,7 +205,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             const userTxKey = `midi_transactions_${userToCredit.alias}`;
             const userTxStr = localStorage.getItem(userTxKey);
             const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
-            const userNewTx = {
+            const userCreditTx = {
                 id: `TXN${Date.now()}`,
                 type: 'received',
                 counterparty: 'Credit Marchands',
@@ -202,7 +214,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
                 date: new Date().toISOString(),
                 status: 'Terminé'
             };
-            localStorage.setItem(userTxKey, JSON.stringify([userNewTx, ...userTxs]));
+            let updatedUserTxs = [userCreditTx, ...userTxs];
 
             // 3. Immediately debit the user for the payment to the merchant
             const userFinalBalance = userNewBalance - requestToUpdate.amount;
@@ -216,8 +228,8 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
                  date: new Date().toISOString(),
                  status: 'Terminé'
             }
-             localStorage.setItem(userTxKey, JSON.stringify([userPaymentTx, userNewTx, ...userTxs]));
-
+            updatedUserTxs = [userPaymentTx, ...updatedUserTxs];
+            localStorage.setItem(userTxKey, JSON.stringify(updatedUserTxs));
 
             // 4. Credit the merchant's balance
             const merchantBalanceKey = `midi_balance_${merchantToPay.alias}`;
@@ -231,8 +243,8 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
              const merchantNewTx = {
                 id: `TXN${Date.now()+2}`,
                 type: 'received',
-                counterparty: userToCredit.alias,
-                reason: `Paiement pour Achat BNPL de ${userToCredit.alias}`,
+                counterparty: userToCredit.name,
+                reason: `Vente (paiement par crédit Midi)`,
                 amount: requestToUpdate.amount,
                 date: new Date().toISOString(),
                 status: 'Terminé'
@@ -290,7 +302,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         status: 'Terminé'
     });
     
-    toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${repaymentAmount.toLocaleString()} F.` });
+    toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${formatCurrency(repaymentAmount)}.` });
   }
 
   const value = { allRequests, myRequests, submitRequest, updateRequestStatus, currentCreditBalance, repayCredit, kpis };

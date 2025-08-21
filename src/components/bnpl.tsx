@@ -22,6 +22,7 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Card, CardContent } from './ui/card';
+import { useUserManagement } from '@/hooks/use-user-management';
 
 const bnplFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "L'alias du marchand est requis." }),
@@ -97,16 +98,19 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | nul
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Confirmer la demande de crédit</DialogTitle>
+                 <AlertDescription>
+                    Veuillez vérifier les détails de votre demande avant de la soumettre pour évaluation.
+                 </AlertDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4 text-sm">
+            <div className="space-y-3 py-4 text-sm border-t border-b">
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Marchand</span><span className="font-medium">{values.merchantAlias}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant de l'achat</span><span className="font-medium">{formatCurrency(values.amount || 0)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Avance versée</span><span className="font-medium">{formatCurrency(values.downPayment || 0)}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Montant à financer par Midi</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
+                 <div className="flex justify-between items-center font-semibold"><span className="text-muted-foreground">Montant à financer par Midi</span><span className="font-medium">{formatCurrency(values.financedAmount || 0)}</span></div>
                  <hr/>
                  <div className="flex justify-between items-center text-base"><span className="text-muted-foreground">Montant par échéance</span><span className="font-bold text-primary">{formatCurrency(values.installmentAmount || 0)}</span></div>
                  <div className="flex justify-between items-center"><span className="text-muted-foreground">Nombre d'échéances</span><span className="font-medium">{values.installmentsCount}</span></div>
-                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
+                 <div className="flex justify-between items-center"><span className="text-muted-foreground">Coût total estimé du crédit</span><span className="font-medium">{formatCurrency(values.totalCost || 0)}</span></div>
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
@@ -454,7 +458,7 @@ export default function BNPL({ onBack, prefillData = null }: BnplProps) {
                     <CardContent className="p-4">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm text-muted-foreground">Montant par échéance</p>
+                                <p className="text-sm text-muted-foreground">Montant par échéance (estimation)</p>
                                 <p className="text-lg font-bold text-primary">
                                     {formatCurrency(calculatedValues.installmentAmount)}
                                 </p>
