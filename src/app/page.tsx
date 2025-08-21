@@ -182,8 +182,10 @@ export default function AuthenticationGate() {
             localStorage.setItem(`midi_onboarded_${aliasForPin}`, 'true');
             localStorage.setItem('midi_last_alias', aliasForPin);
             localStorage.removeItem('midi_active_alias_creation');
+            
+            // Set the state for the new logged-in user
             setAlias(aliasForPin);
-            setUserInfo(prev => prev ? { ...prev, role: userData.role || 'user' } : null);
+            setUserInfo({ name: userData.name, email: userData.email, role: userData.role || 'user' });
             setStep('dashboard');
         }
     } else {
@@ -304,7 +306,7 @@ export default function AuthenticationGate() {
         return <PinCreation onPinCreated={handlePinCreated} />;
       default:
          // Fallback for any state inconsistency
-        setStep('demo');
+        localStorage.removeItem('midi_last_alias');
         return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
     }
   };
