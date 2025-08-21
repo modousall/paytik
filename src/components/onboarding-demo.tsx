@@ -4,6 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Zap, ShieldCheck, HandCoins, Users } from "lucide-react";
 import React from "react";
+import Link from 'next/link';
 
 type OnboardingDemoProps = {
   onStart: () => void;
@@ -12,35 +13,41 @@ type OnboardingDemoProps = {
 
 const features = [
     {
+      href: "/financing",
       icon: <HandCoins className="h-8 w-8 text-primary" />,
       title: "Financement Conforme",
       description: "Financez vos projets et achats (Mourabaha) en accord avec les principes éthiques.",
     },
     {
+      href: "/savings",
       icon: <Users className="h-8 w-8 text-primary" />,
       title: "Épargne & Tontine",
       description: "Constituez votre épargne dans des coffres ou participez à des tontines collaboratives.",
     },
     {
+      href: "/payments",
       icon: <Zap className="h-8 w-8 text-primary" />,
       title: "Paiements Éthiques",
       description: "Envoyez et recevez de l'argent instantanément, avec des frais justes et transparents.",
     },
     {
+      href: "/security",
       icon: <ShieldCheck className="h-8 w-8 text-primary" />,
       title: "Sécurité & Conformité",
       description: "Vos transactions sont protégées et conformes aux plus hauts standards de sécurité.",
     },
 ];
 
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div className="bg-background/50 backdrop-blur-sm border border-border/20 p-6 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-        <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
-            {icon}
+const FeatureCard = ({ icon, title, description, href }: { icon: React.ReactNode, title: string, description: string, href: string }) => (
+    <Link href={href} className="block group">
+        <div className="bg-background/50 backdrop-blur-sm border border-border/20 p-6 rounded-xl shadow-lg h-full group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300">
+            <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
+                {icon}
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
+            <p className="text-muted-foreground text-sm">{description}</p>
         </div>
-        <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
-        <p className="text-muted-foreground text-sm">{description}</p>
-    </div>
+    </Link>
 );
 
 

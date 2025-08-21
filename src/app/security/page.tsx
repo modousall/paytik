@@ -1,0 +1,70 @@
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, Lock, Fingerprint, ArrowLeft } from "lucide-react";
+import Image from 'next/image';
+import Link from 'next/link';
+
+const features = [
+    {
+      icon: <Lock className="h-6 w-6 text-blue-500" />,
+      title: "Chiffrement de Bout en Bout",
+      description: "Toutes vos données et transactions sont chiffrées pour garantir leur confidentialité.",
+    },
+    {
+      icon: <Fingerprint className="h-6 w-6 text-blue-500" />,
+      title: "Authentification Forte",
+      description: "Votre compte est protégé par un code PIN unique que vous seul connaissez.",
+    },
+    {
+        icon: <ShieldCheck className="h-6 w-6 text-blue-500" />,
+        title: "Conformité Réglementaire",
+        description: "Nous opérons en accord avec les standards des institutions financières pour protéger vos fonds.",
+      },
+];
+
+export default function SecurityPage() {
+    return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+             <main className="flex-grow container mx-auto px-4 py-12 md:py-24">
+                <div className="text-center mb-12">
+                    <ShieldCheck className="mx-auto h-16 w-16 text-primary mb-4" />
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Votre Sécurité, Notre Priorité</h1>
+                    <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+                        Des technologies de pointe pour protéger chaque transaction.
+                    </p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="space-y-8">
+                         {features.map((feature, index) => (
+                            <div key={index} className="flex items-start gap-4">
+                                <div className="flex-shrink-0">{feature.icon}</div>
+                                <div>
+                                    <h3 className="text-xl font-semibold">{feature.title}</h3>
+                                    <p className="text-muted-foreground mt-1">{feature.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-center">
+                        <Image
+                            src="https://placehold.co/600x400.png"
+                            alt="Illustration de sécurité"
+                            width={500}
+                            height={400}
+                            className="rounded-xl shadow-2xl"
+                            data-ai-hint="security shield lock"
+                        />
+                    </div>
+                </div>
+
+                 <div className="text-center mt-16">
+                    <Link href="/">
+                        <Button size="lg" className="h-12 text-base">
+                             <ArrowLeft className="mr-2"/> Retour à l'accueil
+                        </Button>
+                    </Link>
+                </div>
+            </main>
+        </div>
+    );
+}
