@@ -22,7 +22,7 @@ import { Alert, AlertTitle } from './ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
 
-const MAX_ANNUAL_APR = 0.15; // 15%
+const MAX_ANNUAL_APR = 0.24; // 24%
 
 const simulatorSchema = z.object({
   loanAmount: z.coerce.number().positive("Le montant doit être positif.").min(1000, "Le montant doit être d'au moins 1000 F."),
@@ -115,7 +115,7 @@ export default function AdminTegSimulator() {
             <DialogHeader>
                 <DialogTitle>Simulateur de Crédit Conforme (TEG Plafonné)</DialogTitle>
                 <DialogDescription>
-                    Modélisez des offres de crédit en vous assurant que le TEG annuel ne dépasse jamais 15%.
+                    Modélisez des offres de crédit en vous assurant que le TEG annuel ne dépasse jamais 24%.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 h-full overflow-hidden">
