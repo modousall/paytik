@@ -19,6 +19,7 @@ import MerchantList from './merchant-list';
 import Financing from './financing';
 import PICASH from './picash';
 import Epargne from './epargne';
+import MyFinancingRequests from './my-financing-requests';
 
 type UserInfo = {
     name: string;
@@ -34,7 +35,7 @@ type DashboardProps = {
 
 type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
-type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
+type ActiveService = 'ma-carte' | 'epargne' | 'financement' | 'my-requests' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [view, setView] = useState<View>('dashboard');
@@ -99,6 +100,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                      return <Epargne onBack={() => setActiveService(null)} />;
                 case 'financement':
                     return <Financing onBack={() => setActiveService(null)} />;
+                case 'my-requests':
+                    return <MyFinancingRequests onBack={() => setActiveService(null)} />;
                 default:
                     setActiveService(null);
              }
@@ -134,6 +137,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
                     onWithdrawClick={() => setActiveAction('retirer')}
+                    onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
                 />

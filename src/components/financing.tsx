@@ -1,9 +1,9 @@
-
 "use client";
 
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import UnifiedFinancingForm from './unified-financing-form';
+import MyFinancingRequests from './my-financing-requests';
 
 type FinancingProps = {
   onBack: () => void;
@@ -23,6 +23,7 @@ export default function Financing({ onBack }: FinancingProps) {
       </div>
       
       <div className="max-w-2xl mx-auto">
+        <MyFinancingRequests isStandalone={false} />
         <UnifiedFinancingForm onBack={onBack} />
       </div>
     </div>

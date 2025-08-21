@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2 } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, Clock, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -25,7 +25,7 @@ type HomeActionsProps = {
     onSendClick: () => void; 
     onRechargeClick: () => void;
     onWithdrawClick: () => void;
-    onFinancingClick: () => void; // Keep for merchant view logic
+    onFinancingClick: () => void;
     alias: string;
     userInfo: UserInfo;
 };
@@ -78,7 +78,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
     );
 }
 
-export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
     const { toast } = useToast();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
 
     // Client View
     return (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
              <Dialog>
                 <DialogTrigger asChild>
                      <Button variant="outline" size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
@@ -192,8 +192,8 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 <PlusCircle/> Dépôt
             </Button>
                        
-            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
-                <Landmark/> Retrait
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
+                <Clock/> Crédit
             </Button>
         </div>
     )
