@@ -24,7 +24,7 @@ type IslamicFinancingContextType = {
 
 const IslamicFinancingContext = createContext<IslamicFinancingContextType | undefined>(undefined);
 
-const financingStorageKey = 'paytik_financing_requests';
+const financingStorageKey = 'midi_financing_requests';
 
 type IslamicFinancingProviderProps = {
     children: ReactNode;

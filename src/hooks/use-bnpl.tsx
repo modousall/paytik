@@ -35,7 +35,7 @@ type BnplContextType = {
 
 const BnplContext = createContext<BnplContextType | undefined>(undefined);
 
-const bnplStorageKey = 'paytik_bnpl_requests';
+const bnplStorageKey = 'midi_bnpl_requests';
 
 type BnplProviderProps = {
     children: ReactNode;
@@ -186,12 +186,12 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             // This is a simulation, in a real app this would be a multi-step backend transaction.
             
             // 1. Credit the user's balance
-            const userBalanceKey = `paytik_balance_${userToCredit.alias}`;
+            const userBalanceKey = `midi_balance_${userToCredit.alias}`;
             const userNewBalance = (userToCredit.balance || 0) + requestToUpdate.amount;
             localStorage.setItem(userBalanceKey, JSON.stringify(userNewBalance));
 
             // 2. Add transaction for user to see the credit
-            const userTxKey = `paytik_transactions_${userToCredit.alias}`;
+            const userTxKey = `midi_transactions_${userToCredit.alias}`;
             const userTxStr = localStorage.getItem(userTxKey);
             const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
             const userNewTx = {
@@ -221,12 +221,12 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
 
             // 4. Credit the merchant's balance
-            const merchantBalanceKey = `paytik_balance_${merchantToPay.alias}`;
+            const merchantBalanceKey = `midi_balance_${merchantToPay.alias}`;
             const newMerchantBalance = (merchantToPay.balance || 0) + requestToUpdate.amount;
             localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
 
             // 5. Add transaction for merchant to see the sale
-            const merchantTxKey = `paytik_transactions_${merchantToPay.alias}`;
+            const merchantTxKey = `midi_transactions_${merchantToPay.alias}`;
             const merchantTxStr = localStorage.getItem(merchantTxKey);
             const merchantTxs = merchantTxStr ? JSON.parse(merchantTxStr) : [];
              const merchantNewTx = {

@@ -59,7 +59,7 @@ const initialRoles: Role[] = [
     },
 ];
 
-const rolesStorageKey = 'paytik_roles';
+const rolesStorageKey = 'midi_roles';
 
 type RoleProviderProps = { 
     children: ReactNode;

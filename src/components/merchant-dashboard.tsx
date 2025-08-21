@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from "react";
@@ -126,7 +125,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
         if (!paymentLink) return;
         if (navigator.share) {
             navigator.share({
-                title: 'Demande de paiement PAYTIK',
+                title: 'Demande de paiement Midi',
                 text: `Veuillez me payer en utilisant ce lien : ${paymentLink}`,
                 url: paymentLink,
             });

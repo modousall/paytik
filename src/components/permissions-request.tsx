@@ -23,7 +23,7 @@ export default function PermissionsRequest({ onPermissionsGranted }: Permissions
             <CardHeader>
                 <CardTitle>Autorisations Requises</CardTitle>
                 <CardDescription>
-                Pour vous offrir la meilleure expérience, PAYTIK a besoin d'accéder à certaines fonctionnalités de votre téléphone.
+                Pour vous offrir la meilleure expérience, Midi a besoin d'accéder à certaines fonctionnalités de votre téléphone.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

@@ -38,7 +38,7 @@ type AppStep = 'demo' | 'permissions' | 'login' | 'kyc' | 'alias' | 'pin_creatio
 // Function to ensure the superadmin exists in localStorage
 const ensureSuperAdminExists = () => {
     const adminAlias = '+221775478575';
-    const adminUserKey = `paytik_user_${adminAlias}`;
+    const adminUserKey = `midi_user_${adminAlias}`;
 
     if (typeof window !== 'undefined' && !localStorage.getItem(adminUserKey)) {
         const adminUser = {
@@ -49,7 +49,7 @@ const ensureSuperAdminExists = () => {
         };
         localStorage.setItem(adminUserKey, JSON.stringify(adminUser));
         // Also set a default balance for the superadmin
-        localStorage.setItem(`paytik_balance_${adminAlias}`, '1000000');
+        localStorage.setItem(`midi_balance_${adminAlias}`, '1000000');
     }
 };
 
@@ -110,9 +110,9 @@ export default function AuthenticationGate() {
     // Ensure the superadmin account exists from the very beginning.
     ensureSuperAdminExists();
 
-    const lastAlias = localStorage.getItem('paytik_last_alias');
+    const lastAlias = localStorage.getItem('midi_last_alias');
     if (lastAlias) {
-        const userDataString = localStorage.getItem(`paytik_user_${lastAlias}`);
+        const userDataString = localStorage.getItem(`midi_user_${lastAlias}`);
         if(userDataString) {
             const userData = JSON.parse(userDataString);
             if(userData.isSuspended){
@@ -121,7 +121,7 @@ export default function AuthenticationGate() {
                     description: "Votre compte a été suspendu. Veuillez contacter le support.",
                     variant: "destructive",
                 });
-                localStorage.removeItem('paytik_last_alias');
+                localStorage.removeItem('midi_last_alias');
                 setStep('demo');
                 return;
             }
@@ -140,7 +140,7 @@ export default function AuthenticationGate() {
             
         } else {
              // Data mismatch, clear and go to demo
-             localStorage.removeItem('paytik_last_alias');
+             localStorage.removeItem('midi_last_alias');
              setStep('demo');
         }
     }
@@ -148,13 +148,13 @@ export default function AuthenticationGate() {
 
   const handleAliasCreated = (newAlias: string) => {
     if (userInfo) {
-      localStorage.setItem(`paytik_user_${newAlias}`, JSON.stringify({
+      localStorage.setItem(`midi_user_${newAlias}`, JSON.stringify({
           name: userInfo.name,
           email: userInfo.email,
           pincode: '', // PIN will be set at next step
           role: 'user', // Default role for new users
       }));
-      localStorage.setItem('paytik_active_alias_creation', newAlias);
+      localStorage.setItem('midi_active_alias_creation', newAlias);
       setAlias(newAlias);
       setStep('pin_creation');
     } else {
@@ -168,16 +168,16 @@ export default function AuthenticationGate() {
   };
 
   const handlePinCreated = (pin: string) => {
-    const aliasForPin = localStorage.getItem('paytik_active_alias_creation');
+    const aliasForPin = localStorage.getItem('midi_active_alias_creation');
     if (aliasForPin) {
-        const userDataString = localStorage.getItem(`paytik_user_${aliasForPin}`);
+        const userDataString = localStorage.getItem(`midi_user_${aliasForPin}`);
         if(userDataString){
             const userData = JSON.parse(userDataString);
             userData.pincode = pin;
-            localStorage.setItem(`paytik_user_${aliasForPin}`, JSON.stringify(userData));
-            localStorage.setItem(`paytik_onboarded_${aliasForPin}`, 'true');
-            localStorage.setItem('paytik_last_alias', aliasForPin);
-            localStorage.removeItem('paytik_active_alias_creation');
+            localStorage.setItem(`midi_user_${aliasForPin}`, JSON.stringify(userData));
+            localStorage.setItem(`midi_onboarded_${aliasForPin}`, 'true');
+            localStorage.setItem('midi_last_alias', aliasForPin);
+            localStorage.removeItem('midi_active_alias_creation');
             setAlias(aliasForPin);
             setUserInfo(prev => prev ? { ...prev, role: userData.role || 'user' } : null);
             setStep('dashboard');
@@ -215,7 +215,7 @@ export default function AuthenticationGate() {
   };
   
   const handleLogout = () => {
-    localStorage.removeItem('paytik_last_alias');
+    localStorage.removeItem('midi_last_alias');
     setAlias(null);
     setUserInfo(null);
     setStep('demo');
@@ -226,7 +226,7 @@ export default function AuthenticationGate() {
   }
 
   const handleLogin = (loginAlias: string, pin: string) => {
-    const userDataString = localStorage.getItem(`paytik_user_${loginAlias}`);
+    const userDataString = localStorage.getItem(`midi_user_${loginAlias}`);
   
     if (userDataString) {
         const userData = JSON.parse(userDataString);
@@ -241,7 +241,7 @@ export default function AuthenticationGate() {
         }
 
         if (userData.pincode === pin) {
-            localStorage.setItem('paytik_last_alias', loginAlias);
+            localStorage.setItem('midi_last_alias', loginAlias);
             const userRole = userData.role || 'user';
             setUserInfo({ name: userData.name, email: userData.email, role: userRole });
             setAlias(loginAlias);

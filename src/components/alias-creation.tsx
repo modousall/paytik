@@ -100,7 +100,7 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary">Créer un alias PAYTIK</h1>
+            <h1 className="text-3xl font-bold text-primary">Créer un alias Midi</h1>
             <p className="text-muted-foreground mt-2">Choisissez votre identifiant unique pour envoyer et recevoir de l'argent.</p>
         </div>
         <Tabs defaultValue="phone" className="w-full">

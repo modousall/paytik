@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const InviteFriendDialog = ({ alias }: { alias: string}) => {
     const { toast } = useToast();
-    const referralCode = `PAYTIK-${alias.substring(0, 4).toUpperCase()}${new Date().getFullYear()}`;
+    const referralCode = `MIDI-${alias.substring(0, 4).toUpperCase()}${new Date().getFullYear()}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(referralCode);
@@ -19,13 +19,13 @@ const InviteFriendDialog = ({ alias }: { alias: string}) => {
     const handleShare = () => {
         if (navigator.share) {
             navigator.share({
-                title: 'Rejoignez PAYTIK !',
-                text: `Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`,
+                title: 'Rejoignez Midi !',
+                text: `Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur Midi !`,
                 url: window.location.href,
             }).catch((error) => console.log('Erreur de partage', error));
         } else {
              toast({ title: "Partage simulé", description: "Le message de parrainage a été copié dans votre presse-papiers." });
-             navigator.clipboard.writeText(`Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur PAYTIK !`);
+             navigator.clipboard.writeText(`Utilisez mon code de parrainage ${referralCode} pour obtenir un bonus lors de votre inscription sur Midi !`);
         }
     }
     
