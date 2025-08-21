@@ -3,15 +3,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Users, Settings, BarChart3, ShieldCheck, Package, ArrowLeft, Handshake, Blocks, Download, Clock, Building, HandCoins } from 'lucide-react';
+import { LogOut, Users, BarChart3, ShieldCheck, Blocks, ArrowLeft, Building, HandCoins } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
-import AdminProductManagement from "./admin-product-management";
 import AdminRoleManagement from "./admin-role-management";
 import AdminFeatureManagement from "./admin-feature-management";
 import AdminMerchantManagement from "./admin-merchant-management";
 import AdminFinancingManagement from "./admin-financing-management";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 type AdminDashboardProps = {
     onExit: () => void;

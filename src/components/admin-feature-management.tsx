@@ -7,7 +7,7 @@ import { useUserManagement } from '@/hooks/use-user-management';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { CreditCard, Users, Clock, PiggyBank, Wallet, ArrowLeft, Handshake } from 'lucide-react';
+import { CreditCard, Users, Clock, PiggyBank, Wallet, Handshake, HandCoins } from 'lucide-react';
 import AdminFeatureDetail from './admin-feature-detail';
 import AdminBnplManagement from './admin-bnpl-management';
 import { Button } from './ui/button';
@@ -152,7 +152,7 @@ export default function AdminFeatureManagement() {
         
         <Card className="flex flex-col">
             <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
-                <div className="p-3 bg-primary/10 rounded-full text-primary"><Handshake /></div>
+                <div className="p-3 bg-primary/10 rounded-full text-primary"><HandCoins /></div>
                 <CardTitle className="text-lg font-semibold">Financement Islamique</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">

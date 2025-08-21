@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, FileText, Landmark, QrCode, ScanLine, Smartphone, Store, Clock } from 'lucide-react';
+import { LogOut, BarChart3, FileText, Landmark, QrCode, Clock, Share2 } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -15,14 +15,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
-import { useProductManagement } from "@/hooks/use-product-management";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useTransactions } from "@/hooks/use-transactions";
 import MerchantCreditProposalForm from "./merchant-credit-proposal-form";
 import PICASH from "./picash";
-import HomeActions from "./home-actions";
 import { useToast } from "@/hooks/use-toast";
-import { Share2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 type UserInfo = {

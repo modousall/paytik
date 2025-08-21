@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, Handshake } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, HandCoins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -192,7 +192,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onFinancingC
             </Button>
                        
             <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
-                <Handshake/> Financement
+                <HandCoins/> Financement
             </Button>
         </div>
     )
