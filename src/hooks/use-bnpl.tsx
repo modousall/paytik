@@ -291,7 +291,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
         status: 'Terminé'
     });
     
-    toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${repaymentAmount.toLocaleString()} Fcfa.` });
+    toast({ title: "Remboursement effectué", description: `Merci d'avoir remboursé ${repaymentAmount.toLocaleString()} F.` });
   }
 
   const value = { allRequests, myRequests, submitRequest, updateRequestStatus, currentCreditBalance, repayCredit, kpis };

@@ -58,7 +58,7 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
     }
 
     const mainSettings = [
-        { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre Midi", content: <InviteFriendDialog alias={alias}/> },
+        { id: 'invite', icon: <Share2 className="h-6 w-6 mr-4 text-primary" />, text: "Inviter un ami à rejoindre PAYTIK", content: <InviteFriendDialog alias={alias}/> },
         { id: 'promo', icon: <Ticket className="h-6 w-6 mr-4 text-primary" />, text: "Utiliser le code promotionnel", content: <PromoCodeDialog/> },
         { id: 'budget', icon: <CircleDollarSign className="h-6 w-6 mr-4 text-primary" />, text: "Budget Mensuel", content: <BudgetDialog/> },
     ];
@@ -166,7 +166,7 @@ export default function Settings({ alias, onBack, onLogout, onNavigate }: Settin
             </Card>
             
             <div className="text-center text-xs text-muted-foreground space-y-1">
-                <p>Midi - Microfinance Islamique Digitale et Inclusive</p>
+                <p>PAYTIK Simplified</p>
                 <p>Version 1.0.0</p>
                 <p>Conditions Générales | Avis de Confidentialité</p>
             </div>

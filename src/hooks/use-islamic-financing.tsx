@@ -6,8 +6,7 @@ import { islamicFinancingAssessment } from '@/ai/flows/islamic-financing-flow';
 import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
-import type { FinancingRequest, FinancingStatus, IslamicFinancingOutput, IslamicFinancingInput } from '@/lib/types';
-import { useUserManagement } from './use-user-management';
+import type { FinancingRequest, IslamicFinancingOutput, IslamicFinancingInput } from '@/lib/types';
 
 type SubmitRequestPayload = {
     financingType: string;
@@ -25,7 +24,7 @@ type IslamicFinancingContextType = {
 
 const IslamicFinancingContext = createContext<IslamicFinancingContextType | undefined>(undefined);
 
-const financingStorageKey = 'midi_financing_requests';
+const financingStorageKey = 'paytik_financing_requests';
 
 type IslamicFinancingProviderProps = {
     children: ReactNode;
@@ -35,7 +34,7 @@ type IslamicFinancingProviderProps = {
 export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingProviderProps) => {
   const [allRequests, setAllRequests] = useState<FinancingRequest[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { transactions } = useTransactions();
+  const { transactions, addTransaction } = useTransactions();
   const { balance, credit } = useBalance();
 
   useEffect(() => {
@@ -94,6 +93,14 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
       
       if (assessmentResult.status === 'approved') {
           credit(payload.amount);
+          addTransaction({
+              type: 'received',
+              counterparty: 'Financement Islamique',
+              reason: `Financement approuvé pour: ${payload.purpose}`,
+              amount: payload.amount,
+              date: new Date().toISOString(),
+              status: 'Terminé'
+          });
       }
 
       return assessmentResult;

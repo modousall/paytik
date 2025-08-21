@@ -40,20 +40,20 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
             description: "Votre compte a été supprimé avec succès.",
         });
         // Clear all data for this specific user from local storage
-        localStorage.removeItem(`midi_user_${alias}`);
-        localStorage.removeItem(`midi_onboarded_${alias}`);
-        localStorage.removeItem(`midi_avatar_${alias}`);
-        localStorage.removeItem(`midi_balance_${alias}`);
-        localStorage.removeItem(`midi_transactions_${alias}`);
-        localStorage.removeItem(`midi_contacts_${alias}`);
-        localStorage.removeItem(`midi_virtual_card_${alias}`);
-        localStorage.removeItem(`midi_virtual_card_txs_${alias}`);
-        localStorage.removeItem(`midi_tontines_${alias}`);
-        localStorage.removeItem(`midi_vaults_${alias}`);
+        localStorage.removeItem(`paytik_user_${alias}`);
+        localStorage.removeItem(`paytik_onboarded_${alias}`);
+        localStorage.removeItem(`paytik_avatar_${alias}`);
+        localStorage.removeItem(`paytik_balance_${alias}`);
+        localStorage.removeItem(`paytik_transactions_${alias}`);
+        localStorage.removeItem(`paytik_contacts_${alias}`);
+        localStorage.removeItem(`paytik_virtual_card_${alias}`);
+        localStorage.removeItem(`paytik_virtual_card_txs_${alias}`);
+        localStorage.removeItem(`paytik_tontines_${alias}`);
+        localStorage.removeItem(`paytik_vaults_${alias}`);
 
         // If this was the last logged in user, clear that too
-        if (localStorage.getItem('midi_last_alias') === alias) {
-            localStorage.removeItem('midi_last_alias');
+        if (localStorage.getItem('paytik_last_alias') === alias) {
+            localStorage.removeItem('paytik_last_alias');
         }
         
         onLogout(); // This will reset the app state and nav to demo
@@ -85,7 +85,7 @@ export default function ManageAlias({ alias, onLogout }: ManageAliasProps) {
   return (
     <div>
         <h2 className="text-2xl font-bold mb-4 text-primary">Gérer votre alias</h2>
-        <p className="text-muted-foreground mb-6">Affichez, modifiez, copiez ou supprimez votre alias Midi existant.</p>
+        <p className="text-muted-foreground mb-6">Affichez, modifiez, copiez ou supprimez votre alias PAYTIK existant.</p>
       
       <Card className="max-w-lg mx-auto shadow-sm">
         <CardHeader>
