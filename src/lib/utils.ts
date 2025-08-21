@@ -10,7 +10,7 @@ export const formatCurrency = (value?: number | null): string => {
         return `0 F`;
     }
     // Format to a string with no fractional digits, then use regex to insert dots.
-    const numString = value.toFixed(0);
+    const numString = Math.round(value).toString();
     const formatted = numString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return `${formatted} F`;
 };
