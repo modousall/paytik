@@ -15,7 +15,7 @@ type UserInfo = {
 };
 
 type BalanceCardsProps = {
-    onNavigate: (destination: 'transactions' | 'ma-carte' | 'epargne' | 'financement' | 'my-requests') => void;
+    onNavigate: (destination: 'transactions' | 'ma-carte' | 'epargne' | 'financement') => void;
     userInfo: UserInfo;
 }
 
@@ -66,15 +66,6 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
             color: 'from-emerald-500 to-green-400',
             enabled: flags.bnpl && !isMerchant,
             isDebt: true,
-        },
-         {
-            id: 'my-requests' as const,
-            title: 'Mes Demandes',
-            balance: 0, // Not a balance card
-            icon: <History className="h-5 w-5 text-white" />,
-            color: 'from-slate-600 to-gray-500',
-            enabled: flags.bnpl && !isMerchant,
-            isAction: true,
         }
     ];
 
@@ -92,13 +83,11 @@ export default function BalanceCards({ onNavigate, userInfo }: BalanceCardsProps
                         <p className="font-semibold text-sm">{c.title}</p>
                         {c.icon}
                     </div>
-                   {!c.isAction && (
-                     <div className="text-right mt-2 sm:mt-4">
+                   <div className="text-right mt-2 sm:mt-4">
                         <p className="text-lg font-bold tracking-tight">
                           {c.isDebt && c.balance > 0 ? `- ${formatCurrency(c.balance)}` : formatCurrency(c.balance)}
                         </p>
                     </div>
-                   )}
                 </Card>
             ))}
         </div>

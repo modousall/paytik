@@ -35,7 +35,7 @@ type DashboardProps = {
 
 type View = 'dashboard' | 'profile' | 'backoffice' | 'settings' | 'merchants';
 type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
-type ActiveService = 'ma-carte' | 'epargne' | 'financement' | 'my-requests' | null;
+type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
     const [view, setView] = useState<View>('dashboard');
@@ -100,8 +100,6 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                      return <Epargne onBack={() => setActiveService(null)} />;
                 case 'financement':
                     return <Financing onBack={() => setActiveService(null)} />;
-                case 'my-requests':
-                    return <MyFinancingRequests onBack={() => setActiveService(null)} />;
                 default:
                     setActiveService(null);
              }
