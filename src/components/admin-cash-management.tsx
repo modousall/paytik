@@ -4,29 +4,69 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card';
 import { Button } from './ui/button';
-import { Download, TrendingUp, Landmark, Banknote, Globe, PlusCircle, Calculator } from 'lucide-react';
+import { Download, TrendingUp, Landmark, Banknote, Globe, PlusCircle, Calculator, Search, Filter } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Badge } from './ui/badge';
 import { formatCurrency } from '@/lib/utils';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import AdminTegSimulator from './admin-teg-simulator';
-import { useTreasuryManagement } from '@/hooks/use-treasury-management';
+import { useTreasuryManagement, type TreasuryOperation } from '@/hooks/use-treasury-management';
 import TreasuryOperationForm from './treasury-operation-form';
+import { Input } from './ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 
 export default function AdminCashManagement() {
     const { treasuryData, addOperation } = useTreasuryManagement();
     const [isOperationDialogOpen, setIsOperationDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
 
     const totalTreasury = useMemo(() => treasuryData.ownFunds + treasuryData.clientFunds, [treasuryData]);
-
     const assetDistributionData = useMemo(() => Object.entries(treasuryData.assets).map(([name, value]) => ({ name, value })), [treasuryData.assets]);
-    
     const fundsDistributionData = useMemo(() => [
         { name: 'Fonds des Clients', value: treasuryData.clientFunds },
         { name: 'Fonds Propres', value: treasuryData.ownFunds },
     ], [treasuryData]);
+
+    const filteredOperations = useMemo(() => {
+        return treasuryData.operations.filter(op => {
+            const searchMatch = op.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const statusMatch = statusFilter === 'all' || op.status === statusFilter;
+            const typeMatch = typeFilter === 'all' || op.type === typeFilter;
+            return searchMatch && statusMatch && typeMatch;
+        }).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [treasuryData.operations, searchTerm, statusFilter, typeFilter]);
+
+    const operationTypes = useMemo(() => [...new Set(treasuryData.operations.map(op => op.type))], [treasuryData.operations]);
+    const operationStatuses = useMemo(() => [...new Set(treasuryData.operations.map(op => op.status))], [treasuryData.operations]);
+
+     const handleExport = async () => {
+        const dataToExport = treasuryData.operations.map(op => ({
+            ID: op.id,
+            Date: op.date,
+            Type: op.type,
+            De: op.from,
+            A: op.to,
+            Montant: op.amount,
+            Statut: op.status,
+            Description: op.description
+        }));
+        
+        const Papa = (await import('papaparse')).default;
+        const csv = Papa.unparse(dataToExport, { header: true });
+        const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `grand_livre_midi.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
 
     const CustomTooltip = ({ active, payload }: any) => {
@@ -111,12 +151,40 @@ export default function AdminCashManagement() {
             
             <Card>
                 <CardHeader>
-                     <div className="flex justify-between items-center">
+                     <div className="flex justify-between items-center flex-wrap gap-4">
                         <div>
-                            <CardTitle>Opérations de Trésorerie Récentes</CardTitle>
+                            <CardTitle>Grand Livre des Opérations de Trésorerie</CardTitle>
                             <CardDescription>Suivi des mouvements de fonds internes et avec les partenaires.</CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
+                             <div className="relative">
+                                <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Rechercher..." 
+                                    className="pl-8 w-32"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon"><Filter className="h-4 w-4"/></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                     <DropdownMenuLabel>Type d'opération</DropdownMenuLabel>
+                                     <DropdownMenuSeparator />
+                                     <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
+                                        <DropdownMenuRadioItem value="all">Tous</DropdownMenuRadioItem>
+                                        {operationTypes.map(type => <DropdownMenuRadioItem key={type} value={type}>{type}</DropdownMenuRadioItem>)}
+                                    </DropdownMenuRadioGroup>
+                                    <DropdownMenuLabel>Statut</DropdownMenuLabel>
+                                     <DropdownMenuSeparator />
+                                     <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                        <DropdownMenuRadioItem value="all">Tous</DropdownMenuRadioItem>
+                                        {operationStatuses.map(status => <DropdownMenuRadioItem key={status} value={status}>{status}</DropdownMenuRadioItem>)}
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button variant="outline"><Calculator className="mr-2"/>Simulateur TEG</Button>
@@ -157,26 +225,48 @@ export default function AdminCashManagement() {
                             </TableRow>
                         </TableHeader>
                          <TableBody>
-                            {treasuryData.operations.map(op => (
-                                <TableRow key={op.id}>
-                                    <TableCell>{op.date}</TableCell>
-                                    <TableCell><Badge variant="secondary">{op.type}</Badge></TableCell>
-                                    <TableCell>{op.from}</TableCell>
-                                    <TableCell>{op.to}</TableCell>
-                                    <TableCell className="text-muted-foreground">{op.description}</TableCell>
-                                    <TableCell className="text-right font-medium">{formatCurrency(op.amount)}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={op.status === 'Terminé' ? 'default' : 'outline'} className={op.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
-                                            {op.status}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
+                            {filteredOperations.map(op => (
+                                 <Dialog key={op.id}>
+                                    <DialogTrigger asChild>
+                                        <TableRow className="cursor-pointer">
+                                            <TableCell>{op.date}</TableCell>
+                                            <TableCell><Badge variant="secondary">{op.type}</Badge></TableCell>
+                                            <TableCell>{op.from}</TableCell>
+                                            <TableCell>{op.to}</TableCell>
+                                            <TableCell className="text-muted-foreground">{op.description}</TableCell>
+                                            <TableCell className="text-right font-medium">{formatCurrency(op.amount)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={op.status === 'Terminé' ? 'default' : 'outline'} className={op.status === 'Terminé' ? 'bg-green-100 text-green-800' : ''}>
+                                                    {op.status}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Détail de l'opération</DialogTitle>
+                                            <DialogDescription>ID: {op.id}</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="space-y-3 py-4 text-sm border-t border-b">
+                                            <div className="flex justify-between"><span>Date:</span><span>{op.date}</span></div>
+                                            <div className="flex justify-between"><span>Type:</span><span>{op.type}</span></div>
+                                            <div className="flex justify-between"><span>De:</span><span>{op.from}</span></div>
+                                            <div className="flex justify-between"><span>À:</span><span>{op.to}</span></div>
+                                            <div className="flex justify-between"><span>Montant:</span><span className="font-bold">{formatCurrency(op.amount)}</span></div>
+                                            <div className="flex justify-between"><span>Statut:</span><span>{op.status}</span></div>
+                                            <div className="flex flex-col pt-2"><span>Description:</span><p className="text-muted-foreground">{op.description}</p></div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
                             ))}
                         </TableBody>
                     </Table>
+                     {filteredOperations.length === 0 && (
+                        <div className="text-center p-8 text-muted-foreground">Aucune opération ne correspond à vos filtres.</div>
+                    )}
                 </CardContent>
                  <CardFooter className="justify-end">
-                    <Button variant="outline"><Download className="mr-2"/> Exporter le Grand Livre</Button>
+                    <Button variant="outline" onClick={handleExport}><Download className="mr-2"/> Exporter le Grand Livre</Button>
                 </CardFooter>
             </Card>
 
