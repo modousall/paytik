@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, HandCoins } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -24,7 +24,8 @@ type UserInfo = {
 type HomeActionsProps = { 
     onSendClick: () => void; 
     onRechargeClick: () => void;
-    onFinancingClick: () => void;
+    onWithdrawClick: () => void;
+    onFinancingClick: () => void; // Keep for merchant view logic
     alias: string;
     userInfo: UserInfo;
 };
@@ -77,7 +78,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
     );
 }
 
-export default function HomeActions({ onSendClick, onRechargeClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, alias, userInfo }: HomeActionsProps) {
     const { toast } = useToast();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -191,8 +192,8 @@ export default function HomeActions({ onSendClick, onRechargeClick, onFinancingC
                 <PlusCircle/> Dépôt
             </Button>
                        
-            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
-                <HandCoins/> Financement
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
+                <Landmark/> Retrait
             </Button>
         </div>
     )

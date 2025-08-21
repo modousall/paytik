@@ -19,6 +19,7 @@ import AdminDashboard from './admin-dashboard';
 import Settings from './settings';
 import MerchantList from './merchant-list';
 import Financing from './financing';
+import PICASH from './picash';
 
 type UserInfo = {
     name: string;
@@ -111,6 +112,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     return <PayerTransferer onBack={() => setActiveAction('none')} />
                 case 'recharger':
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
+                case 'retirer':
+                    return <PICASH onBack={() => setActiveAction('none')} />
                 default:
                     setActiveAction('none');
             }
@@ -133,6 +136,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <HomeActions 
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
+                    onWithdrawClick={() => setActiveAction('retirer')}
                     onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
