@@ -348,13 +348,6 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
         
         {watchedType === 'bnpl' && (
             <>
-                <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>Comment ça marche ?</AlertTitle>
-                    <AlertDescription>
-                    Ce service de crédit vous est offert par Midi pour votre achat chez un partenaire.
-                    </AlertDescription>
-                </Alert>
                 <FormField control={form.control} name="merchantAlias" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Alias ou Code Marchand</FormLabel>
@@ -446,13 +439,6 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
 
         { (watchedType === 'mourabaha' || watchedType === 'ijara' || watchedType === 'moudaraba') && (
             <>
-                 <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertTitle>Comment ça marche?</AlertTitle>
-                    <AlertDescription>
-                        Soumettez votre besoin. La plateforme Midi évalue votre demande et si elle est approuvée, les fonds sont immédiatement disponibles sur votre compte.
-                    </AlertDescription>
-                </Alert>
                 <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Montant du financement (F)</FormLabel>
