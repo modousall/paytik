@@ -23,7 +23,11 @@ const roleVariantMap: {[key: string]: 'default' | 'secondary' | 'destructive' | 
     support: 'secondary',
     merchant: 'default',
     agent: 'default',
-    user: 'outline'
+    user: 'outline',
+    "agent de crédit": 'secondary',
+    "agent de conformité": 'secondary',
+    "guichetier": 'secondary',
+    "responsable agence": 'secondary',
 };
 
 
@@ -35,7 +39,7 @@ export default function AdminUserManagement() {
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => 
-            (user.role === 'user' || user.role === 'support' || user.role === 'admin' || user.role === 'superadmin') &&
+            !user.role.includes('merchant') && // Exclude merchants from this list
             (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.alias.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -125,7 +129,7 @@ export default function AdminUserManagement() {
                                     </TableCell>
                                     <TableCell>{user.alias}</TableCell>
                                     <TableCell>
-                                        <Badge variant={roleVariantMap[user.role || 'user'] || 'outline'}>{user.role || 'user'}</Badge>
+                                        <Badge variant={roleVariantMap[user.role?.toLowerCase() || 'user'] || 'outline'}>{user.role || 'user'}</Badge>
                                     </TableCell>
                                     <TableCell>{formatCurrency(user.balance)}</TableCell>
                                     <TableCell>

@@ -14,7 +14,7 @@ export type ManagedUser = {
   balance: number;
   avatar: string | null;
   isSuspended: boolean;
-  role?: string;
+  role: string;
 };
 
 // Exporting Transaction type to be used in other components
