@@ -1,4 +1,5 @@
 
+
 export * from './use-avatar';
 export * from './use-balance';
 export * from './use-contacts';
@@ -18,3 +19,4 @@ export * from './use-bnpl';
 export * from './use-islamic-financing';
 export * from './use-treasury-management';
 export * from './use-cms';
+export * from './use-recurring-payments';

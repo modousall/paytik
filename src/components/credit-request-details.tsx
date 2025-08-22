@@ -63,7 +63,12 @@ export default function CreditRequestDetails({ request, onBack }: { request: Bnp
     return (
         <>
             <DialogHeader>
-                <DialogTitle>Détails de la demande de crédit</DialogTitle>
+                 <div className="flex items-center gap-4 mb-4">
+                    <Button onClick={onBack} variant="ghost" size="icon">
+                        <ArrowLeft />
+                    </Button>
+                    <DialogTitle>Détails de la demande de crédit</DialogTitle>
+                </div>
                 <DialogDescription>
                     Demande du {formatDate(request.requestDate)} pour {request.merchantAlias}
                 </DialogDescription>
@@ -112,7 +117,7 @@ export default function CreditRequestDetails({ request, onBack }: { request: Bnp
 
             </div>
             <DialogFooter className="justify-between">
-                <Button variant="outline" onClick={onBack}>Besoin d'aide ?</Button>
+                <Button variant="outline">Besoin d'aide ?</Button>
                 <DialogClose asChild>
                     <Button variant="ghost">Fermer</Button>
                 </DialogClose>

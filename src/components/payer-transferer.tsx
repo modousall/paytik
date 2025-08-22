@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import React, { useState } from 'react';
@@ -9,17 +10,17 @@ import { ArrowLeft, ArrowUp, Users, ChevronRight, Repeat } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
+import RecurringPayments from './recurring-payments';
 
 
-type PayerTransfererState = 'menu' | 'ponctuel';
+type PayerTransfererState = 'menu' | 'ponctuel' | 'recurrent';
 
 type PayerTransfererProps = {
     onBack: () => void;
 }
 
 const FeatureCard = ({ title, description, icon, onClick, colorClass, comingSoon = false }: { title: string, description: string, icon: JSX.Element, onClick: () => void, colorClass: string, comingSoon?: boolean }) => {
-    const { toast } = useToast();
     
     const handleClick = () => {
         if (comingSoon) {
@@ -54,7 +55,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
 
     const menuItems = [
         { id: 'ponctuel', title: "Transfert Ponctuel", description: "Envoyez de l'argent ou partagez une dépense.", icon: <ArrowUp />, colorClass: "bg-blue-500" },
-        { id: 'recurrent', title: "Paiements Récurents", description: "Programmez des abonnements ou transferts.", icon: <Repeat />, colorClass: "bg-purple-500", comingSoon: true },
+        { id: 'recurrent', title: "Paiements Récurrents", description: "Programmez des abonnements ou transferts.", icon: <Repeat />, colorClass: "bg-purple-500" },
     ];
     
     if (state === 'ponctuel') {
@@ -85,6 +86,10 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
         )
     }
 
+     if (state === 'recurrent') {
+        return <RecurringPayments onBack={() => setState('menu')} />
+    }
+
 
     return (
          <div>
@@ -104,7 +109,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                 />
                 <FeatureCard 
                     {...menuItems[1]}
-                    onClick={() => {}}
+                    onClick={() => setState('recurrent')}
                 />
             </div>
         </div>

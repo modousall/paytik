@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,6 +29,7 @@ import { BnplProvider } from '@/hooks/use-bnpl';
 import { IslamicFinancingProvider } from '@/hooks/use-islamic-financing';
 import { TreasuryProvider } from '@/hooks/use-treasury-management';
 import { CmsProvider } from '@/hooks/use-cms';
+import { RecurringPaymentsProvider } from '@/hooks/use-recurring-payments';
 
 type UserInfo = {
   name: string;
@@ -82,7 +84,9 @@ const AppProviders = ({ alias, children }: { alias: string, children: React.Reac
                                                         <VirtualCardProvider alias={alias}>
                                                             <VaultsProvider alias={alias}>
                                                                 <TontineProvider alias={alias}>
-                                                                    {children}
+                                                                    <RecurringPaymentsProvider alias={alias}>
+                                                                        {children}
+                                                                    </RecurringPaymentsProvider>
                                                                 </TontineProvider>
                                                             </VaultsProvider>
                                                         </VirtualCardProvider>
