@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -9,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useVirtualCard } from '@/hooks/use-virtual-card';
 import { Eye, EyeOff, Copy, Ban, Trash2, ArrowUp, ArrowDown, ArrowLeft, Wallet } from "lucide-react";
 import Image from 'next/image';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { useBalance } from '@/hooks/use-balance';
