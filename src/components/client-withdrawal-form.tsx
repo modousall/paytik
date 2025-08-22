@@ -20,7 +20,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
 
 const withdrawalFormSchema = z.object({
-  merchantAlias: z.string().min(1, { message: "Veuillez sélectionner un marchand." }),
+  merchantAlias: z.string().min(1, { message: "Veuillez sélectionner un point de service." }),
   amount: z.coerce.number().positive({ message: "Le montant du retrait doit être positif." }),
 });
 
@@ -84,13 +84,13 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
   const form = useForm<WithdrawalFormValues>({
     resolver: zodResolver(withdrawalFormSchema),
     defaultValues: {
-      merchantAlias: '',
+      merchantAlias: withdrawalType === 'GAB' ? 'GAB Midi' : '',
       amount: '' as any,
     },
   });
 
   const amount = form.watch('amount');
-  const fee = 100; // Example fee
+  const fee = withdrawalType === 'GAB' ? 250 : 100; // Example fee
   const total = (Number(amount) || 0) + fee;
 
   const handleScannedCode = (decodedText: string) => {
@@ -102,7 +102,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
     }
     setDidScan(true);
     setIsScannerOpen(false);
-    toast({ title: "Code Scanné", description: "L'alias a été inséré." });
+    toast({ title: "Code Scanné", description: "Le point de retrait a été identifié." });
   }
 
   const onSubmit = (values: WithdrawalFormValues) => {
@@ -130,8 +130,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
           if (operationDetails) {
             debit(total);
 
-            // If QR code was scanned, transaction is immediate
-            if(didScan) {
+            if(didScan) { // Transaction is immediate if QR code was scanned
                 addTransaction({
                     type: 'sent',
                     counterparty: operationDetails.merchantAlias,
@@ -141,13 +140,13 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                     status: 'Terminé'
                 });
                 toast({ title: 'Retrait Effectué!', description: `Vous avez retiré ${formatCurrency(operationDetails.amount)}.`});
-                onBack(); // Go back after success
-            } else {
-                // If alias was selected, generate a code and set transaction to pending
+                onBack();
+            } else { // Generate a code if alias was selected manually
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
+                // When generating a code, the counterparty is generic.
                 addTransaction({
                     type: 'sent',
-                    counterparty: operationDetails.merchantAlias,
+                    counterparty: 'Code de retrait',
                     reason: `Retrait ${withdrawalType} - Code: ${code}`,
                     date: new Date().toISOString(),
                     amount: total,
@@ -180,7 +179,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                 <CardHeader>
                     <CardTitle>Code à usage unique</CardTitle>
                     <CardDescription>
-                        Présentez ce code au marchand pour finaliser votre retrait de {formatCurrency(operationDetails.amount)}.
+                        Présentez ce code à n'importe quel marchand ou GAB pour finaliser votre retrait de {formatCurrency(operationDetails.amount)}.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -210,30 +209,49 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg mx-auto">
-          <FormField
-            control={form.control}
-            name="merchantAlias"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Marchand / GAB</FormLabel>
-                 <div className="flex gap-2">
-                    <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
-                    <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
-                        <DialogTrigger asChild>
-                            <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
-                                <QrCode />
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md p-0">
-                            <DialogHeader className="p-4"><DialogTitle>Scanner le code du point de retrait</DialogTitle></DialogHeader>
-                            <QRCodeScanner onScan={handleScannedCode}/>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-                <FormMessage />
-              </FormItem>
+            {withdrawalType === 'Marchand' && (
+                <FormField
+                    control={form.control}
+                    name="merchantAlias"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Marchand</FormLabel>
+                        <div className="flex gap-2">
+                            <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
+                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                                        <QrCode />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md p-0">
+                                    <DialogHeader className="p-4"><DialogTitle>Scanner le code du point de retrait</DialogTitle></DialogHeader>
+                                    <QRCodeScanner onScan={handleScannedCode}/>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
             )}
-          />
+             {withdrawalType === 'GAB' && (
+                <FormItem>
+                    <FormLabel>Point de service</FormLabel>
+                    <div className="flex items-center justify-between p-3 border rounded-md bg-secondary">
+                        <p className="font-medium">GAB Midi</p>
+                        <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="outline"><ScanLine className="mr-2"/>Scanner un GAB</Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md p-0">
+                                <DialogHeader className="p-4"><DialogTitle>Scanner le QR Code du GAB</DialogTitle></DialogHeader>
+                                <QRCodeScanner onScan={handleScannedCode}/>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </FormItem>
+             )}
           <FormField
             control={form.control}
             name="amount"
