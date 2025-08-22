@@ -4,7 +4,6 @@
 import React, { useState } from 'react';
 import PaymentForm from './payment-form';
 import SplitBill from './split-bill';
-import BillPaymentForm from './bill-payment-form';
 import { Button } from './ui/button';
 import { ArrowLeft, ArrowUp, Receipt, Users, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from '@/lib/utils';
 
 
-type PayerTransfererState = 'menu' | 'send' | 'bills';
+type PayerTransfererState = 'menu' | 'send';
 
 type PayerTransfererProps = {
     onBack: () => void;
@@ -41,7 +40,6 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
 
     const menuItems = [
         { id: 'send', title: "Envoyer de l'argent", description: "Alias, contact ou QR code.", icon: <ArrowUp />, colorClass: "bg-blue-500" },
-        { id: 'bills', title: "Payer une facture", description: "SENELEC, SDE, etc.", icon: <Receipt />, colorClass: "bg-green-500" },
         { id: 'split', title: "Partager une dépense", description: "Divisez avec des contacts.", icon: <Users />, colorClass: "bg-purple-500" },
     ];
     
@@ -55,8 +53,6 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                 title = "Envoyer de l'argent";
                 content = <PaymentForm />;
                 break;
-            case 'bills':
-                return <BillPaymentForm onBack={onSubMenuBack} />;
         }
 
         return (
@@ -80,7 +76,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                     <ArrowLeft />
                 </Button>
                 <div>
-                     <h2 className="text-2xl font-bold text-primary">Payer & Transférer</h2>
+                     <h2 className="text-2xl font-bold text-primary">Envoyer et recevoir</h2>
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
@@ -89,16 +85,12 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                     {...menuItems[0]}
                     onClick={() => setState('send')}
                 />
-                <FeatureCard 
-                    {...menuItems[1]}
-                    onClick={() => setState('bills')}
-                />
                 
                 <Dialog>
                     <DialogTrigger asChild>
                         <div className="w-full">
                              <FeatureCard 
-                                {...menuItems[2]}
+                                {...menuItems[1]}
                                 onClick={() => {}} // onClick is handled by DialogTrigger
                             />
                         </div>

@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, Clock, History } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, Landmark, ScanLine, Share2, Clock, History, Receipt } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import QrCodeDisplay from "./qr-code-display";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -25,6 +25,7 @@ type HomeActionsProps = {
     onSendClick: () => void; 
     onRechargeClick: () => void;
     onWithdrawClick: () => void;
+    onBillPayClick: () => void;
     onFinancingClick: () => void;
     alias: string;
     userInfo: UserInfo;
@@ -78,7 +79,7 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
     );
 }
 
-export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
+export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawClick, onBillPayClick, onFinancingClick, alias, userInfo }: HomeActionsProps) {
     const { toast } = useToast();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -161,33 +162,14 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
     // Client View
     return (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
-             <Dialog>
-                <DialogTrigger asChild>
-                     <Button variant="outline" size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
-                        <ArrowDown/> Recevoir
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-xs p-4">
-                     <DialogHeader className="mb-4">
-                        <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
-                    </DialogHeader>
-                    <QrCodeDisplay alias={alias} userInfo={userInfo} simpleMode={true} />
-                     <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
-                      <DialogTrigger asChild>
-                          <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md p-0">
-                          <DialogHeader className="p-4"><DialogTitle>Scanner un code QR</DialogTitle></DialogHeader>
-                          <QRCodeScanner onScan={handleScannedCode}/>
-                      </DialogContent>
-                    </Dialog>
-                </DialogContent>
-            </Dialog>
-            
             <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1" onClick={onSendClick}>
-                <ArrowUp/> Payer
+                <ArrowUp/> Envoyer
             </Button>
 
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onBillPayClick}>
+                <Receipt/> Facture
+            </Button>
+            
             <Button size="lg" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onRechargeClick}>
                 <PlusCircle/> Dépôt
             </Button>

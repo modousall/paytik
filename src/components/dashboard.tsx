@@ -17,6 +17,7 @@ import Financing from './financing';
 import Epargne from './epargne';
 import MyFinancingRequests from './my-financing-requests';
 import WithdrawOptions from './withdraw-options';
+import BillPaymentForm from './bill-payment-form';
 
 type UserInfo = {
     name: string;
@@ -31,7 +32,7 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile' | 'settings' | 'merchants';
-type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer';
+type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer' | 'facture';
 type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
@@ -99,6 +100,8 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
                 case 'retirer':
                     return <WithdrawOptions onBack={() => setActiveAction('none')} alias={alias} userInfo={userInfo} />
+                case 'facture':
+                    return <BillPaymentForm onBack={() => setActiveAction('none')} />
                 default:
                     setActiveAction('none');
             }
@@ -112,6 +115,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                     onSendClick={() => setActiveAction('payer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
                     onWithdrawClick={() => setActiveAction('retirer')}
+                    onBillPayClick={() => setActiveAction('facture')}
                     onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
