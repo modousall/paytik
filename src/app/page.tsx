@@ -157,28 +157,34 @@ export default function AuthenticationGate() {
   }, [toast]);
 
   const handleAliasCreated = (newAlias: string) => {
-    if (userInfo) {
-      localStorage.setItem(`midi_user_${newAlias}`, JSON.stringify({
-          name: userInfo.name,
-          email: userInfo.email,
-          pincode: '', // PIN will be set at next step
-          role: 'user', // Default role for new users
-      }));
-      // Ensure new users start with a zero balance
-      localStorage.setItem(`midi_balance_${newAlias}`, '0');
-      localStorage.setItem('midi_active_alias_creation', newAlias);
-      setAlias(newAlias);
-      setStep('pin_creation');
-    } else {
-        toast({
-          title: "Erreur critique",
-          description: "Les informations de l'utilisateur sont manquantes.",
-          variant: "destructive",
-        });
-        setStep('kyc');
-    }
+    localStorage.setItem('midi_active_alias_creation', newAlias);
+    setAlias(newAlias);
+    setStep('kyc');
   };
 
+  const handleKycComplete = (info: Omit<UserInfo, 'role'>) => {
+    const aliasForKyc = localStorage.getItem('midi_active_alias_creation');
+    if (aliasForKyc) {
+        localStorage.setItem(`midi_user_${aliasForKyc}`, JSON.stringify({
+            name: info.name,
+            email: info.email,
+            pincode: '', // PIN will be set at next step
+            role: 'user', // Default role for new users
+        }));
+        // Ensure new users start with a zero balance
+        localStorage.setItem(`midi_balance_${aliasForKyc}`, '0');
+        setUserInfo({ ...info, role: 'user' });
+        setStep('pin_creation');
+    } else {
+        toast({
+            title: "Erreur critique",
+            description: "L'alias de l'utilisateur est manquant. Retour à l'accueil.",
+            variant: "destructive",
+        });
+        setStep('demo');
+    }
+  };
+  
   const handlePinCreated = (pin: string) => {
     const aliasForPin = localStorage.getItem('midi_active_alias_creation');
     if (aliasForPin) {
@@ -212,17 +218,11 @@ export default function AuthenticationGate() {
   };
 
   const handlePermissionsGranted = () => {
-    setStep('kyc');
+    setStep('alias');
   };
 
   const handleLoginStart = () => {
     setStep('login');
-  };
-  
-  const handleKycComplete = (info: Omit<UserInfo, 'role'>) => {
-    // KYC form only collects name and email, role is defaulted to 'user'
-    setUserInfo({ ...info, role: 'user' });
-    setStep('alias');
   };
   
   const handleLogout = () => {
@@ -297,10 +297,10 @@ export default function AuthenticationGate() {
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
         return <LoginForm onLogin={handleLogin} onBack={() => setStep('demo')} />;
+      case 'alias':
+        return <AliasCreation onAliasCreated={handleAliasCreated} />;
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
-      case 'alias':
-        return <AliasCreation onAliasCreated={handleAliasCreated} userInfo={userInfo as {name: string, email: string}} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
       default:

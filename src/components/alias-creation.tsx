@@ -11,10 +11,9 @@ import { Smartphone } from 'lucide-react';
 
 type AliasCreationProps = {
   onAliasCreated: (alias: string) => void;
-  userInfo: { name: string; email: string } | null;
 };
 
-export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreationProps) {
+export default function AliasCreation({ onAliasCreated }: AliasCreationProps) {
   const [phoneValue, setPhoneValue] = useState('');
   const [otpValue, setOtpValue] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -51,7 +50,7 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
     
     toast({
       title: "Numéro vérifié!",
-      description: `Votre alias sera "${phoneValue}". Prochaine étape : sécurisez votre compte avec un code PIN.`,
+      description: `Votre alias sera "${phoneValue}". Prochaine étape : fournissez vos informations personnelles.`,
     });
     onAliasCreated(phoneValue);
   };
@@ -63,13 +62,13 @@ export default function AliasCreation({ onAliasCreated, userInfo }: AliasCreatio
             <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
                 <Smartphone className="h-8 w-8" />
             </div>
-            <h1 className="text-3xl font-bold text-primary">Créer un alias Midi</h1>
-            <p className="text-muted-foreground mt-2">Votre alias est votre identifiant unique pour envoyer et recevoir de l'argent.</p>
+            <h1 className="text-3xl font-bold text-primary">Créez votre compte Midi</h1>
+            <p className="text-muted-foreground mt-2">Commencez par valider votre numéro de téléphone. Il servira d'identifiant unique.</p>
         </div>
         <Card>
             <CardHeader>
-                <CardTitle>Revendiquer votre numéro</CardTitle>
-                <CardDescription>Utilisez votre numéro de téléphone comme alias sécurisé après vérification par code OTP.</CardDescription>
+                <CardTitle>Votre Numéro de Téléphone</CardTitle>
+                <CardDescription>Il sera utilisé comme alias sécurisé après vérification par code OTP.</CardDescription>
             </CardHeader>
             <CardContent>
                 {!otpSent ? (
