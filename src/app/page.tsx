@@ -158,22 +158,19 @@ export default function AuthenticationGate() {
 
   const handleAliasCreated = (newAlias: string) => {
     localStorage.setItem('midi_active_alias_creation', newAlias);
-    setAlias(newAlias);
     setStep('kyc');
   };
 
   const handleKycComplete = (info: Omit<UserInfo, 'role'>) => {
     const aliasForKyc = localStorage.getItem('midi_active_alias_creation');
     if (aliasForKyc) {
-        localStorage.setItem(`midi_user_${aliasForKyc}`, JSON.stringify({
+        // We only store the basic info temporarily.
+        // Full user object with PIN is created at the final step.
+        localStorage.setItem(`midi_temp_user_info`, JSON.stringify({
+            alias: aliasForKyc,
             name: info.name,
             email: info.email,
-            pincode: '', // PIN will be set at next step
-            role: 'user', // Default role for new users
         }));
-        // Ensure new users start with a zero balance
-        localStorage.setItem(`midi_balance_${aliasForKyc}`, '0');
-        setUserInfo({ ...info, role: 'user' });
         setStep('pin_creation');
     } else {
         toast({
@@ -186,27 +183,42 @@ export default function AuthenticationGate() {
   };
   
   const handlePinCreated = (pin: string) => {
-    const aliasForPin = localStorage.getItem('midi_active_alias_creation');
-    if (aliasForPin) {
-        const userDataString = localStorage.getItem(`midi_user_${aliasForPin}`);
-        if(userDataString){
-            const userData = JSON.parse(userDataString);
-            userData.pincode = pin;
-            localStorage.setItem(`midi_user_${aliasForPin}`, JSON.stringify(userData));
-            localStorage.setItem(`midi_onboarded_${aliasForPin}`, 'true');
-            localStorage.setItem('midi_last_alias', aliasForPin);
-            localStorage.removeItem('midi_active_alias_creation');
-            
-            // Set the state for the new logged-in user
-            setAlias(aliasForPin);
-            const userRole = userData.role || 'user';
-            setUserInfo({ name: userData.name, email: userData.email, role: userRole });
-            setStep(getDashboardStepForRole(userRole));
-        }
+    const tempUserInfoString = localStorage.getItem('midi_temp_user_info');
+    
+    if (tempUserInfoString) {
+        const tempInfo = JSON.parse(tempUserInfoString);
+        const aliasForPin = tempInfo.alias;
+
+        const newUser = {
+            name: tempInfo.name,
+            email: tempInfo.email,
+            pincode: pin,
+            role: 'user',
+        };
+
+        localStorage.setItem(`midi_user_${aliasForPin}`, JSON.stringify(newUser));
+        localStorage.setItem(`midi_onboarded_${aliasForPin}`, 'true');
+        localStorage.setItem(`midi_balance_${aliasForPin}`, '0');
+        localStorage.setItem('midi_last_alias', aliasForPin);
+
+        // Clean up temporary keys
+        localStorage.removeItem('midi_active_alias_creation');
+        localStorage.removeItem('midi_temp_user_info');
+        
+        // Set the state for the new logged-in user
+        setAlias(aliasForPin);
+        setUserInfo({ name: newUser.name, email: newUser.email, role: 'user' });
+        setStep('dashboard');
+
+        toast({
+            title: "Compte créé avec succès !",
+            description: "Bienvenue sur Midi. Votre compte est maintenant prêt.",
+        });
+
     } else {
          toast({
             title: "Erreur critique d'inscription",
-            description: "L'alias en cours de création est introuvable. Veuillez réessayer.",
+            description: "Les informations de l'utilisateur sont introuvables. Veuillez réessayer.",
             variant: "destructive",
         });
         setStep('demo');
@@ -295,17 +307,19 @@ export default function AuthenticationGate() {
         return <CmsProvider><OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} /></CmsProvider>;
       case 'permissions':
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
-      case 'login':
-        return <LoginForm onLogin={handleLogin} onBack={() => setStep('demo')} />;
       case 'alias':
         return <AliasCreation onAliasCreated={handleAliasCreated} />;
       case 'kyc':
         return <KYCForm onKycComplete={handleKycComplete} />;
       case 'pin_creation':
         return <PinCreation onPinCreated={handlePinCreated} />;
+      case 'login':
+        return <LoginForm onLogin={handleLogin} onBack={() => setStep('demo')} />;
       default:
          // Fallback for any state inconsistency
         localStorage.removeItem('midi_last_alias');
+        localStorage.removeItem('midi_active_alias_creation');
+        localStorage.removeItem('midi_temp_user_info');
         return <CmsProvider><OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} /></CmsProvider>;
     }
   };
