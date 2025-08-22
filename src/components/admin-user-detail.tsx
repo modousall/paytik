@@ -293,7 +293,10 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
             case 'tontine':
                 return <Tontine onBack={() => setActiveServiceView('transactions')} />;
             case 'credit-details':
-                return <MerchantCreditDetails requests={merchantPendingCredits} />
+                 if(user.role === 'merchant') {
+                    return <MerchantCreditDetails requests={merchantPendingCredits} />;
+                }
+                return <TransactionHistory showAll={true} onShowAll={() => {}} />; // Fallback for non-merchants
             default:
                 return <TransactionHistory showAll={true} onShowAll={() => {}} />;
         }
