@@ -12,13 +12,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { ArrowLeft, Loader2, QrCode, ScanLine, KeyRound, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { formatCurrency } from '@/lib/utils';
 import { MerchantSelector } from './merchant-selector';
 import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
+import QrCodeDisplay from './qr-code-display';
 
 const withdrawalFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "Veuillez sélectionner un point de service." }),
@@ -72,7 +73,6 @@ type ClientWithdrawalFormProps = {
 
 export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: ClientWithdrawalFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [didScan, setDidScan] = useState(false);
   const [showPinConfirm, setShowPinConfirm] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
@@ -80,7 +80,17 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
   const { toast } = useToast();
   const { balance, debit } = useBalance();
   const { addTransaction } = useTransactions();
-  const { changeUserPin } = useUserManagement();
+  const { changeUserPin, users } = useUserManagement();
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+   useEffect(() => {
+    const lastAlias = localStorage.getItem('midi_last_alias');
+    if (lastAlias) {
+      const user = users.find(u => u.alias === lastAlias);
+      setCurrentUser(user);
+    }
+  }, [users]);
 
   const form = useForm<WithdrawalFormValues>({
     resolver: zodResolver(withdrawalFormSchema),
@@ -219,15 +229,28 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                         <FormLabel>Marchand</FormLabel>
                         <div className="flex gap-2">
                             <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
-                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                            <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                                    <Button type="button" variant="outline" size="icon" aria-label="QR Code">
                                         <QrCode />
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-md p-0">
-                                    <DialogHeader className="p-4"><DialogTitle>Scanner le code du point de retrait</DialogTitle></DialogHeader>
-                                    <QRCodeScanner onScan={handleScannedCode}/>
+                                <DialogContent className="max-w-xs p-4">
+                                    <DialogHeader className="mb-4">
+                                        <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
+                                    </DialogHeader>
+                                    {currentUser && (
+                                        <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
+                                    )}
+                                     <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-md p-0">
+                                            <DialogHeader className="p-4"><DialogTitle>Scanner le code du point de retrait</DialogTitle></DialogHeader>
+                                            <QRCodeScanner onScan={handleScannedCode}/>
+                                        </DialogContent>
+                                    </Dialog>
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -241,7 +264,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                     <FormLabel>Point de service</FormLabel>
                     <div className="flex items-center justify-between p-3 border rounded-md bg-secondary">
                         <p className="font-medium">GAB Midi</p>
-                        <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                        <Dialog>
                             <DialogTrigger asChild>
                                 <Button type="button" variant="outline"><ScanLine className="mr-2"/>Scanner un GAB</Button>
                             </DialogTrigger>
