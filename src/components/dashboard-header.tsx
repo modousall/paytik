@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Bell, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,7 +13,9 @@ import { useVaults } from '@/hooks/use-vaults';
 import { useTontine } from '@/hooks/use-tontine';
 import { useAvatar } from '@/hooks/use-avatar';
 import { useMonthlyBudget } from '@/hooks/use-monthly-budget';
+import { useTransactions } from '@/hooks/use-transactions';
 import { formatCurrency } from '@/lib/utils';
+import { isThisMonth, parseISO } from 'date-fns';
 
 type UserInfo = {
     name: string;
@@ -33,6 +35,7 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
     const { tontines } = useTontine();
     const { avatar } = useAvatar();
     const { budget } = useMonthlyBudget();
+    const { transactions } = useTransactions();
 
     const [isBalanceVisible, setIsBalanceVisible] = useState(true);
 
@@ -41,8 +44,12 @@ export default function DashboardHeader({ userInfo, onProfileClick }: HeaderProp
     
     const totalBalance = balance + (card?.balance || 0) + totalVaultsBalance + totalTontinesBalance;
     
-    // Mock monthly budget for progress bar
-    const spentAmount = 450000;
+    const spentAmount = useMemo(() => {
+        return transactions
+            .filter(tx => tx.type === 'sent' && isThisMonth(parseISO(tx.date)))
+            .reduce((sum, tx) => sum + tx.amount, 0);
+    }, [transactions]);
+    
     const monthlyBudget = budget;
     const progress = monthlyBudget > 0 ? (spentAmount / monthlyBudget) * 100 : 0;
 

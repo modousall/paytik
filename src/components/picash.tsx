@@ -16,6 +16,7 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { formatCurrency } from '@/lib/utils';
+import { MerchantSelector } from './merchant-selector';
 
 const picashFormSchema = z.object({
   alias: z.string().min(1, { message: "L'alias est requis." }),
@@ -172,24 +173,26 @@ export default function PICASH({ onBack, mode }: PicashProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{config.aliasLabel}</FormLabel>
-                <FormControl>
-                    <div className="flex gap-2">
+                <div className="flex gap-2">
+                    {mode === 'compense' ? (
+                        <MerchantSelector value={field.value} onChange={field.onChange} />
+                    ) : (
                         <Input placeholder={config.aliasPlaceholder} {...field} />
-                         <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
-                            <DialogTrigger asChild>
-                                <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
-                                    <QrCode />
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md p-0">
-                                <DialogHeader className="p-4">
-                                    <DialogTitle>Scanner le code QR</DialogTitle>
-                                </DialogHeader>
-                                <QRCodeScanner onScan={handleScannedCode}/>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </FormControl>
+                    )}
+                    <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                        <DialogTrigger asChild>
+                            <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                                <QrCode />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md p-0">
+                            <DialogHeader className="p-4">
+                                <DialogTitle>Scanner le code QR</DialogTitle>
+                            </DialogHeader>
+                            <QRCodeScanner onScan={handleScannedCode}/>
+                        </DialogContent>
+                    </Dialog>
+                </div>
                 <FormMessage />
               </FormItem>
             )}

@@ -21,6 +21,7 @@ import QRCodeScanner from './qr-code-scanner';
 import UnifiedFinancingForm from './unified-financing-form';
 import { formatCurrency } from '@/lib/utils';
 import type { CreditProposalPrefill } from './unified-financing-form';
+import { MerchantSelector } from './merchant-selector';
 
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
@@ -164,9 +165,11 @@ export default function PaymentForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Alias, N° ou Code Marchand</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input placeholder="ex: +221771234567 ou nom contact" {...field} />
+                <div className="flex gap-2">
+                    <MerchantSelector 
+                        value={field.value}
+                        onChange={field.onChange}
+                    />
                     <Button type="button" variant="outline" size="icon" onClick={handlePaste} aria-label="Coller">
                       <ClipboardPaste />
                     </Button>
@@ -184,7 +187,6 @@ export default function PaymentForm() {
                       </DialogContent>
                     </Dialog>
                   </div>
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

@@ -17,7 +17,7 @@ type MonthlyBudgetProviderProps = {
 };
 
 export const MonthlyBudgetProvider = ({ children }: MonthlyBudgetProviderProps) => {
-    const [budget, setBudgetInternal] = useState<number>(300000); // Default budget
+    const [budget, setBudgetInternal] = useState<number>(0); // Default budget
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {

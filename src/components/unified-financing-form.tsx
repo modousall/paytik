@@ -27,6 +27,7 @@ import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
+import { MerchantSelector } from './merchant-selector';
 
 
 // --- Zod Schemas ---
@@ -352,9 +353,12 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
                 <FormField control={form.control} name="merchantAlias" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Alias ou Code Marchand</FormLabel>
-                        <FormControl>
                         <div className="flex gap-2">
-                            <Input placeholder="Entrez l'identifiant du marchand" {...field} readOnly={!!prefillData} className={prefillData ? 'bg-muted' : ''} />
+                            <MerchantSelector
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={!!prefillData}
+                            />
                             <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                                 <DialogTrigger asChild>
                                     <Button type="button" variant="outline" size="icon" aria-label="Scanner" disabled={!!prefillData}><QrCode /></Button>
@@ -364,7 +368,6 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
                                 </DialogContent>
                             </Dialog>
                         </div>
-                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}/>
