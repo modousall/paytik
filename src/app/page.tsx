@@ -27,6 +27,7 @@ import { MonthlyBudgetProvider } from '@/hooks/use-monthly-budget';
 import { BnplProvider } from '@/hooks/use-bnpl';
 import { IslamicFinancingProvider } from '@/hooks/use-islamic-financing';
 import { TreasuryProvider } from '@/hooks/use-treasury-management';
+import { CmsProvider } from '@/hooks/use-cms';
 
 type UserInfo = {
   name: string;
@@ -68,31 +69,33 @@ const AppProviders = ({ alias, children }: { alias: string, children: React.Reac
     return (
         <TransactionsProvider alias={alias}>
             <TreasuryProvider>
-                <ProductProviderWrapper>
-                    <FeatureFlagProvider>
-                        <RoleProvider>
-                            <MonthlyBudgetProvider>
-                                <BalanceProvider alias={alias}>
-                                    <BnplProvider alias={alias}>
-                                        <IslamicFinancingProvider alias={alias}>
-                                            <AvatarProvider alias={alias}>
-                                                <ContactsProvider alias={alias}>
-                                                    <VirtualCardProvider alias={alias}>
-                                                        <VaultsProvider alias={alias}>
-                                                            <TontineProvider alias={alias}>
-                                                                {children}
-                                                            </TontineProvider>
-                                                        </VaultsProvider>
-                                                    </VirtualCardProvider>
-                                                </ContactsProvider>
-                                            </AvatarProvider>
-                                        </IslamicFinancingProvider>
-                                    </BnplProvider>
-                                </BalanceProvider>
-                            </MonthlyBudgetProvider>
-                        </RoleProvider>
-                    </FeatureFlagProvider>
-                </ProductProviderWrapper>
+                <CmsProvider>
+                    <ProductProviderWrapper>
+                        <FeatureFlagProvider>
+                            <RoleProvider>
+                                <MonthlyBudgetProvider>
+                                    <BalanceProvider alias={alias}>
+                                        <BnplProvider alias={alias}>
+                                            <IslamicFinancingProvider alias={alias}>
+                                                <AvatarProvider alias={alias}>
+                                                    <ContactsProvider alias={alias}>
+                                                        <VirtualCardProvider alias={alias}>
+                                                            <VaultsProvider alias={alias}>
+                                                                <TontineProvider alias={alias}>
+                                                                    {children}
+                                                                </TontineProvider>
+                                                            </VaultsProvider>
+                                                        </VirtualCardProvider>
+                                                    </ContactsProvider>
+                                                </AvatarProvider>
+                                            </IslamicFinancingProvider>
+                                        </BnplProvider>
+                                    </BalanceProvider>
+                                </MonthlyBudgetProvider>
+                            </RoleProvider>
+                        </FeatureFlagProvider>
+                    </ProductProviderWrapper>
+                </CmsProvider>
             </TreasuryProvider>
         </TransactionsProvider>
     )
@@ -289,7 +292,7 @@ export default function AuthenticationGate() {
     // If no user is logged in, show the public onboarding/login flow
     switch (step) {
       case 'demo':
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+        return <CmsProvider><OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} /></CmsProvider>;
       case 'permissions':
         return <PermissionsRequest onPermissionsGranted={handlePermissionsGranted} />;
       case 'login':
@@ -303,7 +306,7 @@ export default function AuthenticationGate() {
       default:
          // Fallback for any state inconsistency
         localStorage.removeItem('midi_last_alias');
-        return <OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} />;
+        return <CmsProvider><OnboardingDemo onStart={handleOnboardingStart} onLogin={handleLoginStart} /></CmsProvider>;
     }
   };
   
@@ -313,6 +316,3 @@ export default function AuthenticationGate() {
 
   return <main className="bg-background min-h-screen">{renderContent()}</main>;
 }
-
-    
-    

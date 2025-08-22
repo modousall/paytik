@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, BarChart3, ShieldCheck, Blocks, Building, HandCoins, TrendingUp } from 'lucide-react';
+import { LogOut, Users, BarChart3, ShieldCheck, Blocks, Building, HandCoins, TrendingUp, LayoutTemplate } from 'lucide-react';
 import AdminUserManagement from "./admin-user-management";
 import AdminTransactionAnalysis from "./admin-transaction-analysis";
 import AdminRoleManagement from "./admin-role-management";
@@ -12,12 +12,13 @@ import AdminMerchantManagement from "./admin-merchant-management";
 import AdminFinancingHub from "./admin-financing-hub";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import AdminCashManagement from "./admin-cash-management";
+import AdminCms from "./admin-cms";
 
 type AdminDashboardProps = {
     onExit: () => void;
 };
 
-type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'services' | 'financing' | 'cash';
+type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' | 'services' | 'financing' | 'cash' | 'cms';
 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
@@ -25,6 +26,7 @@ const adminFeatures: {id: AdminView, title: string, description: string, icon: J
     { id: "transactions", title: "Centre d'Analyse", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
     { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de crédit et de financement.", icon: <HandCoins /> },
     { id: "cash", title: "Gestion de Trésorerie", description: "Piloter les fonds propres et les avoirs de la plateforme.", icon: <TrendingUp /> },
+    { id: "cms", title: "Gestion de Contenu", description: "Modifier les textes et images de la landing page.", icon: <LayoutTemplate /> },
     { id: "services", title: "Gestion des Services", description: "Configurer les fonctionnalités et les facturiers.", icon: <Blocks /> },
     { id: "roles", title: "Rôles et Permissions", description: "Gérer les niveaux d'accès administratifs.", icon: <ShieldCheck /> },
 ]
@@ -44,6 +46,8 @@ export default function AdminDashboard({ onExit }: AdminDashboardProps) {
                 return <AdminFinancingHub />;
             case 'cash':
                 return <AdminCashManagement />;
+            case 'cms':
+                return <AdminCms />;
             case 'services':
                 return <AdminFeatureManagement />;
             case 'roles':
