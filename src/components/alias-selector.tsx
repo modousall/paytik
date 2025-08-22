@@ -38,6 +38,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
     const contactSuggestions = contacts.map(c => ({
         value: c.alias,
         label: `${c.name} (Contact)`,
+        search: `${c.name} ${c.alias}`,
         type: 'contact' as const
     }));
 
@@ -50,6 +51,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
         .map(u => ({
             value: u.alias,
             label: `${u.name} (${u.role})`,
+            search: `${u.name} ${u.alias}`,
             type: u.role === 'merchant' ? 'merchant' as const : 'user' as const
         }));
     
@@ -101,7 +103,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
               {suggestions.map((suggestion) => (
                 <CommandItem
                   key={suggestion.value}
-                  value={suggestion.label}
+                  value={suggestion.search}
                   onSelect={() => {
                     onChange(suggestion.value)
                     setOpen(false)
