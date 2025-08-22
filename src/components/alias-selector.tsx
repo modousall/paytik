@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react"
-import { Building, Check, ChevronsUpDown, User } from "lucide-react"
+import { Building, Check, ChevronsUpDown, User, Phone } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
     const contactSuggestions = contacts.map(c => ({
         value: c.alias,
         label: `${c.name} (Contact)`,
-        type: 'contact'
+        type: 'contact' as const
     }));
 
     const userSuggestions = users
@@ -50,7 +50,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
         .map(u => ({
             value: u.alias,
             label: `${u.name} (${u.role})`,
-            type: u.role === 'merchant' ? 'merchant' : 'user'
+            type: u.role === 'merchant' ? 'merchant' as const : 'user' as const
         }));
     
     // Simple deduplication based on alias value
@@ -62,6 +62,12 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
     return uniqueSuggestions;
 
   }, [users, contacts, filter]);
+
+  const getIcon = (type: 'contact' | 'user' | 'merchant') => {
+      if (type === 'merchant') return <Building className="mr-2 h-4 w-4 text-muted-foreground"/>;
+      if (type === 'contact') return <User className="mr-2 h-4 w-4 text-muted-foreground"/>;
+      return <User className="mr-2 h-4 w-4 text-muted-foreground"/>;
+  }
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -82,7 +88,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput 
-            placeholder="Rechercher par nom ou alias..." 
+            placeholder="Saisir un numéro ou rechercher..." 
             onValueChange={(search) => {
                 if (!suggestions.some(s => s.value === search || s.label === search)) {
                     onChange(search);
@@ -107,7 +113,7 @@ export function AliasSelector({ value, onChange, disabled = false, filter = 'all
                       value === suggestion.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                   {suggestion.type === 'merchant' ? <Building className="mr-2 h-4 w-4 text-muted-foreground"/> : <User className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                   {getIcon(suggestion.type)}
                   {suggestion.label}
                 </CommandItem>
               ))}
