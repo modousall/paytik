@@ -1,11 +1,10 @@
 
-
 "use client";
 
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { ArrowLeft, PlusCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "./ui/dialog";
 import RecurringPaymentForm from "./recurring-payment-form";
 import RecurringPaymentsList from "./recurring-payments-list";
 
