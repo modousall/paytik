@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, QrCode, ScanLine, KeyRound } from 'lucide-react';
+import { ArrowLeft, Loader2, QrCode, ScanLine, KeyRound, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from './ui/dialog';
@@ -72,6 +72,7 @@ type ClientWithdrawalFormProps = {
 export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: ClientWithdrawalFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [didScan, setDidScan] = useState(false);
   const [showPinConfirm, setShowPinConfirm] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [operationDetails, setOperationDetails] = useState<WithdrawalFormValues | null>(null);
@@ -99,6 +100,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
     } catch(e) {
         form.setValue('merchantAlias', decodedText, { shouldValidate: true });
     }
+    setDidScan(true);
     setIsScannerOpen(false);
     toast({ title: "Code Scanné", description: "L'alias a été inséré." });
   }
@@ -116,7 +118,6 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
       setShowPinConfirm(false);
       setIsLoading(true);
 
-      // Verify PIN (this is a simplified check)
       const pinCheckResult = changeUserPin(alias, pin, pin); // Hack: use changePin to verify
       if (!pinCheckResult.success) {
           toast({ title: "Code PIN incorrect", variant: "destructive" });
@@ -128,18 +129,33 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
       setTimeout(() => {
           if (operationDetails) {
             debit(total);
-            addTransaction({
-                type: 'sent',
-                counterparty: operationDetails.merchantAlias,
-                reason: `Retrait ${withdrawalType}`,
-                date: new Date().toISOString(),
-                amount: total,
-                status: 'En attente'
-            });
-            
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
-            setGeneratedCode(code);
-            toast({ title: "Code de retrait généré", description: "Présentez ce code pour obtenir votre argent." });
+
+            // If QR code was scanned, transaction is immediate
+            if(didScan) {
+                addTransaction({
+                    type: 'sent',
+                    counterparty: operationDetails.merchantAlias,
+                    reason: `Retrait ${withdrawalType}`,
+                    date: new Date().toISOString(),
+                    amount: total,
+                    status: 'Terminé'
+                });
+                toast({ title: 'Retrait Effectué!', description: `Vous avez retiré ${formatCurrency(operationDetails.amount)}.`});
+                onBack(); // Go back after success
+            } else {
+                // If alias was selected, generate a code and set transaction to pending
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                addTransaction({
+                    type: 'sent',
+                    counterparty: operationDetails.merchantAlias,
+                    reason: `Retrait ${withdrawalType} - Code: ${code}`,
+                    date: new Date().toISOString(),
+                    amount: total,
+                    status: 'En attente'
+                });
+                setGeneratedCode(code);
+                toast({ title: "Code de retrait généré", description: "Présentez ce code pour obtenir votre argent." });
+            }
           }
           setIsLoading(false);
       }, 1000);
@@ -172,7 +188,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                         <p className="text-3xl font-bold tracking-widest">{generatedCode}</p>
                     </div>
                      <Button onClick={handleCopyCode} variant="outline" className="mt-4">
-                        Copier le code
+                        <Copy className="mr-2" /> Copier le code
                     </Button>
                 </CardContent>
             </Card>
@@ -201,7 +217,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
               <FormItem>
                 <FormLabel>Marchand / GAB</FormLabel>
                  <div className="flex gap-2">
-                    <MerchantSelector value={field.value} onChange={field.onChange} />
+                    <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
                     <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                         <DialogTrigger asChild>
                             <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">

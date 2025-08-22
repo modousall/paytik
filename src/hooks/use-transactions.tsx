@@ -16,6 +16,8 @@ export type Transaction = {
 type TransactionsContextType = {
   transactions: Transaction[];
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  findPendingTransactionByCode: (code: string) => Transaction | undefined;
+  updateTransactionStatus: (id: string, status: Transaction['status']) => void;
 };
 
 export const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -63,8 +65,17 @@ export const TransactionsProvider = ({ children, alias }: TransactionsProviderPr
     };
     setTransactions(prevTransactions => [newTransaction, ...prevTransactions]);
   };
+  
+  const findPendingTransactionByCode = (code: string): Transaction | undefined => {
+    // This is a simplified search. In a real app, you'd query a backend.
+    return transactions.find(tx => tx.status === 'En attente' && tx.reason.includes(code));
+  }
 
-  const value = { transactions, addTransaction };
+  const updateTransactionStatus = (id: string, status: Transaction['status']) => {
+    setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, status } : tx));
+  }
+
+  const value = { transactions, addTransaction, findPendingTransactionByCode, updateTransactionStatus };
 
   return (
     <TransactionsContext.Provider value={value}>

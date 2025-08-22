@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, BarChart3, Landmark, QrCode, Clock, Link as LinkIcon, HandCoins, ArrowDownCircle } from 'lucide-react';
+import { LogOut, BarChart3, Landmark, QrCode, Clock, Link as LinkIcon, HandCoins, ArrowDownCircle, CheckSquare } from 'lucide-react';
 import QrCodeDisplay from './qr-code-display';
 import { useBalance } from "@/hooks/use-balance";
 import TransactionHistory from "./transaction-history";
@@ -20,6 +20,7 @@ import MerchantCreditProposalForm from "./merchant-credit-proposal-form";
 import PICASH from "./picash";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import RedeemCodeForm from "./redeem-code-form";
 
 type UserInfo = {
     name: string;
@@ -198,10 +199,18 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                         />
                                      </Dialog>
                                 </div>
-                                <div className="w-full max-w-sm">
+                                 <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
                                       <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('customer_withdrawal')}>
                                         <ArrowDownCircle/> Retrait client
                                     </Button>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button size="lg" variant="outline" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1">
+                                                <CheckSquare/> Valider un Code
+                                            </Button>
+                                        </DialogTrigger>
+                                        <RedeemCodeForm />
+                                     </Dialog>
                                 </div>
                             </CardContent>
                         </Card>
