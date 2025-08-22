@@ -9,12 +9,8 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { CreditCard, Users, Clock, PiggyBank, Wallet, Handshake, HandCoins } from 'lucide-react';
 import AdminFeatureDetail from './admin-feature-detail';
-import AdminBnplManagement from './admin-bnpl-management';
-import { Button } from './ui/button';
-import { useBnpl } from '@/hooks/use-bnpl';
-import { formatCurrency } from '@/lib/utils';
-import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
 import AdminProductManagement from './admin-product-management';
+import { formatCurrency } from '@/lib/utils';
 
 const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey, onClick }: { title: string, value: string, icon: JSX.Element, isEnabled?: boolean, onToggle?: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature, onClick?: () => void }) => (
     <Card className={`flex flex-col ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`} onClick={onClick}>
@@ -46,8 +42,6 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
 export default function AdminFeatureManagement() {
   const { flags, setFlag } = useFeatureFlags();
   const { users } = useUserManagement();
-  const { kpis: bnplKpis } = useBnpl();
-  const { allRequests: financingRequests } = useIslamicFinancing();
 
   const [activeView, setActiveView] = useState<'overview' | 'featureDetail' | 'billers'>('overview');
   const [selectedFeature, setSelectedFeature] = useState<'mainBalance' | 'vaults' | 'virtualCards' | 'tontine' | null>(null);
