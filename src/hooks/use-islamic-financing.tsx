@@ -126,7 +126,45 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
       
       setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status } : req));
       
-      toast({ title: `Demande ${status === 'approved' ? 'approuvée' : 'rejetée'}`, description: `La demande de financement de ${requestToUpdate.alias} a été mise à jour.`})
+       if (status === 'approved') {
+          try {
+            const userToCredit = users.find(u => u.alias === requestToUpdate.alias);
+             if (!userToCredit) {
+                throw new Error("Utilisateur introuvable pour la transaction de financement.");
+            }
+
+            // 1. Credit the user's balance
+            const userBalanceKey = `midi_balance_${userToCredit.alias}`;
+            const userCurrentBalanceStr = localStorage.getItem(userBalanceKey);
+            const userCurrentBalance = userCurrentBalanceStr ? JSON.parse(userCurrentBalanceStr) : 0;
+            const userNewBalance = userCurrentBalance + requestToUpdate.amount;
+            localStorage.setItem(userBalanceKey, JSON.stringify(userNewBalance));
+
+            // 2. Add transaction for user to see the credit
+            const userTxKey = `midi_transactions_${userToCredit.alias}`;
+            const userTxStr = localStorage.getItem(userTxKey);
+            const userTxs = userTxStr ? JSON.parse(userTxStr) : [];
+            const userCreditTx = {
+                id: `TXN_FIN_${Date.now()}`,
+                type: 'received',
+                counterparty: 'Financement Interne',
+                reason: `Financement approuvé pour: ${requestToUpdate.purpose}`,
+                amount: requestToUpdate.amount,
+                date: new Date().toISOString(),
+                status: 'Terminé'
+            };
+            localStorage.setItem(userTxKey, JSON.stringify([userCreditTx, ...userTxs]));
+
+            toast({ title: "Demande approuvée", description: `Le solde de ${requestToUpdate.alias} a été crédité.` });
+
+          } catch (error: any) {
+              console.error("Failed to process manual financing approval:", error);
+              toast({ title: "Erreur de traitement", description: error.message || "Une erreur est survenue lors de l'approbation.", variant: "destructive" });
+              setAllRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'review' } : req));
+          }
+      } else {
+         toast({ title: `Demande rejetée`, description: `La demande de financement de ${requestToUpdate.alias} a été mise à jour.`})
+      }
   }
   
   const value = { allRequests, myRequests, submitRequest, updateRequestStatus };
