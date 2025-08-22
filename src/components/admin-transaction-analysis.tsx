@@ -29,6 +29,29 @@ export default function AdminTransactionAnalysis() {
     const totalVolume = allTxs.reduce((acc, tx) => acc + tx.amount, 0);
     const totalTransactions = allTxs.length;
     const averageTransactionValue = totalTransactions > 0 ? totalVolume / totalTransactions : 0;
+    
+    // Calculate product performance and total commissions
+    const productStats = new Map<string, { product: ProductWithBalance; volume: number; count: number; commissions: number }>();
+    allProducts.forEach(p => {
+        productStats.set(p.name, { product: p as ProductWithBalance, volume: 0, count: 0, commissions: 0 });
+    });
+    
+    allTxs.forEach(tx => {
+        // Find product associated with transaction (could be in counterparty or reason)
+        const product = allProducts.find(p => tx.counterparty.includes(p.name) || tx.reason.includes(p.name));
+        if (product) {
+            const stats = productStats.get(product.name) ?? { product: product as ProductWithBalance, volume: 0, count: 0, commissions: 0 };
+            stats.volume += tx.amount;
+            stats.count += 1;
+            stats.commissions += product.commission || 0;
+            productStats.set(product.name, stats);
+        }
+    });
+
+    const productPerformance = Array.from(productStats.values())
+        .sort((a,b) => b.volume - a.volume);
+        
+    const totalCommissions = productPerformance.reduce((sum, p) => sum + p.commissions, 0);
 
     const dailyVolumes = new Map<string, number>();
     for (let i = 0; i < 7; i++) {
@@ -54,33 +77,13 @@ export default function AdminTransactionAnalysis() {
     const recentTransactions = allTxs
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
-    
-    // Calculate product performance
-    const productStats = new Map<string, { product: ProductWithBalance; volume: number; count: number; commissions: number }>();
-    
-    allProducts.forEach(p => {
-        productStats.set(p.name, { product: p as ProductWithBalance, volume: 0, count: 0, commissions: 0 });
-    });
-    
-    allTxs.forEach(tx => {
-        const product = allProducts.find(p => p.name === tx.counterparty || tx.reason.includes(p.name));
-        if (product) {
-            const stats = productStats.get(product.name) ?? { product: product as ProductWithBalance, volume: 0, count: 0, commissions: 0 };
-            stats.volume += tx.amount;
-            stats.count += 1;
-            stats.commissions += product.commission || 0;
-            productStats.set(product.name, stats);
-        }
-    });
-
-    const productPerformance = Array.from(productStats.values())
-        .sort((a,b) => b.volume - a.volume);
         
     return {
       kpis: {
         totalVolume,
         totalTransactions,
         averageTransactionValue,
+        totalCommissions,
       },
       chartData,
       recentTransactions,
@@ -122,22 +125,30 @@ export default function AdminTransactionAnalysis() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-             <CardTitle>Centre d'Analyse</CardTitle>
+             <CardTitle>Centre d'Analyse des Revenus</CardTitle>
              <Button onClick={handleExport}>
                 <Download className="mr-2"/> Exporter vers Excel
              </Button>
           </div>
-          <CardDescription>Vue d'ensemble des métriques clés et des performances de la plateforme.</CardDescription>
+          <CardDescription>Vue d'ensemble des métriques financières et des performances de la plateforme.</CardDescription>
         </CardHeader>
       </Card>
       
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className='pb-2'>
             <CardTitle className='text-sm font-medium'>Volume Total Transigé</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(kpis.totalVolume)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-sm font-medium'>Commissions Totales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{formatCurrency(kpis.totalCommissions)}</div>
           </CardContent>
         </Card>
         <Card>

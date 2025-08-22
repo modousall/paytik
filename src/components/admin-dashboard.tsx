@@ -23,7 +23,7 @@ type AdminView = 'dashboard' | 'users' | 'merchants' | 'transactions' | 'roles' 
 const adminFeatures: {id: AdminView, title: string, description: string, icon: JSX.Element}[] = [
     { id: "users", title: "Gestion des Utilisateurs", description: "Consulter, modifier et gérer les clients particuliers.", icon: <Users /> },
     { id: "merchants", title: "Gestion des Marchands", description: "Gérer les comptes et les profils des marchands.", icon: <Building /> },
-    { id: "transactions", title: "Centre d'Analyse", description: "Visualiser les statistiques, les flux et exporter les données.", icon: <BarChart3 /> },
+    { id: "transactions", title: "Analyse des Revenus", description: "Visualiser les statistiques, les flux et les commissions.", icon: <BarChart3 /> },
     { id: "financing", title: "Gestion des Financements", description: "Examiner les demandes de crédit et de financement.", icon: <HandCoins /> },
     { id: "cash", title: "Gestion de Trésorerie", description: "Piloter les fonds propres et les avoirs de la plateforme.", icon: <TrendingUp /> },
     { id: "cms", title: "Gestion de Contenu", description: "Modifier les textes et images de la landing page.", icon: <LayoutTemplate /> },
