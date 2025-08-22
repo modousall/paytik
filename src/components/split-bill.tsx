@@ -3,62 +3,90 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useContacts } from '@/hooks/use-contacts';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { DialogClose } from './ui/dialog';
 import { formatCurrency } from '@/lib/utils';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { useContacts } from '@/hooks/use-contacts';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+const participantSchema = z.object({
+  alias: z.string().min(1, "L'alias est requis."),
+  amount: z.coerce.number().positive("Le montant doit être positif."),
+  saveContact: z.boolean().default(false),
+});
 
 const splitBillSchema = z.object({
-  totalAmount: z.coerce.number().positive({ message: "Le montant total doit être positif." }),
-  participants: z.array(z.string()).min(1, { message: "Sélectionnez au moins un participant." }),
   reason: z.string().min(1, { message: "Une raison est requise." }),
+  participants: z.array(participantSchema).min(1, "Ajoutez au moins un participant."),
 });
 
 type SplitBillFormValues = z.infer<typeof splitBillSchema>;
 
 export default function SplitBill() {
-  const { contacts } = useContacts();
   const { toast } = useToast();
-  const [amountPerPerson, setAmountPerPerson] = useState(0);
+  const { addContact } = useContacts();
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const form = useForm<SplitBillFormValues>({
     resolver: zodResolver(splitBillSchema),
     defaultValues: {
-      totalAmount: '' as any,
-      participants: [],
       reason: "",
+      participants: [{ alias: '', amount: '' as any, saveContact: false }],
     },
   });
 
-  const participants = form.watch('participants');
-  const totalAmount = form.watch('totalAmount');
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "participants",
+  });
+  
+  const watchedParticipants = form.watch('participants');
 
   useEffect(() => {
-    if (totalAmount > 0 && participants.length > 0) {
-      setAmountPerPerson(totalAmount / participants.length);
-    } else {
-      setAmountPerPerson(0);
-    }
-  }, [totalAmount, participants]);
+    const newTotal = watchedParticipants.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    setTotalAmount(newTotal);
+  }, [watchedParticipants]);
 
 
   const onSubmit = (values: SplitBillFormValues) => {
-    // Simulate sending payment requests
-    toast({
-      title: "Demandes envoyées",
-      description: `Des demandes de paiement de ${formatCurrency(amountPerPerson)} ont été envoyées à ${participants.length} personne(s).`,
+    let newContactsCount = 0;
+    values.participants.forEach(p => {
+        if(p.saveContact) {
+            addContact({ name: p.alias, alias: p.alias });
+            newContactsCount++;
+        }
     });
+
+    toast({
+      title: "Demandes envoyées !",
+      description: `Des demandes de paiement ont été envoyées à ${values.participants.length} personne(s).`,
+    });
+
+    if (newContactsCount > 0) {
+        toast({
+            title: "Contacts sauvegardés",
+            description: `${newContactsCount} nouveau(x) contact(s) ont été ajoutés à votre liste.`
+        })
+    }
     form.reset();
   };
 
@@ -66,113 +94,106 @@ export default function SplitBill() {
     <div className="pt-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="totalAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Montant total à diviser</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="50000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Raison de la dépense</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ex: Dîner d'équipe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
           <FormField
             control={form.control}
-            name="participants"
-            render={() => (
+            name="reason"
+            render={({ field }) => (
               <FormItem>
-                <div className="mb-4">
-                  <FormLabel className="text-base">Sélectionner les participants</FormLabel>
-                </div>
-                <ScrollArea className="h-48 rounded-md border">
-                  <div className="p-4">
-                  {contacts.length > 0 ? contacts.map((contact) => (
-                    <FormField
-                      key={contact.id}
-                      control={form.control}
-                      name="participants"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={contact.id}
-                            className="flex flex-row items-center space-x-3 space-y-0 p-2 rounded-md hover:bg-secondary has-[:checked]:bg-secondary"
-                          >
-                             <Avatar className="h-9 w-9">
-                                <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <FormLabel className="font-normal flex-grow cursor-pointer py-2">
-                              {contact.name} <span className="text-muted-foreground">({contact.alias})</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Checkbox
-                                className='h-5 w-5'
-                                checked={field.value?.includes(contact.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...(field.value || []), contact.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== contact.id
-                                        )
-                                      )
-                                }}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )
-                      }}
-                    />
-                  )) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
-                  )}
-                  </div>
-                </ScrollArea>
+                <FormLabel>Raison de la dépense</FormLabel>
+                <FormControl>
+                  <Input placeholder="ex: Dîner d'équipe" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-            
-          {amountPerPerson > 0 && (
-            <Card className="bg-secondary/50">
-              <CardHeader>
-                <CardTitle className="text-lg">Récapitulatif</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Participants:</span>
-                  <span className="font-medium">{participants.length}</span>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-base">Participants et montants</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-[1fr_auto_auto] gap-2 items-end">
+                        <FormField
+                            control={form.control}
+                            name={`participants.${index}.alias`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="sr-only">Alias</FormLabel>
+                                    <FormControl><Input placeholder="Alias ou N° du participant" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`participants.${index}.amount`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="sr-only">Montant</FormLabel>
+                                    <FormControl><Input type="number" placeholder="Montant" className="w-28" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                 <Button type="button" variant="ghost" size="icon" className="text-destructive" disabled={fields.length <= 1}>
+                                    <Trash2 size={16} />
+                                </Button>
+                            </AlertDialogTrigger>
+                             <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer ce participant ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Cette action retirera cette ligne du partage.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => remove(index)} className="bg-destructive hover:bg-destructive/90">
+                                    Supprimer
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                         <div className="col-span-3">
+                             <FormField
+                                control={form.control}
+                                name={`participants.${index}.saveContact`}
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-1">
+                                        <FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} className="form-checkbox h-4 w-4 text-primary rounded" /></FormControl>
+                                        <FormLabel className="text-xs font-normal text-muted-foreground">
+                                            Ajouter cet alias aux contacts
+                                        </FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                ))}
+                <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full mt-2" 
+                    onClick={() => append({ alias: '', amount: '' as any, saveContact: false })}
+                >
+                    <PlusCircle className="mr-2"/> Ajouter un autre participant
+                </Button>
+            </CardContent>
+            <CardFooter className="bg-secondary p-4 rounded-b-lg">
+                 <div className="flex justify-between items-baseline w-full">
+                  <span className="text-muted-foreground">Total de la dépense:</span>
+                  <span className="font-bold text-xl text-primary">{formatCurrency(totalAmount)}</span>
                 </div>
-                <Separator />
-                <div className="flex justify-between items-baseline">
-                  <span className="text-muted-foreground">Montant par personne:</span>
-                  <span className="font-bold text-xl text-primary">{formatCurrency(amountPerPerson)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            </CardFooter>
+        </Card>
           
           <DialogClose asChild>
-            <Button type="submit" className="w-full bg-accent text-accent-foreground py-6 text-lg hover:bg-accent/90" disabled={amountPerPerson <= 0}>
-                Envoyer les demandes de paiement
+            <Button type="submit" className="w-full bg-accent text-accent-foreground py-6 text-lg hover:bg-accent/90" disabled={totalAmount <= 0}>
+                Envoyer les demandes ({formatCurrency(totalAmount)})
             </Button>
           </DialogClose>
         </form>
