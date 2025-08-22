@@ -2,14 +2,14 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, QrCode, ScanLine, KeyRound, Copy } from 'lucide-react';
+import { ArrowLeft, Loader2, QrCode, ScanLine, KeyRound, Copy, Share2, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from './ui/dialog';
@@ -21,6 +21,10 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
 import QrCodeDisplay from './qr-code-display';
 import { Label } from './ui/label';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import TransactionReceipt from './transaction-receipt';
+import type { Transaction } from '@/hooks/use-transactions';
 
 const withdrawalFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "Veuillez sélectionner un point de service." }),
@@ -78,12 +82,15 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
   const [showPinConfirm, setShowPinConfirm] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [operationDetails, setOperationDetails] = useState<WithdrawalFormValues | null>(null);
+  const [transactionForReceipt, setTransactionForReceipt] = useState<Transaction | null>(null);
   const { toast } = useToast();
   const { balance, debit } = useBalance();
   const { addTransaction } = useTransactions();
   const { changeUserPin, users } = useUserManagement();
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
    useEffect(() => {
     const lastAlias = localStorage.getItem('midi_last_alias');
@@ -143,27 +150,30 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
             debit(total);
 
             if(didScan) { // Transaction is immediate if QR code was scanned
-                addTransaction({
+                const tx: Omit<Transaction, 'id'> = {
                     type: 'sent',
                     counterparty: operationDetails.merchantAlias,
                     reason: `Retrait ${withdrawalType}`,
                     date: new Date().toISOString(),
                     amount: total,
                     status: 'Terminé'
-                });
+                };
+                addTransaction(tx);
+                setTransactionForReceipt({...tx, id: `TXN${Date.now()}`});
                 toast({ title: 'Retrait Effectué!', description: `Vous avez retiré ${formatCurrency(operationDetails.amount)}.`});
                 onBack();
             } else { // Generate a code if alias was selected manually
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
-                // When generating a code, the counterparty is generic.
-                addTransaction({
+                const tx: Omit<Transaction, 'id'> = {
                     type: 'sent',
                     counterparty: 'Code de retrait',
                     reason: `Retrait ${withdrawalType} - Code: ${code}`,
                     date: new Date().toISOString(),
                     amount: total,
                     status: 'En attente'
-                });
+                };
+                addTransaction(tx);
+                setTransactionForReceipt({...tx, id: `TXN${Date.now()}`});
                 setGeneratedCode(code);
                 toast({ title: "Code de retrait généré", description: "Présentez ce code pour obtenir votre argent." });
             }
@@ -177,10 +187,57 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
     navigator.clipboard.writeText(generatedCode);
     toast({ title: "Copié !", description: "Le code de retrait a été copié." });
   }
+
+  const handleShareCode = () => {
+      if(!generatedCode || !operationDetails) return;
+      const shareText = `Voici votre code de retrait Midi à usage unique pour retirer ${formatCurrency(operationDetails.amount)} : ${generatedCode}`;
+       if (navigator.share) {
+            navigator.share({
+                title: 'Code de Retrait Midi',
+                text: shareText,
+            });
+        } else {
+            navigator.clipboard.writeText(shareText);
+            toast({ title: "Copié !", description: "Le message a été copié dans le presse-papiers." });
+        }
+  }
+  
+  const handleDownloadReceipt = async () => {
+    setIsDownloading(true);
+    if (receiptRef.current) {
+        try {
+            const canvas = await html2canvas(receiptRef.current, { scale: 3 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`recu-retrait-midi-${Date.now()}.pdf`);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            toast({ title: "Erreur de téléchargement", description: "Impossible de générer le reçu PDF.", variant: "destructive" });
+        } finally {
+            setIsDownloading(false);
+        }
+    }
+  };
   
   if (generatedCode && operationDetails) {
        return (
         <div>
+            {/* Hidden component for PDF generation */}
+            <div className="absolute -z-50 -left-[9999px] -top-[9999px]">
+                {transactionForReceipt && (
+                    <div ref={receiptRef} style={{ width: '400px', padding: '20px', background: 'white' }}>
+                       <TransactionReceipt transaction={transactionForReceipt} />
+                    </div>
+                )}
+            </div>
+
             <div className="flex items-center gap-4 mb-6">
                 <Button onClick={onBack} variant="ghost" size="icon">
                     <ArrowLeft />
@@ -194,13 +251,21 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                         Présentez ce code à n'importe quel marchand ou GAB pour finaliser votre retrait de {formatCurrency(operationDetails.amount)}.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex flex-col gap-4">
                     <div className="bg-muted p-4 rounded-lg">
-                        <p className="text-3xl font-bold tracking-widest">{generatedCode}</p>
+                        <p className="text-4xl font-bold tracking-widest">{generatedCode}</p>
                     </div>
-                     <Button onClick={handleCopyCode} variant="outline" className="mt-4">
-                        <Copy className="mr-2" /> Copier le code
-                    </Button>
+                     <div className="grid grid-cols-3 gap-2">
+                        <Button onClick={handleCopyCode} variant="outline" className="flex-col h-16 gap-1">
+                            <Copy /> <span className="text-xs">Copier</span>
+                        </Button>
+                        <Button onClick={handleShareCode} variant="outline" className="flex-col h-16 gap-1">
+                           <Share2 /> <span className="text-xs">Partager</span>
+                        </Button>
+                        <Button onClick={handleDownloadReceipt} variant="outline" className="flex-col h-16 gap-1" disabled={isDownloading}>
+                           <Download className={isDownloading ? "animate-pulse" : ""} /> <span className="text-xs">{isDownloading ? "Génération..." : "Reçu"}</span>
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -228,8 +293,8 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Marchand</FormLabel>
-                        <div className="flex gap-2">
-                            <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
+                         <div className="flex gap-2">
+                             <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button type="button" variant="outline" size="icon" aria-label="QR Code">
@@ -254,7 +319,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                                     </Dialog>
                                 </DialogContent>
                             </Dialog>
-                        </div>
+                         </div>
                         <FormMessage />
                     </FormItem>
                     )}
@@ -265,7 +330,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                     <FormLabel>Point de service</FormLabel>
                     <div className="flex items-center justify-between p-3 border rounded-md bg-secondary">
                         <p className="font-medium">GAB Midi</p>
-                        <Dialog>
+                         <Dialog>
                             <DialogTrigger asChild>
                                 <Button type="button" variant="outline"><ScanLine className="mr-2"/>Scanner un GAB</Button>
                             </DialogTrigger>
