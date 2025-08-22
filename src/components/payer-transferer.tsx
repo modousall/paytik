@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import PaymentForm from './payment-form';
 import SplitBill from './split-bill';
 import { Button } from './ui/button';
-import { ArrowLeft, ArrowUp, Receipt, Users, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Users, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
@@ -80,7 +80,7 @@ export default function PayerTransferer({ onBack }: PayerTransfererProps) {
                      <p className="text-muted-foreground">Choisissez une action pour commencer.</p>
                 </div>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto'>
                 <FeatureCard 
                     {...menuItems[0]}
                     onClick={() => setState('send')}
