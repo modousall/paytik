@@ -192,8 +192,8 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 <PlusCircle/> Dépôt
             </Button>
                        
-            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onFinancingClick}>
-                <Clock/> Crédit
+            <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
+                <Landmark/> Retrait
             </Button>
         </div>
     )
