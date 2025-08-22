@@ -55,13 +55,14 @@ const formConfig: Record<PicoMode, { title: string, description: string, aliasLa
 export default function PICASH({ onBack, mode }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [operationDetails, setOperationDetails] = useState<PicashFormValues | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
-  const { balance, debit } = useBalance();
-  const { addTransaction } = useTransactions();
-  const config = formConfig[mode];
+  const { balance: merchantBalance, credit: creditMerchant } = useBalance();
+  const { addTransaction: addMerchantTransaction } = useTransactions();
   const { users } = useUserManagement();
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const config = formConfig[mode];
 
   useEffect(() => {
     const lastAlias = localStorage.getItem('midi_last_alias');
@@ -79,41 +80,80 @@ export default function PICASH({ onBack, mode }: PicashProps) {
     },
   });
 
-  const onSubmit = (values: PicashFormValues) => {
-    if (values.amount > balance) {
-        toast({
-            title: "Solde insuffisant",
-            description: "Votre solde est insuffisant pour effectuer cette opération.",
-            variant: "destructive",
-        });
+  const handleWithdrawalForClient = (values: PicashFormValues) => {
+    const clientUser = users.find(u => u.alias === values.alias);
+    if (!clientUser) {
+        toast({ title: "Client non trouvé", description: "L'alias du client est invalide.", variant: "destructive" });
         return;
     }
 
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      debit(values.amount);
-      
-      const transactionReason = mode === 'compense' 
-        ? 'Retrait de fonds via partenaire'
-        : `Retrait cash pour client ${values.alias}`;
-        
-      addTransaction({
-          type: "sent",
-          counterparty: mode === 'compense' ? `Compensation - ${values.alias}` : `Retrait Client - ${values.alias}`,
-          reason: transactionReason,
-          date: new Date().toISOString(),
-          amount: values.amount,
-          status: "Terminé",
-      });
+    if (values.amount > clientUser.balance) {
+        toast({ title: "Solde client insuffisant", description: "Le solde du client est insuffisant pour ce retrait.", variant: "destructive" });
+        return;
+    }
 
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedCode(code);
-      toast({
-        title: 'Opération réussie',
-        description: `Un code a été généré pour valider l'opération.`,
-      });
-      setIsLoading(false);
+    // Simulate multi-account transaction by directly manipulating localStorage
+    // This is a workaround for the prototype. In a real app, this would be a single atomic backend transaction.
+    
+    // 1. Debit the client
+    const clientBalanceKey = `midi_balance_${clientUser.alias}`;
+    const clientNewBalance = clientUser.balance - values.amount;
+    localStorage.setItem(clientBalanceKey, JSON.stringify(clientNewBalance));
+    
+    // 2. Add transaction to client's history
+    const clientTxKey = `midi_transactions_${clientUser.alias}`;
+    const clientTxs = JSON.parse(localStorage.getItem(clientTxKey) || '[]');
+    const clientNewTx = {
+        id: `TXN${Date.now()}`, type: 'sent', counterparty: `Retrait chez ${currentUser.name}`,
+        reason: 'Retrait d\'argent', amount: values.amount, date: new Date().toISOString(), status: 'Terminé'
+    };
+    localStorage.setItem(clientTxKey, JSON.stringify([clientNewTx, ...clientTxs]));
+    
+    // 3. Credit the merchant
+    creditMerchant(values.amount);
+
+    // 4. Add transaction to merchant's history
+    addMerchantTransaction({
+      type: "received", counterparty: `Retrait pour ${clientUser.name}`,
+      reason: `Service de retrait cash`, amount: values.amount,
+      date: new Date().toISOString(), status: 'Terminé'
+    });
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setOperationDetails(values);
+    toast({ title: 'Opération réussie', description: `Un code a été généré pour valider l'opération.` });
+  }
+
+  const handleSelfWithdrawal = (values: PicashFormValues) => {
+      if (values.amount > merchantBalance) {
+        toast({ title: "Solde insuffisant", description: "Votre solde est insuffisant pour effectuer cette opération.", variant: "destructive" });
+        return;
+    }
+     // In this mode, the merchant is withdrawing from their own account at another point of service.
+    // The actual debit will happen when the code is used. Here, we just generate the code.
+    // For the simulation, we'll debit immediately.
+    creditMerchant(values.amount); // Simulate the other merchant getting the money
+    addMerchantTransaction({
+      type: "sent", counterparty: values.alias, reason: "Retrait / Compensation",
+      amount: values.amount, date: new Date().toISOString(), status: "Terminé"
+    });
+    
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setOperationDetails(values);
+    toast({ title: 'Opération réussie', description: `Un code a été généré pour valider l'opération.` });
+  }
+
+  const onSubmit = (values: PicashFormValues) => {
+    setIsLoading(true);
+    setTimeout(() => {
+        if (mode === 'customer_withdrawal') {
+            handleWithdrawalForClient(values);
+        } else {
+            handleSelfWithdrawal(values);
+        }
+        setIsLoading(false);
     }, 1500);
   };
   
@@ -125,16 +165,22 @@ export default function PICASH({ onBack, mode }: PicashProps) {
 
   const resetForm = () => {
     setGeneratedCode(null);
+    setOperationDetails(null);
     form.reset();
   }
   
   const handleScannedCode = (decodedText: string) => {
-    form.setValue('alias', decodedText, { shouldValidate: true });
+     try {
+        const data = JSON.parse(decodedText);
+        form.setValue('alias', data.shid || decodedText, { shouldValidate: true });
+    } catch(e) {
+        form.setValue('alias', decodedText, { shouldValidate: true });
+    }
     setIsScannerOpen(false);
     toast({ title: "Code Scanné", description: "L'alias a été inséré." });
   }
 
-  if (generatedCode) {
+  if (generatedCode && operationDetails) {
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
@@ -149,7 +195,7 @@ export default function PICASH({ onBack, mode }: PicashProps) {
                     <CardDescription>
                         {mode === 'compense' 
                             ? "Présentez ce code au marchand pour finaliser votre retrait." 
-                            : "Donnez ce code au client pour qu'il le confirme sur son téléphone."
+                            : `Un retrait de ${formatCurrency(operationDetails.amount)} a été effectué pour le client ${operationDetails.alias}.`
                         }
                     </CardDescription>
                 </CardHeader>
@@ -186,7 +232,7 @@ export default function PICASH({ onBack, mode }: PicashProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{config.aliasLabel}</FormLabel>
-                <div className="flex gap-2">
+                 <div className="flex gap-2">
                     {mode === 'compense' ? (
                         <MerchantSelector value={field.value} onChange={field.onChange} />
                     ) : (
@@ -194,7 +240,7 @@ export default function PICASH({ onBack, mode }: PicashProps) {
                     )}
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
+                             <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
                                 <QrCode />
                             </Button>
                         </DialogTrigger>
@@ -205,7 +251,7 @@ export default function PICASH({ onBack, mode }: PicashProps) {
                              {currentUser && (
                                 <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
                             )}
-                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                             <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
                                 </DialogTrigger>
