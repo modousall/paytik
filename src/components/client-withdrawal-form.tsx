@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
 import { formatCurrency } from '@/lib/utils';
-import { MerchantSelector } from './merchant-selector';
+import { AliasSelector } from './alias-selector';
 import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
@@ -295,7 +295,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                     <FormItem>
                         <FormLabel>Marchand</FormLabel>
                          <div className="flex gap-2">
-                             <MerchantSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
+                             <AliasSelector value={field.value} onChange={(value) => { field.onChange(value); setDidScan(false); }} />
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button type="button" variant="outline" size="icon" aria-label="QR Code">

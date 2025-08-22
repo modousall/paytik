@@ -27,9 +27,9 @@ import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
-import { MerchantSelector } from './merchant-selector';
 import { useUserManagement } from '@/hooks/use-user-management';
 import QrCodeDisplay from './qr-code-display';
+import { AliasSelector } from './alias-selector';
 
 
 // --- Zod Schemas ---
@@ -382,10 +382,11 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
                     <FormItem>
                         <FormLabel>Alias ou Code Marchand</FormLabel>
                         <div className="flex gap-2">
-                            <MerchantSelector
+                            <AliasSelector
                                 value={field.value}
                                 onChange={field.onChange}
                                 disabled={!!prefillData}
+                                filter="merchant"
                             />
                             <Dialog>
                                 <DialogTrigger asChild>

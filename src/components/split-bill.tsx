@@ -12,7 +12,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { Separator } from './ui/separator';
 import { DialogClose } from './ui/dialog';
 import { formatCurrency } from '@/lib/utils';
 import { useContacts } from '@/hooks/use-contacts';
@@ -27,11 +26,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AliasSelector } from './alias-selector';
 
 const participantSchema = z.object({
   alias: z.string().min(1, "L'alias est requis."),
   amount: z.coerce.number().positive("Le montant doit être positif."),
-  saveContact: z.boolean().default(false),
 });
 
 const splitBillSchema = z.object({
@@ -43,14 +42,13 @@ type SplitBillFormValues = z.infer<typeof splitBillSchema>;
 
 export default function SplitBill() {
   const { toast } = useToast();
-  const { addContact } = useContacts();
   const [totalAmount, setTotalAmount] = useState(0);
 
   const form = useForm<SplitBillFormValues>({
     resolver: zodResolver(splitBillSchema),
     defaultValues: {
       reason: "",
-      participants: [{ alias: '', amount: '' as any, saveContact: false }],
+      participants: [{ alias: '', amount: '' as any }],
     },
   });
 
@@ -68,25 +66,10 @@ export default function SplitBill() {
 
 
   const onSubmit = (values: SplitBillFormValues) => {
-    let newContactsCount = 0;
-    values.participants.forEach(p => {
-        if(p.saveContact) {
-            addContact({ name: p.alias, alias: p.alias });
-            newContactsCount++;
-        }
-    });
-
     toast({
       title: "Demandes envoyées !",
       description: `Des demandes de paiement ont été envoyées à ${values.participants.length} personne(s).`,
     });
-
-    if (newContactsCount > 0) {
-        toast({
-            title: "Contacts sauvegardés",
-            description: `${newContactsCount} nouveau(x) contact(s) ont été ajoutés à votre liste.`
-        })
-    }
     form.reset();
   };
 
@@ -121,7 +104,12 @@ export default function SplitBill() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="sr-only">Alias</FormLabel>
-                                    <FormControl><Input placeholder="Alias ou N° du participant" {...field} /></FormControl>
+                                    <FormControl>
+                                        <AliasSelector
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                        />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -158,27 +146,13 @@ export default function SplitBill() {
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
-                         <div className="col-span-3">
-                             <FormField
-                                control={form.control}
-                                name={`participants.${index}.saveContact`}
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-1">
-                                        <FormControl><input type="checkbox" checked={field.value} onChange={field.onChange} className="form-checkbox h-4 w-4 text-primary rounded" /></FormControl>
-                                        <FormLabel className="text-xs font-normal text-muted-foreground">
-                                            Ajouter cet alias aux contacts
-                                        </FormLabel>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
                     </div>
                 ))}
                 <Button 
                     type="button" 
                     variant="outline" 
                     className="w-full mt-2" 
-                    onClick={() => append({ alias: '', amount: '' as any, saveContact: false })}
+                    onClick={() => append({ alias: '', amount: '' as any })}
                 >
                     <PlusCircle className="mr-2"/> Ajouter un autre participant
                 </Button>

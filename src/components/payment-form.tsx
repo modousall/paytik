@@ -21,9 +21,9 @@ import QRCodeScanner from './qr-code-scanner';
 import UnifiedFinancingForm from './unified-financing-form';
 import { formatCurrency } from '@/lib/utils';
 import type { CreditProposalPrefill } from './unified-financing-form';
-import { MerchantSelector } from './merchant-selector';
 import { useUserManagement } from '@/hooks/use-user-management';
 import QrCodeDisplay from './qr-code-display';
+import { AliasSelector } from './alias-selector';
 
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
@@ -178,7 +178,7 @@ export default function PaymentForm() {
               <FormItem>
                 <FormLabel>Alias, N° ou Code Marchand</FormLabel>
                 <div className="flex gap-2">
-                    <MerchantSelector 
+                    <AliasSelector 
                         value={field.value}
                         onChange={field.onChange}
                     />
@@ -198,7 +198,7 @@ export default function PaymentForm() {
                             {currentUser && (
                                 <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
                             )}
-                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                             <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                                 <DialogTrigger asChild>
                                     <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
                                 </DialogTrigger>
