@@ -116,7 +116,7 @@ const ResultDisplay = ({ result, onBack }: { result: BnplAssessmentOutput | Isla
 }
 
 // --- Confirmation Dialog Component ---
-const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | null, onConfirm: () => void, onCancel: () => void }) => {
+const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: any | null, onConfirm: () => void, onCancel: () => void }) => {
     if (!values) return null;
 
     const schedule = useMemo(() => {
@@ -126,7 +126,7 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | nul
 
 
     return (
-        <DialogContent className="max-w-xl">
+        <>
             <DialogHeader>
                 <DialogTitle>Confirmer la demande de crédit</DialogTitle>
                  <DialogDescription>
@@ -178,7 +178,7 @@ const ConfirmationDialog = ({ values, onConfirm, onCancel }: { values: any | nul
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
                 <Button onClick={onConfirm}>Confirmer et Soumettre</Button>
             </DialogFooter>
-        </DialogContent>
+        </>
     )
 }
 
@@ -473,11 +473,13 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
         </Button>
 
         <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-           <ConfirmationDialog 
-                values={formValuesForConfirmation}
-                onConfirm={onConfirmBnplSubmit}
-                onCancel={() => setShowConfirmation(false)}
-            />
+            <DialogContent className="max-w-xl">
+                <ConfirmationDialogContent
+                    values={formValuesForConfirmation}
+                    onConfirm={onConfirmBnplSubmit}
+                    onCancel={() => setShowConfirmation(false)}
+                />
+            </DialogContent>
         </Dialog>
       </form>
     </Form>
