@@ -130,7 +130,7 @@ const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: an
 
 
     return (
-        <DialogContent className="max-w-xl">
+        <>
             <DialogHeader>
                 <DialogTitle>Confirmer la demande de crédit</DialogTitle>
                  <DialogDescription>
@@ -182,7 +182,7 @@ const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: an
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
                 <Button onClick={onConfirm}>Confirmer et Soumettre</Button>
             </DialogFooter>
-        </DialogContent>
+        </>
     )
 }
 
@@ -517,11 +517,13 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
         </Button>
 
         <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-            <ConfirmationDialogContent
-                values={formValuesForConfirmation}
-                onConfirm={onConfirmBnplSubmit}
-                onCancel={() => setShowConfirmation(false)}
-            />
+            <DialogContent className="max-w-xl">
+                 <ConfirmationDialogContent
+                    values={formValuesForConfirmation}
+                    onConfirm={onConfirmBnplSubmit}
+                    onCancel={() => setShowConfirmation(false)}
+                />
+            </DialogContent>
         </Dialog>
       </form>
     </Form>

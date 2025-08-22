@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -245,7 +246,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                                 <Button type="button" variant="outline"><ScanLine className="mr-2"/>Scanner un GAB</Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-md p-0">
-                                <DialogHeader className="p-4"><DialogTitle>Scanner le QR Code du GAB</DialogTitle></DialogHeader>
+                                <DialogHeader className="p-4"><DialogTitle>Scanner le QR code du GAB</DialogTitle></DialogHeader>
                                 <QRCodeScanner onScan={handleScannedCode}/>
                             </DialogContent>
                         </Dialog>
