@@ -15,11 +15,67 @@ import { Label } from './ui/label';
 import { useBalance } from '@/hooks/use-balance';
 import { useFeatureFlags } from '@/hooks/use-feature-flags';
 import { formatCurrency } from '@/lib/utils';
+import type { CardTransaction } from '@/hooks/use-virtual-card';
+import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
 
 type VirtualCardProps = {
     onBack: () => void;
     cardHolderName: string;
 };
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }) + ' à ' + date.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const VirtualCardTransactionDetailsDialog = ({ transaction }: { transaction: CardTransaction }) => {
+    return (
+        <DialogContent className="max-w-sm">
+            <DialogHeader>
+                <DialogTitle>Détail de la transaction</DialogTitle>
+                <DialogDescription>
+                    ID : {transaction.id}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4 border-y">
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Type</span>
+                    <Badge variant={transaction.type === 'credit' ? 'default' : 'secondary'} className={transaction.type === 'credit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                        {transaction.type === 'credit' ? 'Crédit' : 'Débit'}
+                    </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground text-sm">Montant</span>
+                    <span className={cn('font-semibold text-base', transaction.type === 'credit' ? 'text-green-600' : 'text-red-600')}>
+                        {transaction.type === 'credit' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                    </span>
+                </div>
+                 <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Marchand</span>
+                    <span className="font-medium">{transaction.merchant}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Date</span>
+                    <span className="font-medium">{formatDate(transaction.date)}</span>
+                </div>
+            </div>
+             <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline">Fermer</Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    );
+}
 
 const ManageCardFundsDialog = ({ card, onRecharge, onWithdraw }: { card: any, onRecharge: (amount: number) => void, onWithdraw: (amount: number) => void }) => {
     const [amount, setAmount] = useState(0);
@@ -272,20 +328,25 @@ export default function VirtualCard({ onBack, cardHolderName }: VirtualCardProps
             </CardHeader>
             <CardContent>
                 {transactions.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-1">
                         {transactions.map(tx => (
-                            <div key={tx.id} className="flex items-center gap-4">
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'debit' ? 'bg-red-100' : 'bg-green-100'}`}>
-                                    {tx.type === 'debit' ? <ArrowUp className="text-red-600"/> : <ArrowDown className="text-green-600"/>}
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-sm">{tx.merchant}</p>
-                                    <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</p>
-                                </div>
-                                <p className={`ml-auto font-semibold text-sm ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
-                                    {tx.type === 'debit' ? '-' : '+'} {formatCurrency(tx.amount)}
-                                </p>
-                            </div>
+                            <Dialog key={tx.id}>
+                                <DialogTrigger asChild>
+                                    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary cursor-pointer">
+                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'debit' ? 'bg-red-100' : 'bg-green-100'}`}>
+                                            {tx.type === 'debit' ? <ArrowUp className="text-red-600"/> : <ArrowDown className="text-green-600"/>}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-sm">{tx.merchant}</p>
+                                            <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString('fr-FR')}</p>
+                                        </div>
+                                        <p className={`ml-auto font-semibold text-sm ${tx.type === 'debit' ? 'text-red-600' : 'text-green-600'}`}>
+                                            {tx.type === 'debit' ? '-' : '+'} {formatCurrency(tx.amount)}
+                                        </p>
+                                    </div>
+                                </DialogTrigger>
+                                <VirtualCardTransactionDetailsDialog transaction={tx} />
+                            </Dialog>
                         ))}
                     </div>
                 ) : (
