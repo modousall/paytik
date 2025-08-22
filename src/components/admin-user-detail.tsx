@@ -259,7 +259,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
             .reduce((total, req) => total + (req.amount - (req.repaidAmount || 0)), 0);
     }, [allRequests, user.alias]);
     
-    const merchantPendingCredits = useMemo(() => {
+    const merchantCredits = useMemo(() => {
         return allRequests.filter(req => req.merchantAlias === user.alias);
     }, [allRequests, user.alias]);
 
@@ -294,7 +294,7 @@ export default function AdminUserDetail({ user, onBack, onUpdate }: { user: Mana
                 return <Tontine onBack={() => setActiveServiceView('transactions')} />;
             case 'credit-details':
                  if(user.role === 'merchant') {
-                    return <MerchantCreditDetails requests={merchantPendingCredits} />;
+                    return <MerchantCreditDetails requests={merchantCredits} />;
                 }
                 return <TransactionHistory showAll={true} onShowAll={() => {}} />; // Fallback for non-merchants
             default:

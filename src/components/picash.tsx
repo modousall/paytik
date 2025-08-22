@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,27 +23,14 @@ const picashFormSchema = z.object({
 
 type PicashFormValues = z.infer<typeof picashFormSchema>;
 
-type PicoMode = 'customer_withdrawal';
-
 type UserInfo = { name: string; email: string; };
 
 type PicashProps = {
   onBack: () => void;
-  mode: PicoMode;
   userInfo: UserInfo;
 };
 
-const formConfig: Record<PicoMode, { title: string, description: string, aliasLabel: string, aliasPlaceholder: string, buttonText: string }> = {
-    'customer_withdrawal': {
-        title: "Retrait Client",
-        description: "Scannez le QR code de votre client et entrez le montant pour effectuer un retrait.",
-        aliasLabel: "Alias du Client (scanné)",
-        aliasPlaceholder: "Scannez le QR code du client",
-        buttonText: "Effectuer le retrait pour le client"
-    }
-}
-
-export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
+export default function PICASH({ onBack, userInfo }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [operationDetails, setOperationDetails] = useState<{amount: number, client: ManagedUser} | null>(null);
@@ -52,7 +39,6 @@ export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
   const { toast } = useToast();
   const { users } = useUserManagement();
   
-  const config = formConfig[mode];
 
   const form = useForm<PicashFormValues>({
     resolver: zodResolver(picashFormSchema),
@@ -66,8 +52,9 @@ export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
         toast({ title: "Client non trouvé", description: "Veuillez scanner le QR code du client.", variant: "destructive" });
         return;
     }
-
-    if (values.amount > scannedClient.balance) {
+    
+    const clientFromDb = users.find(u => u.alias === scannedClient.alias);
+    if (!clientFromDb || values.amount > clientFromDb.balance) {
         toast({ title: "Solde client insuffisant", description: "Le solde du client est insuffisant pour ce retrait.", variant: "destructive" });
         return;
     }
@@ -77,7 +64,7 @@ export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
     
     // 1. Debit the client
     const clientBalanceKey = `midi_balance_${scannedClient.alias}`;
-    const clientNewBalance = scannedClient.balance - values.amount;
+    const clientNewBalance = clientFromDb.balance - values.amount;
     localStorage.setItem(clientBalanceKey, JSON.stringify(clientNewBalance));
     
     // 2. Add transaction to client's history
@@ -185,15 +172,15 @@ export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
           <ArrowLeft />
         </Button>
         <div>
-          <h2 className="text-2xl font-bold text-primary">{config.title}</h2>
-          <p className="text-muted-foreground">{config.description}</p>
+          <h2 className="text-2xl font-bold text-primary">Retrait Client</h2>
+          <p className="text-muted-foreground">Scannez le QR code de votre client et entrez le montant pour effectuer un retrait.</p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg mx-auto">
             <FormItem>
-                <FormLabel>{config.aliasLabel}</FormLabel>
+                <FormLabel>Client à débiter</FormLabel>
                 <Card>
                     <CardContent className="p-4 flex items-center gap-4">
                         {scannedClient ? (
@@ -243,7 +230,7 @@ export default function PICASH({ onBack, mode, userInfo }: PicashProps) {
 
           <Button type="submit" className="w-full py-6" disabled={isLoading || !scannedClient}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {config.buttonText}
+            Effectuer le retrait pour le client
           </Button>
         </form>
       </Form>

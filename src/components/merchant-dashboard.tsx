@@ -120,7 +120,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
     if (activeAction === 'customer_withdrawal') {
         return (
              <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <PICASH onBack={() => setActiveAction('none')} mode="customer_withdrawal" userInfo={userInfo}/>
+                <PICASH onBack={() => setActiveAction('none')} userInfo={userInfo}/>
             </div>
         )
     }
