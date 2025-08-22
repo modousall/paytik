@@ -152,7 +152,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
                 </Dialog>
 
                 <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onWithdrawClick}>
-                    <Landmark/> Retirer
+                    <Landmark/> Retrait
                 </Button>
             </div>
         )
