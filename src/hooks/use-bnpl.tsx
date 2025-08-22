@@ -9,6 +9,7 @@ import { toast } from './use-toast';
 import type { BnplRequest, BnplAssessmentOutput, BnplAssessmentInput } from '@/lib/types';
 import type { ManagedUser } from '@/hooks/use-user-management';
 import { formatCurrency } from '@/lib/utils';
+import { useUserManagement } from './use-user-management';
 
 type SubmitRequestPayload = {
     merchantAlias: string;
@@ -29,7 +30,7 @@ type BnplContextType = {
     pendingRequests: number;
     approvalRate: number;
   };
-  submitRequest: (payload: SubmitRequestPayload) => Promise<BnplAssessmentOutput>;
+  submitRequest: (payload: SubmitRequestPayload, clientAlias?: string) => Promise<BnplAssessmentOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected', users: ManagedUser[]) => void;
   repayCredit: (amount: number) => void;
 };
@@ -48,6 +49,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
   const { balance, debit, credit } = useBalance();
+  const { users } = useUserManagement();
 
   useEffect(() => {
     try {
@@ -102,14 +104,22 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
   }, [allRequests]);
 
 
-  const submitRequest = async (payload: SubmitRequestPayload): Promise<BnplAssessmentOutput> => {
-      const transactionHistory = transactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
+  const submitRequest = async (payload: SubmitRequestPayload, clientAlias?: string): Promise<BnplAssessmentOutput> => {
+      const targetAlias = clientAlias || alias;
+      
+      // In a real app, you'd fetch this data from the backend for the targetAlias
+      const user = users.find(u => u.alias === targetAlias);
+      const userBalance = user ? user.balance : balance;
+      const userTransactions = user ? user.transactions : transactions;
+
+
+      const transactionHistory = userTransactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
 
       const assessmentInput: BnplAssessmentInput = {
-        alias,
+        alias: targetAlias,
         purchaseAmount: payload.amount,
         downPayment: payload.downPayment,
-        currentBalance: balance,
+        currentBalance: userBalance,
         transactionHistory,
         installmentsCount: payload.installmentsCount,
         marginRate: payload.marginRate,
@@ -122,7 +132,7 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
       const newRequest: BnplRequest = {
           id: `bnpl-${Date.now()}`,
-          alias,
+          alias: targetAlias,
           merchantAlias: payload.merchantAlias,
           amount: financedAmount,
           status: assessmentResult.status,
@@ -135,39 +145,42 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          // Pay the down payment immediately if exists
-          if(payload.downPayment && payload.downPayment > 0) {
-            debit(payload.downPayment);
-            addTransaction({
-              type: 'sent',
-              counterparty: payload.merchantAlias,
-              reason: `Avance pour achat BNPL`,
-              amount: payload.downPayment,
-              date: new Date().toISOString(),
-              status: 'Terminé'
-            });
+          // This logic now needs to handle transactions for a potentially different user
+          // For simplicity in this prototype, we'll assume the action is on the currently logged-in user if no clientAlias is passed.
+          // A real implementation would require backend transactions.
+          if (targetAlias === alias) {
+             if(payload.downPayment && payload.downPayment > 0) {
+                debit(payload.downPayment);
+                addTransaction({
+                  type: 'sent',
+                  counterparty: payload.merchantAlias,
+                  reason: `Avance pour achat BNPL`,
+                  amount: payload.downPayment,
+                  date: new Date().toISOString(),
+                  status: 'Terminé'
+                });
+              }
+              credit(financedAmount);
+              addTransaction({
+                  type: 'received',
+                  counterparty: 'Credit Marchands',
+                  reason: `Crédit approuvé pour achat chez ${payload.merchantAlias}`,
+                  amount: financedAmount,
+                  date: new Date().toISOString(),
+                  status: 'Terminé'
+              });
+              debit(financedAmount);
+              addTransaction({
+                type: 'sent',
+                counterparty: payload.merchantAlias,
+                reason: `Achat financé par crédit`,
+                amount: financedAmount,
+                date: new Date().toISOString(),
+                status: 'Terminé'
+              });
+          } else {
+              toast({ title: "Approuvé (Admin)", description: "La demande a été approuvée. Les transactions seraient effectuées pour le client dans un vrai système." });
           }
-
-          // Credit the user with the financed amount and then pay the merchant
-          credit(financedAmount);
-          addTransaction({
-              type: 'received',
-              counterparty: 'Credit Marchands',
-              reason: `Crédit approuvé pour achat chez ${payload.merchantAlias}`,
-              amount: financedAmount,
-              date: new Date().toISOString(),
-              status: 'Terminé'
-          });
-
-          debit(financedAmount);
-          addTransaction({
-            type: 'sent',
-            counterparty: payload.merchantAlias,
-            reason: `Achat financé par crédit`,
-            amount: financedAmount,
-            date: new Date().toISOString(),
-            status: 'Terminé'
-          });
       }
 
       return assessmentResult;

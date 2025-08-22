@@ -35,6 +35,7 @@ const financingTypeSchema = z.enum(['bnpl', 'mourabaha', 'ijara', 'moudaraba']);
 
 const baseSchema = z.object({
   financingType: financingTypeSchema,
+  clientAlias: z.string().optional(),
 });
 
 const bnplSchema = baseSchema.extend({
@@ -67,6 +68,7 @@ export type CreditProposalPrefill = Omit<Extract<UnifiedFormValues, { financingT
 type UnifiedFinancingFormProps = {
   onBack: () => void;
   prefillData?: CreditProposalPrefill | null;
+  isAdminMode?: boolean;
 };
 
 // --- Constants & Helpers ---
@@ -183,7 +185,7 @@ const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: an
 }
 
 // --- Main Form Component ---
-export default function UnifiedFinancingForm({ onBack, prefillData = null }: UnifiedFinancingFormProps) {
+export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdminMode = false }: UnifiedFinancingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [assessmentResult, setAssessmentResult] = useState<BnplAssessmentOutput | IslamicFinancingOutput | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -207,6 +209,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
         repaymentFrequency: "weekly",
         installmentsCount: 17,
         firstInstallmentDate: undefined,
+        clientAlias: '',
     },
   });
   
@@ -274,7 +277,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
                 amount: values.amount,
                 durationMonths: values.durationMonths,
                 purpose: values.purpose,
-            });
+            }, values.clientAlias);
             setAssessmentResult(result);
         } catch(e) {
             console.error(e);
@@ -298,7 +301,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
             marginRate: marginRate,
             repaymentFrequency: formValuesForConfirmation.repaymentFrequency,
             firstInstallmentDate: formValuesForConfirmation.firstInstallmentDate.toISOString(),
-        });
+        }, formValuesForConfirmation.clientAlias);
         setAssessmentResult(result);
     } catch(e) {
         console.error(e);
@@ -327,6 +330,19 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {isAdminMode && (
+             <FormField
+                control={form.control}
+                name="clientAlias"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Alias du Client</FormLabel>
+                        <FormControl><Input placeholder="Entrez l'alias du client" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+        )}
         <FormField
           control={form.control}
           name="financingType"
@@ -474,7 +490,7 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null }: Uni
 
         <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
             <DialogContent className="max-w-xl">
-                <ConfirmationDialogContent
+                 <ConfirmationDialogContent
                     values={formValuesForConfirmation}
                     onConfirm={onConfirmBnplSubmit}
                     onCancel={() => setShowConfirmation(false)}

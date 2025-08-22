@@ -7,6 +7,7 @@ import { useTransactions } from './use-transactions';
 import { useBalance } from './use-balance';
 import { toast } from './use-toast';
 import type { FinancingRequest, IslamicFinancingOutput, IslamicFinancingInput } from '@/lib/types';
+import { useUserManagement } from './use-user-management';
 
 type SubmitRequestPayload = {
     financingType: string;
@@ -18,7 +19,7 @@ type SubmitRequestPayload = {
 type IslamicFinancingContextType = {
   allRequests: FinancingRequest[];
   myRequests: FinancingRequest[];
-  submitRequest: (payload: SubmitRequestPayload) => Promise<IslamicFinancingOutput>;
+  submitRequest: (payload: SubmitRequestPayload, clientAlias?: string) => Promise<IslamicFinancingOutput>;
   updateRequestStatus: (id: string, status: 'approved' | 'rejected') => void;
 };
 
@@ -36,6 +37,7 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
   const [isInitialized, setIsInitialized] = useState(false);
   const { transactions, addTransaction } = useTransactions();
   const { balance, credit } = useBalance();
+  const { users } = useUserManagement();
 
   useEffect(() => {
     try {
@@ -64,16 +66,21 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
       return allRequests.filter(req => req.alias === alias);
   }, [allRequests, alias]);
   
-  const submitRequest = async (payload: SubmitRequestPayload): Promise<IslamicFinancingOutput> => {
-      const transactionHistory = transactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
+  const submitRequest = async (payload: SubmitRequestPayload, clientAlias?: string): Promise<IslamicFinancingOutput> => {
+      const targetAlias = clientAlias || alias;
+      const user = users.find(u => u.alias === targetAlias);
+      const userBalance = user ? user.balance : balance;
+      const userTransactions = user ? user.transactions : transactions;
+      
+      const transactionHistory = userTransactions.slice(0, 10).map(t => ({ amount: t.amount, type: t.type, date: t.date }));
 
       const assessmentInput: IslamicFinancingInput = {
-        alias,
+        alias: targetAlias,
         financingType: payload.financingType,
         amount: payload.amount,
         durationMonths: payload.durationMonths,
         purpose: payload.purpose,
-        currentBalance: balance,
+        currentBalance: userBalance,
         transactionHistory,
       }
 
@@ -81,7 +88,7 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
 
       const newRequest: FinancingRequest = {
           id: `fin-${Date.now()}`,
-          alias,
+          alias: targetAlias,
           ...payload,
           status: assessmentResult.status,
           reason: assessmentResult.reason,
@@ -92,15 +99,19 @@ export const IslamicFinancingProvider = ({ children, alias }: IslamicFinancingPr
       setAllRequests(prev => [...prev, newRequest]);
       
       if (assessmentResult.status === 'approved') {
-          credit(payload.amount);
-          addTransaction({
-              type: 'received',
-              counterparty: 'Financement Islamique',
-              reason: `Financement approuvé pour: ${payload.purpose}`,
-              amount: payload.amount,
-              date: new Date().toISOString(),
-              status: 'Terminé'
-          });
+          if (targetAlias === alias) {
+              credit(payload.amount);
+              addTransaction({
+                  type: 'received',
+                  counterparty: 'Financement Islamique',
+                  reason: `Financement approuvé pour: ${payload.purpose}`,
+                  amount: payload.amount,
+                  date: new Date().toISOString(),
+                  status: 'Terminé'
+              });
+          } else {
+              toast({ title: "Approuvé (Admin)", description: "La demande a été approuvée. Les transactions seraient effectuées pour le client dans un vrai système." });
+          }
       }
 
       return assessmentResult;
