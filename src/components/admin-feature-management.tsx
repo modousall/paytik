@@ -15,8 +15,6 @@ import { useBnpl } from '@/hooks/use-bnpl';
 import { formatCurrency } from '@/lib/utils';
 import { useIslamicFinancing } from '@/hooks/use-islamic-financing';
 import AdminProductManagement from './admin-product-management';
-import AdminFinancingManagement from './admin-financing-management';
-import AdminFinancingHub from './admin-financing-hub';
 
 const KPICard = ({ title, value, icon, isEnabled, onToggle, description, featureKey, onClick }: { title: string, value: string, icon: JSX.Element, isEnabled?: boolean, onToggle?: (feature: Feature, value: boolean) => void, description: string, featureKey?: Feature, onClick?: () => void }) => (
     <Card className={`flex flex-col ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`} onClick={onClick}>
