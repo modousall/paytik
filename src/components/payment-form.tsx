@@ -176,7 +176,7 @@ export default function PaymentForm() {
             name="recipientAlias"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Alias, N° ou Code Marchand</FormLabel>
+                <FormLabel>Alias ou N° du destinataire</FormLabel>
                 <div className="flex gap-2">
                     <AliasSelector 
                         value={field.value}
