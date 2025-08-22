@@ -2,10 +2,10 @@
 "use client";
 
 import type { FinancingRequest, FinancingStatus } from "@/lib/types";
-import { DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Check, X, Hourglass, Calendar, Info } from 'lucide-react';
+import { Check, X, Hourglass, Calendar, Info, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
@@ -53,7 +53,7 @@ const RepaymentSchedule = ({ plan }: { plan: string }) => {
     )
 }
 
-export default function FinancingRequestDetails({ request }: { request: FinancingRequest }) {
+export default function FinancingRequestDetails({ request, onBack }: { request: FinancingRequest, onBack: () => void }) {
     const statusInfo = statusConfig[request.status];
     
     return (
@@ -89,8 +89,11 @@ export default function FinancingRequestDetails({ request }: { request: Financin
                     </div>
                 )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="justify-between">
                 <Button variant="outline">Besoin d'aide ?</Button>
+                <DialogClose asChild>
+                    <Button variant="ghost">Fermer</Button>
+                </DialogClose>
             </DialogFooter>
         </>
     )

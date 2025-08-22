@@ -85,8 +85,8 @@ export default function MyFinancingRequests({ onBack, isStandalone = true }: MyF
                                 </TableRow>
                             </DialogTrigger>
                             <DialogContent>
-                                {isBnpl && bnplReq && <CreditRequestDetails request={bnplReq} />}
-                                {!isBnpl && finReq && <FinancingRequestDetails request={finReq} />}
+                                {isBnpl && bnplReq && <CreditRequestDetails request={bnplReq} onBack={() => {}} />}
+                                {!isBnpl && finReq && <FinancingRequestDetails request={finReq} onBack={() => {}}/>}
                             </DialogContent>
                         </Dialog>
                     )

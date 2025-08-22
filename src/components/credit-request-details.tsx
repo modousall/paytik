@@ -3,10 +3,10 @@
 "use client";
 
 import type { BnplRequest, BnplStatus } from "@/lib/types";
-import { DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
+import { DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Check, X, Hourglass, CheckCircle, Clock, Calendar, Info } from 'lucide-react';
+import { Check, X, Hourglass, CheckCircle, Clock, Calendar, Info, ArrowLeft } from 'lucide-react';
 import { Progress } from "./ui/progress";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -55,7 +55,7 @@ const RepaymentSchedule = ({ plan }: { plan: string }) => {
     )
 }
 
-export default function CreditRequestDetails({ request }: { request: BnplRequest }) {
+export default function CreditRequestDetails({ request, onBack }: { request: BnplRequest, onBack: () => void }) {
     const statusInfo = statusConfig[request.status];
     const repaidAmount = request.repaidAmount ?? 0;
     const progress = request.status === 'approved' ? (repaidAmount / request.amount) * 100 : 0;
@@ -111,8 +111,11 @@ export default function CreditRequestDetails({ request }: { request: BnplRequest
                 )}
 
             </div>
-            <DialogFooter>
-                <Button variant="outline">Besoin d'aide ?</Button>
+            <DialogFooter className="justify-between">
+                <Button variant="outline" onClick={onBack}>Besoin d'aide ?</Button>
+                <DialogClose asChild>
+                    <Button variant="ghost">Fermer</Button>
+                </DialogClose>
             </DialogFooter>
         </>
     )
