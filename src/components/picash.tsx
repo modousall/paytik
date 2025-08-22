@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Copy, QrCode, ScanLine } from 'lucide-react';
+import { ArrowLeft, Loader2, Copy, QrCode, ScanLine, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -32,7 +33,6 @@ type PicashProps = {
 
 export default function PICASH({ onBack, userInfo }: PicashProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [operationDetails, setOperationDetails] = useState<{amount: number, client: ManagedUser} | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scannedClient, setScannedClient] = useState<ManagedUser | null>(null);
@@ -92,10 +92,8 @@ export default function PICASH({ onBack, userInfo }: PicashProps) {
     };
     localStorage.setItem(merchantTxKey, JSON.stringify([merchantNewTx, ...merchantTxs]));
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
     setOperationDetails({ amount: values.amount, client: scannedClient });
-    toast({ title: 'Opération réussie', description: `Un code a été généré pour valider l'opération.` });
+    toast({ title: 'Opération réussie', description: `Vous avez été crédité de ${formatCurrency(values.amount)}.` });
   }
 
   const onSubmit = (values: PicashFormValues) => {
@@ -106,14 +104,7 @@ export default function PICASH({ onBack, userInfo }: PicashProps) {
     }, 1500);
   };
   
-  const handleCopyCode = () => {
-    if(!generatedCode) return;
-    navigator.clipboard.writeText(generatedCode);
-    toast({ title: "Copié !", description: "Le code de validation a été copié." });
-  }
-
   const resetForm = () => {
-    setGeneratedCode(null);
     setOperationDetails(null);
     setScannedClient(null);
     form.reset();
@@ -135,7 +126,7 @@ export default function PICASH({ onBack, userInfo }: PicashProps) {
     setIsScannerOpen(false);
   }
 
-  if (generatedCode && operationDetails) {
+  if (operationDetails) {
     return (
         <div>
             <div className="flex items-center gap-4 mb-6">
@@ -146,19 +137,14 @@ export default function PICASH({ onBack, userInfo }: PicashProps) {
             </div>
             <Card className="max-w-sm mx-auto text-center">
                 <CardHeader>
-                    <CardTitle>Retrait pour {operationDetails.client.name}</CardTitle>
+                    <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4"/>
+                    <CardTitle>Retrait pour {operationDetails.client.name} terminé</CardTitle>
                     <CardDescription>
-                        L'opération de {formatCurrency(operationDetails.amount)} a été effectuée. Remettez l'argent au client.
+                        Vous avez remis {formatCurrency(operationDetails.amount)} au client. Votre solde a été crédité.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className='text-sm'>Code de validation de la transaction :</p>
-                    <div className="bg-muted p-4 rounded-lg my-2">
-                        <p className="text-3xl font-bold tracking-widest">{generatedCode}</p>
-                    </div>
-                    <Button onClick={handleCopyCode} variant="outline" className="mt-4">
-                        <Copy className="mr-2" /> Copier le code
-                    </Button>
+                    <Button onClick={resetForm} className="w-full">Nouvelle Opération</Button>
                 </CardContent>
             </Card>
         </div>

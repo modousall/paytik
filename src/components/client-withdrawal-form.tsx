@@ -20,7 +20,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
 import QrCodeDisplay from './qr-code-display';
-import { Label } from './ui/label';
+import { Label } from '@/components/ui/label';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import TransactionReceipt from './transaction-receipt';
@@ -161,6 +161,7 @@ export default function ClientWithdrawalForm({ onBack, withdrawalType, alias }: 
                 addTransaction(tx);
                 setTransactionForReceipt({...tx, id: `TXN${Date.now()}`});
                 toast({ title: 'Retrait Effectué!', description: `Vous avez retiré ${formatCurrency(operationDetails.amount)}.`});
+                // In a real app, we would show a success screen, but for the demo we go back
                 onBack();
             } else { // Generate a code if alias was selected manually
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
