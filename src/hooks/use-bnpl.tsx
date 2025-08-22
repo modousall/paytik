@@ -211,7 +211,9 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
             
             // 1. Credit the user's balance
             const userBalanceKey = `midi_balance_${userToCredit.alias}`;
-            const userNewBalance = (userToCredit.balance || 0) + requestToUpdate.amount;
+            const userCurrentBalanceStr = localStorage.getItem(userBalanceKey);
+            const userCurrentBalance = userCurrentBalanceStr ? JSON.parse(userCurrentBalanceStr) : 0;
+            const userNewBalance = userCurrentBalance + requestToUpdate.amount;
             localStorage.setItem(userBalanceKey, JSON.stringify(userNewBalance));
 
             // 2. Add transaction for user to see the credit
@@ -246,7 +248,9 @@ export const BnplProvider = ({ children, alias }: BnplProviderProps) => {
 
             // 4. Credit the merchant's balance
             const merchantBalanceKey = `midi_balance_${merchantToPay.alias}`;
-            const newMerchantBalance = (merchantToPay.balance || 0) + requestToUpdate.amount;
+            const merchantCurrentBalanceStr = localStorage.getItem(merchantBalanceKey);
+            const merchantCurrentBalance = merchantCurrentBalanceStr ? JSON.parse(merchantCurrentBalanceStr) : 0;
+            const newMerchantBalance = merchantCurrentBalance + requestToUpdate.amount;
             localStorage.setItem(merchantBalanceKey, JSON.stringify(newMerchantBalance));
 
             // 5. Add transaction for merchant to see the sale

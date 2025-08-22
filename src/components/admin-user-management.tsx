@@ -39,10 +39,9 @@ export default function AdminUserManagement() {
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => 
-            !user.role.includes('merchant') && // Exclude merchants from this list
-            (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.alias.toLowerCase().includes(searchTerm.toLowerCase()))
+            user.alias.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [users, searchTerm]);
     
@@ -95,7 +94,7 @@ export default function AdminUserManagement() {
                                     <DialogHeader>
                                         <DialogTitle>Créer un nouvel utilisateur interne</DialogTitle>
                                     </DialogHeader>
-                                    <AdminCreateUserForm onUserCreated={handleUserCreated} />
+                                    <AdminCreateUserForm onUserCreated={handleUserCreated} allowedRoles={['support', 'admin', 'merchant']} />
                                 </DialogContent>
                             </Dialog>
                         </div>
