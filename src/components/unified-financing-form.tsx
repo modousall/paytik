@@ -9,7 +9,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Info, CheckCircle, XCircle, Hourglass, CalendarIcon, Banknote, QrCode } from 'lucide-react';
+import { Loader2, Info, CheckCircle, XCircle, Hourglass, CalendarIcon, Banknote, QrCode, ScanLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from './ui/dialog';
@@ -28,6 +28,8 @@ import { Textarea } from './ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
 import { MerchantSelector } from './merchant-selector';
+import { useUserManagement } from '@/hooks/use-user-management';
+import QrCodeDisplay from './qr-code-display';
 
 
 // --- Zod Schemas ---
@@ -194,6 +196,16 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
   const { toast } = useToast();
   const bnpl = useBnpl();
   const islamicFinancing = useIslamicFinancing();
+  const { users } = useUserManagement();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const lastAlias = localStorage.getItem('midi_last_alias');
+    if (lastAlias) {
+      const user = users.find(u => u.alias === lastAlias);
+      setCurrentUser(user);
+    }
+  }, [users]);
 
   const form = useForm<UnifiedFormValues>({
     resolver: zodResolver(unifiedSchema),
@@ -375,15 +387,28 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
                                 onChange={field.onChange}
                                 disabled={!!prefillData}
                             />
-                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                            <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="icon" aria-label="Scanner" disabled={!!prefillData}><QrCode /></Button>
+                                    <Button type="button" variant="outline" size="icon" aria-label="QR Code" disabled={!!prefillData}>
+                                        <QrCode />
+                                    </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-md p-0">
-                                    <DialogHeader>
-                                        <DialogTitle>Scanner un Code QR</DialogTitle>
+                                <DialogContent className="max-w-xs p-4">
+                                    <DialogHeader className="mb-4">
+                                        <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
                                     </DialogHeader>
-                                    <QRCodeScanner onScan={handleScannedCode}/>
+                                    {currentUser && (
+                                        <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
+                                    )}
+                                     <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-md p-0">
+                                            <DialogHeader className="p-4"><DialogTitle>Scanner un code QR</DialogTitle></DialogHeader>
+                                            <QRCodeScanner onScan={handleScannedCode}/>
+                                        </DialogContent>
+                                    </Dialog>
                                 </DialogContent>
                             </Dialog>
                         </div>

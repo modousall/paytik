@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { paymentSecurityAssistant } from '@/ai/flows/payment-security-assistant';
 import type { PaymentSecurityAssistantOutput } from '@/ai/flows/payment-security-assistant';
 import SecurityAssistantDialog from './security-assistant-dialog';
-import { Loader2, ClipboardPaste, QrCode } from 'lucide-react';
+import { Loader2, ClipboardPaste, QrCode, ScanLine } from 'lucide-react';
 import { useTransactions } from '@/hooks/use-transactions';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import QRCodeScanner from './qr-code-scanner';
@@ -22,6 +22,8 @@ import UnifiedFinancingForm from './unified-financing-form';
 import { formatCurrency } from '@/lib/utils';
 import type { CreditProposalPrefill } from './unified-financing-form';
 import { MerchantSelector } from './merchant-selector';
+import { useUserManagement } from '@/hooks/use-user-management';
+import QrCodeDisplay from './qr-code-display';
 
 export const creditProposalSchema = z.object({
   type: z.literal('bnpl_proposal'),
@@ -53,6 +55,16 @@ export default function PaymentForm() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const { toast } = useToast();
   const { addTransaction } = useTransactions();
+  const { users } = useUserManagement();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  React.useEffect(() => {
+    const lastAlias = localStorage.getItem('midi_last_alias');
+    if (lastAlias) {
+      const user = users.find(u => u.alias === lastAlias);
+      setCurrentUser(user);
+    }
+  }, [users]);
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
@@ -173,18 +185,29 @@ export default function PaymentForm() {
                     <Button type="button" variant="outline" size="icon" onClick={handlePaste} aria-label="Coller">
                       <ClipboardPaste />
                     </Button>
-                    <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
-                      <DialogTrigger asChild>
-                          <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
-                              <QrCode />
-                          </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md p-0">
-                          <DialogHeader className="p-4">
-                              <DialogTitle>Scanner un code QR</DialogTitle>
-                          </DialogHeader>
-                          <QRCodeScanner onScan={handleScannedCode}/>
-                      </DialogContent>
+                     <Dialog>
+                        <DialogTrigger asChild>
+                            <Button type="button" variant="outline" size="icon" aria-label="QR Code">
+                                <QrCode />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xs p-4">
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
+                            </DialogHeader>
+                            {currentUser && (
+                                <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
+                            )}
+                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md p-0">
+                                    <DialogHeader className="p-4"><DialogTitle>Scanner un code QR</DialogTitle></DialogHeader>
+                                    <QRCodeScanner onScan={handleScannedCode}/>
+                                </DialogContent>
+                            </Dialog>
+                        </DialogContent>
                     </Dialog>
                   </div>
                 <FormMessage />

@@ -1,14 +1,15 @@
 
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ArrowLeft, Loader2, Copy, QrCode } from 'lucide-react';
+import { ArrowLeft, Loader2, Copy, QrCode, ScanLine } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useBalance } from '@/hooks/use-balance';
@@ -17,6 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import QRCodeScanner from './qr-code-scanner';
 import { formatCurrency } from '@/lib/utils';
 import { MerchantSelector } from './merchant-selector';
+import { useUserManagement } from '@/hooks/use-user-management';
+import QrCodeDisplay from './qr-code-display';
 
 const picashFormSchema = z.object({
   alias: z.string().min(1, { message: "L'alias est requis." }),
@@ -57,6 +60,16 @@ export default function PICASH({ onBack, mode }: PicashProps) {
   const { balance, debit } = useBalance();
   const { addTransaction } = useTransactions();
   const config = formConfig[mode];
+  const { users } = useUserManagement();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const lastAlias = localStorage.getItem('midi_last_alias');
+    if (lastAlias) {
+      const user = users.find(u => u.alias === lastAlias);
+      setCurrentUser(user);
+    }
+  }, [users]);
 
   const form = useForm<PicashFormValues>({
     resolver: zodResolver(picashFormSchema),
@@ -179,17 +192,28 @@ export default function PICASH({ onBack, mode }: PicashProps) {
                     ) : (
                         <Input placeholder={config.aliasPlaceholder} {...field} />
                     )}
-                    <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                    <Dialog>
                         <DialogTrigger asChild>
                             <Button type="button" variant="outline" size="icon" aria-label="Scanner le QR Code">
                                 <QrCode />
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-md p-0">
-                            <DialogHeader className="p-4">
-                                <DialogTitle>Scanner le code QR</DialogTitle>
+                        <DialogContent className="max-w-xs p-4">
+                            <DialogHeader className="mb-4">
+                                <DialogTitle className="text-center">Mon Code Midi</DialogTitle>
                             </DialogHeader>
-                            <QRCodeScanner onScan={handleScannedCode}/>
+                             {currentUser && (
+                                <QrCodeDisplay alias={currentUser.alias} userInfo={currentUser} simpleMode={true} />
+                            )}
+                            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="secondary" className="w-full mt-4"><ScanLine className="mr-2"/>Scanner un code</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md p-0">
+                                    <DialogHeader className="p-4"><DialogTitle>Scanner le code QR</DialogTitle></DialogHeader>
+                                    <QRCodeScanner onScan={handleScannedCode}/>
+                                </DialogContent>
+                            </Dialog>
                         </DialogContent>
                     </Dialog>
                 </div>
