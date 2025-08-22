@@ -17,7 +17,8 @@ import Financing from './financing';
 import Epargne from './epargne';
 import MyFinancingRequests from './my-financing-requests';
 import WithdrawOptions from './withdraw-options';
-import BillPaymentForm from './bill-payment-form';
+import Paiement from './paiement';
+
 
 type UserInfo = {
     name: string;
@@ -32,7 +33,7 @@ type DashboardProps = {
 };
 
 type View = 'dashboard' | 'profile' | 'settings' | 'merchants';
-type ActiveAction = 'none' | 'payer' | 'recharger' | 'retirer' | 'facture';
+type ActiveAction = 'none' | 'transferer' | 'recharger' | 'retirer' | 'paiement';
 type ActiveService = 'ma-carte' | 'epargne' | 'financement' | null;
 
 export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps) {
@@ -94,14 +95,14 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
         }
         if (activeAction !== 'none') {
              switch (activeAction) {
-                case 'payer':
+                case 'transferer':
                     return <PayerTransferer onBack={() => setActiveAction('none')} />
                 case 'recharger':
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
                 case 'retirer':
                     return <WithdrawOptions onBack={() => setActiveAction('none')} alias={alias} userInfo={userInfo} />
-                case 'facture':
-                    return <BillPaymentForm onBack={() => setActiveAction('none')} />
+                case 'paiement':
+                    return <Paiement onBack={() => setActiveAction('none')} />
                 default:
                     setActiveAction('none');
             }
@@ -112,10 +113,10 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 <DashboardHeader userInfo={userInfo} alias={alias} onProfileClick={() => onNavigateTo('profile')} />
                 
                 <HomeActions 
-                    onSendClick={() => setActiveAction('payer')} 
+                    onSendClick={() => setActiveAction('transferer')} 
                     onRechargeClick={() => setActiveAction('recharger')}
                     onWithdrawClick={() => setActiveAction('retirer')}
-                    onBillPayClick={() => setActiveAction('facture')}
+                    onBillPayClick={() => setActiveAction('paiement')}
                     onFinancingClick={() => setActiveService('financement')}
                     alias={alias}
                     userInfo={userInfo}
@@ -135,5 +136,3 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
     </div>
   );
 }
-
-    
