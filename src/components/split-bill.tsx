@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Separator } from './ui/separator';
 import { DialogClose } from './ui/dialog';
 import { formatCurrency } from '@/lib/utils';
+import { Avatar, AvatarFallback } from './ui/avatar';
 
 const splitBillSchema = z.object({
   totalAmount: z.coerce.number().positive({ message: "Le montant total doit être positif." }),
@@ -113,10 +114,17 @@ export default function SplitBill() {
                         return (
                           <FormItem
                             key={contact.id}
-                            className="flex flex-row items-center space-x-3 space-y-0 p-2 rounded-md hover:bg-secondary"
+                            className="flex flex-row items-center space-x-3 space-y-0 p-2 rounded-md hover:bg-secondary has-[:checked]:bg-secondary"
                           >
+                             <Avatar className="h-9 w-9">
+                                <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <FormLabel className="font-normal flex-grow cursor-pointer py-2">
+                              {contact.name} <span className="text-muted-foreground">({contact.alias})</span>
+                            </FormLabel>
                             <FormControl>
                               <Checkbox
+                                className='h-5 w-5'
                                 checked={field.value?.includes(contact.id)}
                                 onCheckedChange={(checked) => {
                                   return checked
@@ -129,15 +137,12 @@ export default function SplitBill() {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal flex-grow cursor-pointer">
-                              {contact.name} <span className="text-muted-foreground">({contact.alias})</span>
-                            </FormLabel>
                           </FormItem>
                         )
                       }}
                     />
                   )) : (
-                    <p className="text-sm text-muted-foreground text-center">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun contact trouvé. Veuillez en ajouter depuis l'onglet Profil.</p>
                   )}
                   </div>
                 </ScrollArea>
