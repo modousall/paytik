@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -123,7 +124,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
             addTransaction({
                 type: 'sent',
                 counterparty: `Coffre "${vaultName}"`,
-                reason: 'Approvisionnement',
+                reason: 'Approvisionnement Coffre',
                 date: new Date().toISOString(),
                 amount: amount,
                 status: 'Terminé',
@@ -133,7 +134,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
                 toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
                 return;
             }
-            withdrawFromVirtualCard(amount);
+            withdrawFromVirtualCard(amount, true); // silent withdraw for transfer
         }
         
         deposit(vaultId, amount);
@@ -153,7 +154,7 @@ const ManageVaultDialog = ({ vaultId, currentBalance, vaultName }: { vaultId: st
         addTransaction({
             type: 'received',
             counterparty: `Coffre "${vaultName}"`,
-            reason: 'Retrait',
+            reason: 'Retrait depuis Coffre',
             date: new Date().toISOString(),
             amount: amount,
             status: 'Terminé',

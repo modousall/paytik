@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -32,7 +33,7 @@ type VirtualCardContextType = {
   toggleFreeze: () => void;
   deleteCard: () => void;
   rechargeCard: (amount: number) => void;
-  withdrawFromCard: (amount: number) => void;
+  withdrawFromCard: (amount: number, silent?: boolean) => void;
 };
 
 const VirtualCardContext = createContext<VirtualCardContextType | undefined>(undefined);
@@ -165,10 +166,9 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
     }
   }
 
-  const withdrawFromCard = (amount: number) => {
+  const withdrawFromCard = (amount: number, silent = false) => {
     if (card && amount > 0 && card.balance >= amount) {
         setCard(prevCard => prevCard ? { ...prevCard, balance: prevCard.balance - amount } : null);
-        creditMain(amount);
         
         const newTransaction: CardTransaction = {
             id: `vtx${Date.now()}`,
@@ -179,21 +179,26 @@ export const VirtualCardProvider = ({ children, alias }: { children: ReactNode, 
         };
         setTransactions(prev => [newTransaction, ...prev]);
 
-        addTransaction({
-            type: 'received',
-            counterparty: 'Carte Virtuelle',
-            reason: 'Retrait depuis Carte',
-            date: new Date().toISOString(),
-            amount: amount,
-            status: 'Terminé',
-        });
-
-        toast({
-            title: "Retrait réussi",
-            description: `${formatCurrency(amount)} ont été transférés sur votre solde principal.`
-        });
+        // This is done after card balance is updated
+        if (!silent) {
+            creditMain(amount);
+            addTransaction({
+                type: 'received',
+                counterparty: 'Carte Virtuelle',
+                reason: 'Retrait depuis Carte',
+                date: new Date().toISOString(),
+                amount: amount,
+                status: 'Terminé',
+            });
+            toast({
+                title: "Retrait réussi",
+                description: `${formatCurrency(amount)} ont été transférés sur votre solde principal.`
+            });
+        }
     } else if (card && amount > card.balance) {
-        toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
+        if (!silent) {
+            toast({ title: "Solde de la carte insuffisant", variant: "destructive"});
+        }
     }
   }
 
