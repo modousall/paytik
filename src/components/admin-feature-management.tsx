@@ -37,9 +37,8 @@ const KPICard = ({ title, value, icon, isEnabled, onToggle, description, feature
                         checked={isEnabled}
                         onCheckedChange={(val) => featureKey && onToggle(featureKey, val)}
                         aria-label={`Activer ou désactiver ${title}`}
-                        disabled={!featureKey}
                     />
-                    <Label htmlFor={featureKey} className={!featureKey ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}>{isEnabled ? "Activé" : "Désactivé"}</Label>
+                    <Label htmlFor={featureKey} className="cursor-pointer">{isEnabled ? "Activé" : "Désactivé"}</Label>
                 </div>
             )}
         </CardFooter>
@@ -70,11 +69,11 @@ export default function AdminFeatureManagement() {
   }, [users]);
   
   const allProducts = [
-    { featureKey: 'mainBalance', title: "Comptes Principaux", value: formatCurrency(kpis.mainBalance), icon: <Wallet/>, description: "Somme de tous les soldes principaux des utilisateurs." },
-    { featureKey: 'vaults', title: "Coffres / Tirelires", value: formatCurrency(kpis.vaults), icon: <PiggyBank />, description: "Permettre aux utilisateurs de créer des coffres d'épargne. Essentiel et ne peut être désactivé." },
-    { featureKey: 'virtualCards', title: "Cartes Virtuelles", value: formatCurrency(kpis.virtualCards), icon: <CreditCard/>, description: "Activer la création et l'utilisation de cartes virtuelles." },
-    { featureKey: 'tontine', title: "Tontines", value: formatCurrency(kpis.tontine), icon: <Users/>, description: "Permettre la création et la participation à des groupes d'épargne." },
-  ]
+    { featureKey: 'mainBalance', title: "Comptes Principaux", value: formatCurrency(kpis.mainBalance), icon: <Wallet/>, description: "Somme de tous les soldes principaux des utilisateurs.", isToggleable: false },
+    { featureKey: 'vaults', title: "Coffres / Tirelires", value: formatCurrency(kpis.vaults), icon: <PiggyBank />, description: "Permettre aux utilisateurs de créer des coffres d'épargne.", isToggleable: true },
+    { featureKey: 'virtualCards', title: "Cartes Virtuelles", value: formatCurrency(kpis.virtualCards), icon: <CreditCard/>, description: "Activer la création et l'utilisation de cartes virtuelles.", isToggleable: true },
+    { featureKey: 'tontine', title: "Tontines", value: formatCurrency(kpis.tontine), icon: <Users/>, description: "Permettre la création et la participation à des groupes d'épargne.", isToggleable: true },
+  ];
 
   const handleFeatureClick = (feature: 'mainBalance' | 'vaults' | 'virtualCards' | 'tontine') => {
       setSelectedFeature(feature);
@@ -116,9 +115,9 @@ export default function AdminFeatureManagement() {
                     value={product.value}
                     icon={product.icon}
                     description={product.description}
-                    isEnabled={flags[featureKey]}
-                    onToggle={setFlag}
-                    featureKey={featureKey}
+                    isEnabled={product.isToggleable ? flags[featureKey] : undefined}
+                    onToggle={product.isToggleable ? setFlag : undefined}
+                    featureKey={product.isToggleable ? featureKey : undefined}
                     onClick={isClickable ? () => handleFeatureClick(product.featureKey as any) : undefined}
                 />
             )
@@ -141,3 +140,5 @@ export default function AdminFeatureManagement() {
     </div>
   );
 }
+
+    
