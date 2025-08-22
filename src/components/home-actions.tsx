@@ -163,7 +163,7 @@ export default function HomeActions({ onSendClick, onRechargeClick, onWithdrawCl
     return (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 max-w-lg mx-auto">
             <Button size="lg" className="h-20 sm:h-16 w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm flex-col gap-1" onClick={onSendClick}>
-                <ArrowUp/> Envoyer
+                <ArrowUp/> Transfert
             </Button>
 
             <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={onBillPayClick}>
