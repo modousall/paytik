@@ -90,7 +90,7 @@ export default function AdminFeatureManagement() {
   }
   
   if (activeView === 'billers') {
-      return <AdminProductManagement />
+      return <AdminProductManagement onBack={handleBackToOverview} />
   }
 
   return (

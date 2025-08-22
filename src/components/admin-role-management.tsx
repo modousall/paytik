@@ -14,6 +14,7 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { useRoleManagement } from '@/hooks/use-role-management';
 import type { Role } from '@/hooks/use-role-management';
+import AdminCreateUserForm from './admin-create-user-form';
 
 const roleSchema = z.object({
   id: z.string().optional(),
@@ -132,17 +133,31 @@ export default function AdminRoleManagement() {
 
   return (
     <div>
-        <CardHeader className="px-0 flex-row justify-between items-start">
+        <div className="flex justify-between items-start mb-6">
             <div>
                 <CardTitle>Gestion des Rôles et Permissions</CardTitle>
                 <CardDescription>
                     Configurez les rôles et les permissions pour contrôler les accès à la plateforme.
                 </CardDescription>
             </div>
-            <Button onClick={() => openDialog()}>
-                <PlusCircle /> Créer un rôle
-            </Button>
-        </CardHeader>
+            <div className="flex items-center gap-2">
+                 <Button onClick={() => openDialog()}>
+                    <PlusCircle /> Créer un rôle
+                </Button>
+                 <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline"><PlusCircle/> Créer un utilisateur</Button>
+                    </DialogTrigger>
+                     <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Créer un nouvel utilisateur interne</DialogTitle>
+                        </DialogHeader>
+                        <AdminCreateUserForm onUserCreated={() => {}} />
+                    </DialogContent>
+                 </Dialog>
+            </div>
+        </div>
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {roles.map((role) => (
                 <Card key={role.id} className="flex flex-col">

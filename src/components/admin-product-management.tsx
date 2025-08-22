@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -232,7 +233,7 @@ const ProductTable = ({
     )
 }
 
-export default function AdminProductManagement() {
+export default function AdminProductManagement({ onBack }: { onBack: () => void }) {
   const { 
       billers, addBiller, removeBiller, updateBiller, settleBiller,
       mobileMoneyOperators, addMobileMoneyOperator, removeMobileMoneyOperator, updateMobileMoneyOperator, settleMobileMoneyOperator
@@ -287,12 +288,15 @@ export default function AdminProductManagement() {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
+       <div className="flex items-center gap-4">
+        <Button onClick={onBack} variant="outline" size="icon">
+          <ArrowLeft />
+        </Button>
+        <CardHeader className="p-0">
             <CardTitle>Gestion des Facturiers</CardTitle>
             <CardDescription>Configurez les services externes, leurs frais et commissions. Cliquez sur un facturier pour voir ses détails.</CardDescription>
         </CardHeader>
-      </Card>
+      </div>
       
       <ProductTable 
         title="Facturiers"
