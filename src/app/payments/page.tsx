@@ -1,7 +1,11 @@
+
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Zap, ArrowRight, ArrowLeft } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCms } from "@/hooks/use-cms";
 
 const features = [
     {
@@ -19,6 +23,8 @@ const features = [
 ];
 
 export default function PaymentsPage() {
+    const { content } = useCms();
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
              <main className="flex-grow container mx-auto px-4 py-12 md:py-24">
@@ -33,7 +39,7 @@ export default function PaymentsPage() {
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                      <div className="flex justify-center">
                         <Image
-                            src="https://placehold.co/600x400.png"
+                            src={content.images.payments}
                             alt="Illustration de paiement mobile"
                             width={500}
                             height={400}

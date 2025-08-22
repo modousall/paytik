@@ -15,6 +15,12 @@ export type CmsContent = {
     title: string;
     description: string;
   }[];
+  images: {
+    financing: string;
+    savings: string;
+    payments: string;
+    security: string;
+  };
 };
 
 export const defaultContent: CmsContent = {
@@ -49,6 +55,12 @@ export const defaultContent: CmsContent = {
       description: "Vos transactions sont protégées et conformes aux plus hauts standards de sécurité.",
     },
   ],
+  images: {
+    financing: "https://placehold.co/600x400.png",
+    savings: "https://placehold.co/600x400.png",
+    payments: "https://placehold.co/600x400.png",
+    security: "https://placehold.co/600x400.png",
+  }
 };
 
 const cmsStorageKey = 'midi_cms_content';
@@ -68,7 +80,15 @@ export const CmsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const storedContent = localStorage.getItem(cmsStorageKey);
       if (storedContent) {
-        setContentState(JSON.parse(storedContent));
+        const parsed = JSON.parse(storedContent);
+        // Merge with default to avoid missing keys if structure changed
+        setContentState({
+          ...defaultContent,
+          ...parsed,
+          hero: { ...defaultContent.hero, ...parsed.hero },
+          features: parsed.features || defaultContent.features,
+          images: { ...defaultContent.images, ...parsed.images }
+        });
       }
     } catch (error) {
       console.error("Failed to read CMS content from localStorage", error);
