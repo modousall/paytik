@@ -113,35 +113,14 @@ const RequestPaymentDialogContent = ({ alias, userInfo, onGenerate }: { alias: s
 
 export default function MerchantDashboard({ onLogout, userInfo, alias }: MerchantDashboardProps) {
     const [isProposalFormOpen, setIsProposalFormOpen] = useState(false);
-    const [activeAction, setActiveAction] = useState<'none' | 'compense' | 'retrait-client'>('none');
+    const [activeAction, setActiveAction] = useState<'none' | 'customer_withdrawal'>('none');
     const [paymentLink, setPaymentLink] = useState<string | null>(null);
     const { toast } = useToast();
-    
-    const handleShareLink = () => {
-        if (!paymentLink) return;
-        if (navigator.share) {
-            navigator.share({
-                title: 'Demande de paiement Midi',
-                text: `Veuillez me payer en utilisant ce lien : ${paymentLink}`,
-                url: paymentLink,
-            });
-        } else {
-            navigator.clipboard.writeText(paymentLink);
-            toast({ title: "Lien copié !", description: "Le lien de paiement a été copié dans le presse-papiers." });
-        }
-    };
   
-    if(activeAction === 'compense') {
-        return (
-            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <PICASH onBack={() => setActiveAction('none')} mode="compense"/>
-            </div>
-        )
-    }
-    if (activeAction === 'retrait-client') {
+    if (activeAction === 'customer_withdrawal') {
         return (
              <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <PICASH onBack={() => setActiveAction('none')} mode="customer_withdrawal"/>
+                <PICASH onBack={() => setActiveAction('none')} mode="customer_withdrawal" userInfo={userInfo}/>
             </div>
         )
     }
@@ -192,7 +171,11 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                                 </DialogHeader>
                                                 <Input readOnly value={paymentLink} />
                                                 <DialogFooter>
-                                                    <Button variant="secondary" onClick={handleShareLink}><LinkIcon className="mr-2"/> Partager</Button>
+                                                    <Button variant="secondary" onClick={() => {
+                                                        if (!paymentLink) return;
+                                                        navigator.clipboard.writeText(paymentLink);
+                                                        toast({ title: "Lien copié !", description: "Le lien de paiement a été copié dans le presse-papiers." });
+                                                    }}><LinkIcon className="mr-2"/> Copier & Partager</Button>
                                                 </DialogFooter>
                                             </DialogContent>
                                         ) : (
@@ -202,12 +185,7 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                             </DialogContent>
                                         )}
                                     </Dialog>
-                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('compense')}>
-                                        <Landmark/> Compense
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-                                     <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
+                                    <Dialog open={isProposalFormOpen} onOpenChange={setIsProposalFormOpen}>
                                         <DialogTrigger asChild>
                                             <Button size="lg" variant="secondary" className="bg-purple-600 text-white hover:bg-purple-700 h-20 sm:h-16 w-full flex-col gap-1">
                                                 <HandCoins/> Achat credit
@@ -219,7 +197,9 @@ export default function MerchantDashboard({ onLogout, userInfo, alias }: Merchan
                                             onClose={() => setIsProposalFormOpen(false)}
                                         />
                                      </Dialog>
-                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('retrait-client')}>
+                                </div>
+                                <div className="w-full max-w-sm">
+                                      <Button size="lg" variant="secondary" className="h-20 sm:h-16 w-full shadow-sm flex-col gap-1" onClick={() => setActiveAction('customer_withdrawal')}>
                                         <ArrowDownCircle/> Retrait client
                                     </Button>
                                 </div>

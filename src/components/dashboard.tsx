@@ -14,9 +14,9 @@ import { useFeatureFlags } from '@/hooks/use-feature-flags';
 import Settings from './settings';
 import MerchantList from './merchant-list';
 import Financing from './financing';
-import PICASH from './picash';
 import Epargne from './epargne';
 import MyFinancingRequests from './my-financing-requests';
+import WithdrawOptions from './withdraw-options';
 
 type UserInfo = {
     name: string;
@@ -98,7 +98,7 @@ export default function Dashboard({ alias, userInfo, onLogout }: DashboardProps)
                 case 'recharger':
                     return <RechargerCompte onBack={() => setActiveAction('none')} />
                 case 'retirer':
-                    return <PICASH onBack={() => setActiveAction('none')} mode="compense"/>
+                    return <WithdrawOptions onBack={() => setActiveAction('none')} alias={alias} userInfo={userInfo} />
                 default:
                     setActiveAction('none');
             }
