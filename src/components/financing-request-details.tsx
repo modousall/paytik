@@ -59,7 +59,12 @@ export default function FinancingRequestDetails({ request, onBack }: { request: 
     return (
         <>
             <DialogHeader>
-                <DialogTitle>Détails de la demande de Financement</DialogTitle>
+                <div className="flex items-center gap-4 mb-4">
+                    <Button onClick={onBack} variant="ghost" size="icon">
+                        <ArrowLeft />
+                    </Button>
+                    <DialogTitle>Détails de la demande de Financement</DialogTitle>
+                </div>
                 <DialogDescription>
                     Demande du {formatDate(request.requestDate)} par {request.alias}
                 </DialogDescription>
