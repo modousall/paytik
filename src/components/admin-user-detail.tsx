@@ -219,7 +219,7 @@ const MerchantCreditDetails = ({ requests }: { requests: BnplRequest[] }) => (
                             </TableRow>
                         </DialogTrigger>
                         <DialogContent>
-                            <CreditRequestDetails request={req} />
+                            <CreditRequestDetails request={req} onBack={() => {}} />
                         </DialogContent>
                     </Dialog>
                 ))}
