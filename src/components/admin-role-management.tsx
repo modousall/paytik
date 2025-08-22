@@ -111,6 +111,7 @@ const RoleDialog = ({
 export default function AdminRoleManagement() {
     const { roles, addRole, updateRole, removeRole } = useRoleManagement();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
     const [editingRole, setEditingRole] = useState<Partial<Role> | null>(null);
 
     const openDialog = (role: Partial<Role> | null = null) => {
@@ -144,7 +145,7 @@ export default function AdminRoleManagement() {
                  <Button onClick={() => openDialog()}>
                     <PlusCircle /> Créer un rôle
                 </Button>
-                 <Dialog>
+                 <Dialog open={isCreateUserOpen} onOpenChange={setIsCreateUserOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline"><PlusCircle/> Créer un utilisateur</Button>
                     </DialogTrigger>
@@ -152,7 +153,7 @@ export default function AdminRoleManagement() {
                         <DialogHeader>
                             <DialogTitle>Créer un nouvel utilisateur interne</DialogTitle>
                         </DialogHeader>
-                        <AdminCreateUserForm onUserCreated={() => {}} />
+                        <AdminCreateUserForm onUserCreated={() => setIsCreateUserOpen(false)} />
                     </DialogContent>
                  </Dialog>
             </div>

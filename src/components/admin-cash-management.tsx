@@ -194,7 +194,9 @@ export default function AdminCashManagement() {
                                 <DialogTrigger asChild>
                                     <Button variant="outline"><Calculator className="mr-2"/>Simulateur TEG</Button>
                                 </DialogTrigger>
-                                <AdminTegSimulator/>
+                                <DialogContent className="max-w-4xl h-[90vh]">
+                                    <AdminTegSimulator/>
+                                </DialogContent>
                             </Dialog>
                             <Dialog open={isOperationDialogOpen} onOpenChange={setIsOperationDialogOpen}>
                                 <DialogTrigger asChild>

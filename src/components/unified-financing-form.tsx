@@ -128,7 +128,7 @@ const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: an
 
 
     return (
-        <>
+        <DialogContent className="max-w-xl">
             <DialogHeader>
                 <DialogTitle>Confirmer la demande de crédit</DialogTitle>
                  <DialogDescription>
@@ -180,7 +180,7 @@ const ConfirmationDialogContent = ({ values, onConfirm, onCancel }: { values: an
                 <Button variant="ghost" onClick={onCancel}>Annuler</Button>
                 <Button onClick={onConfirm}>Confirmer et Soumettre</Button>
             </DialogFooter>
-        </>
+        </DialogContent>
     )
 }
 
@@ -380,6 +380,9 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
                                     <Button type="button" variant="outline" size="icon" aria-label="Scanner" disabled={!!prefillData}><QrCode /></Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-md p-0">
+                                    <DialogHeader>
+                                        <DialogTitle>Scanner un Code QR</DialogTitle>
+                                    </DialogHeader>
                                     <QRCodeScanner onScan={handleScannedCode}/>
                                 </DialogContent>
                             </Dialog>
@@ -489,13 +492,11 @@ export default function UnifiedFinancingForm({ onBack, prefillData = null, isAdm
         </Button>
 
         <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-            <DialogContent className="max-w-xl">
-                 <ConfirmationDialogContent
-                    values={formValuesForConfirmation}
-                    onConfirm={onConfirmBnplSubmit}
-                    onCancel={() => setShowConfirmation(false)}
-                />
-            </DialogContent>
+            <ConfirmationDialogContent
+                values={formValuesForConfirmation}
+                onConfirm={onConfirmBnplSubmit}
+                onCancel={() => setShowConfirmation(false)}
+            />
         </Dialog>
       </form>
     </Form>
