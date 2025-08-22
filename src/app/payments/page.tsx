@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, ArrowRight, ArrowLeft } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCms } from "@/hooks/use-cms";
+import { useCms, CmsProvider } from "@/hooks/use-cms";
 
 const features = [
     {
@@ -22,7 +22,7 @@ const features = [
       },
 ];
 
-export default function PaymentsPage() {
+function PaymentsPageContent() {
     const { content } = useCms();
 
     return (
@@ -70,4 +70,12 @@ export default function PaymentsPage() {
             </main>
         </div>
     );
+}
+
+export default function PaymentsPage() {
+    return (
+        <CmsProvider>
+            <PaymentsPageContent />
+        </CmsProvider>
+    )
 }

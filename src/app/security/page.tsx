@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, Lock, Fingerprint, ArrowLeft } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCms } from "@/hooks/use-cms";
+import { useCms, CmsProvider } from "@/hooks/use-cms";
 
 const features = [
     {
@@ -25,7 +25,7 @@ const features = [
       },
 ];
 
-export default function SecurityPage() {
+function SecurityPageContent() {
     const { content } = useCms();
 
     return (
@@ -73,4 +73,12 @@ export default function SecurityPage() {
             </main>
         </div>
     );
+}
+
+export default function SecurityPage() {
+    return (
+        <CmsProvider>
+            <SecurityPageContent />
+        </CmsProvider>
+    )
 }
