@@ -20,6 +20,7 @@ import { useBalance } from '@/hooks/use-balance';
 import { useTransactions } from '@/hooks/use-transactions';
 import { useUserManagement } from '@/hooks/use-user-management';
 import QrCodeDisplay from './qr-code-display';
+import { Label } from './ui/label';
 
 const withdrawalFormSchema = z.object({
   merchantAlias: z.string().min(1, { message: "Veuillez sélectionner un point de service." }),
